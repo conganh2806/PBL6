@@ -1,0 +1,34 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Version 17
+VisualStudioVersion = 17.0.31903.59
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Webnovel.API", "WebNovel.API\Webnovel.API.csproj", "{814377E6-A21F-4D3A-9E99-6AAB6861FDCA}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Webnovel.Database", "WebNovel.Database\Webnovel.Database.csproj", "{84F61397-DEAE-4E3B-AD84-80E8F02DDD60}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Webnovel.Commons", "WebNovel.Commons\Webnovel.Commons.csproj", "{9976E3D7-C46A-4EBE-83E9-5ACD75E1BAF1}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{814377E6-A21F-4D3A-9E99-6AAB6861FDCA}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{814377E6-A21F-4D3A-9E99-6AAB6861FDCA}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{814377E6-A21F-4D3A-9E99-6AAB6861FDCA}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{814377E6-A21F-4D3A-9E99-6AAB6861FDCA}.Release|Any CPU.Build.0 = Release|Any CPU
+		{84F61397-DEAE-4E3B-AD84-80E8F02DDD60}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{84F61397-DEAE-4E3B-AD84-80E8F02DDD60}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{84F61397-DEAE-4E3B-AD84-80E8F02DDD60}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{84F61397-DEAE-4E3B-AD84-80E8F02DDD60}.Release|Any CPU.Build.0 = Release|Any CPU
+		{9976E3D7-C46A-4EBE-83E9-5ACD75E1BAF1}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{9976E3D7-C46A-4EBE-83E9-5ACD75E1BAF1}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{9976E3D7-C46A-4EBE-83E9-5ACD75E1BAF1}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{9976E3D7-C46A-4EBE-83E9-5ACD75E1BAF1}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+EndGlobal
