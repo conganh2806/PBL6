@@ -5,6 +5,8 @@ using System.Threading.Tasks;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Storage;
 using WebNovel.API.Databases;
+using WebNovel.API.Databases.Entities;
+using WebNovel.API.Databases.Entitites;
 
 namespace Webnovel.API.Databases
 {
@@ -12,6 +14,9 @@ namespace Webnovel.API.Databases
     {
         public DataContext(DbContextOptions<DataContext> options) : base(options) { }
         
+        public DbSet<Account> Accounts {get; set;} = null!;
+        public DbSet<Roles> Roles {get; set;} = null!;
+
 
         /// <summary>
         /// Quy định định dạng dữ liệu và liên kết của các bảng.
@@ -108,5 +113,8 @@ namespace Webnovel.API.Databases
                 transaction.Rollback();
             }
         }
+
+
+
     }
 }

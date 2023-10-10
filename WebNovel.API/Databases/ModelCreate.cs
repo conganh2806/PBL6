@@ -2,7 +2,10 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
+using WebNovel.API.Databases.Entities;
+using WebNovel.API.Databases.Entitites;
 
 namespace WebNovel.API.Databases
 {
@@ -10,11 +13,11 @@ namespace WebNovel.API.Databases
     {
         public static ModelBuilder OnModelCreating(ModelBuilder modelBuilder)
         {
-            // modelBuilder.Entity<User>()
-            // .HasMany(e => e.Addresses)
-            // .WithOne(e => e.Commune)
-            // .HasForeignKey(e => e.CommuneId)
-            // .OnDelete(DeleteBehavior.NoAction);
+            modelBuilder.Entity<Account>()
+            .HasOne(e => e.Role)
+            .WithOne(e => e.Account)
+            .HasForeignKey<Account>(e => e.RoleId)
+            .OnDelete(DeleteBehavior.NoAction);
             return modelBuilder;
         }
     }
