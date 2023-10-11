@@ -15,8 +15,16 @@ namespace Webnovel.API.Databases
         public DataContext(DbContextOptions<DataContext> options) : base(options) { }
         
         public DbSet<Account> Accounts {get; set;} = null!;
-        public DbSet<Roles> Roles {get; set;} = null!;
+        public DbSet<Role> Roles {get; set;} = null!;
+        public DbSet<Novel> Novel {get; set;} = null!;
+        public DbSet<Genre> Genre {get; set;} = null!;
+        public DbSet<Bookmarked> BookMarked {get; set;} = null!;
+        public DbSet<Chapter> Chapter {get; set;} = null!;
+        public DbSet<Comment> Comment {get; set;} = null!;
+        public DbSet<UpdatedFee> UpdatedFee {get; set;} = null!;
+        public DbSet<UpdatedFee> Preferences {get; set;} = null!;
 
+        
 
         /// <summary>
         /// Quy định định dạng dữ liệu và liên kết của các bảng.

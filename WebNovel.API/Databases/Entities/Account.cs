@@ -9,6 +9,13 @@ namespace WebNovel.API.Databases.Entitites
 {
     public class Account : TableHaveIdInt
     {
+        public Account()
+        { 
+            Novels = new HashSet<Novel>();
+            Comments = new HashSet<Comment>();
+            Bookmarkeds = new HashSet<Bookmarked>();
+            Preferences = new HashSet<Preferences>();
+        } 
 
         [StringLength(100)]
         public string Username {get; set;} = null!;
@@ -17,13 +24,18 @@ namespace WebNovel.API.Databases.Entitites
         [StringLength(255)]
         public string Email {get; set;} = null!;
         public long RoleId {get; set;}
-        public virtual Roles Role {get; set;}
+        public virtual Role Role {get; set;} = null!;
         [StringLength(100)]
         public string NickName {get; set;} = null!;
         [DataType(DataType.Date)]
         public DateOnly DateJoined {get; set;}
         public bool Status {get; set;}
         public float WalletAmmount {get; set;} = 0.0f;
+        public long NovelId {get; set;}
+        public virtual ICollection<Novel> Novels {get; set;} = null!;
+        public virtual ICollection<Comment>? Comments {get; set;}
+        public virtual ICollection<Bookmarked>? Bookmarkeds {get; set;}
+        public virtual ICollection<Preferences>? Preferences {get; set;}        
 
     }
 }
