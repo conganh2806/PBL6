@@ -11,7 +11,7 @@ using Webnovel.API.Databases;
 namespace Webnovel.API.Databases.Migrations
 {
     [DbContext(typeof(DataContext))]
-    [Migration("20231010083022_InitialDB")]
+    [Migration("20231011082936_InitialDB")]
     partial class InitialDB
     {
         /// <inheritdoc />
@@ -24,11 +24,9 @@ namespace Webnovel.API.Databases.Migrations
 
             modelBuilder.Entity("WebNovel.API.Databases.Entities.Roles", b =>
                 {
-                    b.Property<long>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("bigint")
-                        .HasColumnOrder(1)
-                        .HasComment("Id định danh (khóa chính)");
+                    b.Property<string>("Id")
+                        .HasMaxLength(21)
+                        .HasColumnType("varchar(21)");
 
                     b.Property<DateTimeOffset>("CreatedAt")
                         .HasColumnType("datetime(6)")
@@ -68,9 +66,6 @@ namespace Webnovel.API.Databases.Migrations
                         .HasColumnType("datetime(6)")
                         .HasComment("Ngày tạo dữ liệu");
 
-                    b.Property<DateOnly>("DateJoined")
-                        .HasColumnType("date");
-
                     b.Property<bool>("DelFlag")
                         .HasColumnType("tinyint(1)")
                         .HasComment("Cờ xóa dữ liệu");
@@ -80,9 +75,17 @@ namespace Webnovel.API.Databases.Migrations
                         .HasComment("Ngày xoá dữ liệu");
 
                     b.Property<string>("Email")
-                        .IsRequired()
                         .HasMaxLength(255)
                         .HasColumnType("varchar(255)");
+
+                    b.Property<bool>("IsActive")
+                        .HasColumnType("tinyint(1)");
+
+                    b.Property<bool>("IsAdmin")
+                        .HasColumnType("tinyint(1)");
+
+                    b.Property<bool>("IsVerifyEmail")
+                        .HasColumnType("tinyint(1)");
 
                     b.Property<string>("NickName")
                         .IsRequired()
@@ -94,11 +97,15 @@ namespace Webnovel.API.Databases.Migrations
                         .HasMaxLength(255)
                         .HasColumnType("varchar(255)");
 
-                    b.Property<long>("RoleId")
-                        .HasColumnType("bigint");
+                    b.Property<string>("Phone")
+                        .HasColumnType("longtext");
 
-                    b.Property<bool>("Status")
-                        .HasColumnType("tinyint(1)");
+                    b.Property<string>("RoleId")
+                        .IsRequired()
+                        .HasColumnType("varchar(21)");
+
+                    b.Property<int>("Status")
+                        .HasColumnType("int");
 
                     b.Property<DateTimeOffset?>("UpdatedAt")
                         .HasColumnType("datetime(6)")

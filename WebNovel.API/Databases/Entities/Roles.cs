@@ -9,10 +9,15 @@ using WebNovel.API.Databases.Entitites;
 
 namespace WebNovel.API.Databases.Entities
 {
-    public class Roles : TableHaveIdInt
+    public class Roles : Table
     {
+        [Key]
+        [StringLength(21)]
+        public string Id {get; set;}
+
         [StringLength(100)]
         public string Name {get; set;} = null!;
+        
         public virtual Account Account {get; set;}
     }
 }

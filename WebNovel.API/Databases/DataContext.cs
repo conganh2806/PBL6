@@ -14,8 +14,9 @@ namespace Webnovel.API.Databases
     {
         public DataContext(DbContextOptions<DataContext> options) : base(options) { }
         
-        public DbSet<Account> Accounts {get; set;} = null!;
-        public DbSet<Roles> Roles {get; set;} = null!;
+        public virtual DbSet<Account> Accounts {get; set;} = null!;
+        public virtual DbSet<Roles> Roles {get; set;} = null!;
+        public virtual DbSet<ExceptionLog> ExceptionLogs { get; set; }
 
 
         /// <summary>
@@ -42,6 +43,11 @@ namespace Webnovel.API.Databases
         {
             OnBeforeSaving();
             return base.SaveChanges();
+        }
+        public override Task<int> SaveChangesAsync(CancellationToken cancellationToken = default(CancellationToken))
+        {
+            OnBeforeSaving();
+            return base.SaveChangesAsync(cancellationToken);
         }
 
         /// <summary>
