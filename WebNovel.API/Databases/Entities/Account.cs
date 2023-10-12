@@ -31,7 +31,6 @@ namespace WebNovel.API.Databases.Entitites
         public DateOnly DateJoined {get; set;}
         public bool Status {get; set;}
         public float WalletAmmount {get; set;} = 0.0f;
-        public long NovelId {get; set;}
         public virtual ICollection<Novel> Novels {get; set;} = null!;
         public virtual ICollection<Comment>? Comments {get; set;}
         public virtual ICollection<Bookmarked>? Bookmarkeds {get; set;}

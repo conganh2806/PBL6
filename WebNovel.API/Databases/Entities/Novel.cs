@@ -9,7 +9,6 @@ namespace WebNovel.API.Databases.Entitites
             this.Genres = new HashSet<Genre>();
             this.Comments = new HashSet<Comment>();
             this.Chapters = new HashSet<Chapter>();
-            this.Accounts = new HashSet<Account>();
             this.Preferences = new HashSet<Preferences>();
         }
 
@@ -30,7 +29,6 @@ namespace WebNovel.API.Databases.Entitites
         public virtual ICollection<Genre> Genres {get; set;} = null!;
         public virtual ICollection<Comment>? Comments {get; set;}
         public virtual ICollection<Chapter>? Chapters {get; set;} 
-        public virtual ICollection<Account>? Accounts {get; set;}
         public virtual ICollection<Preferences>? Preferences {get; set;}     
     }
 
