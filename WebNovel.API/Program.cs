@@ -1,5 +1,7 @@
 using Microsoft.EntityFrameworkCore;
 using Webnovel.API.Databases;
+using WebNovel.API.Areas.Models.Accounts;
+using WebNovel.API.Core.Services;
 
 var builder = WebApplication.CreateBuilder(args);
 var connectionString = builder.Configuration.GetConnectionString("DefaultConnection");
@@ -18,6 +20,8 @@ services.AddDbContext<DataContext>(
         .EnableSensitiveDataLogging()
         .EnableDetailedErrors()
 );
+services.AddScoped<IAccountModel, AccountModel>();
+services.AddScoped<ILogService, LogService>();
 var app = builder.Build();
 
 // Configure the HTTP request pipeline.
