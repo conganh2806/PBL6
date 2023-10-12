@@ -11,7 +11,6 @@ namespace WebNovel.API.Databases.Entities
 {
     public class Chapter : TableHaveIdInt
     {
-        public int ChapterId {get; set;}
         [StringLength(255)]
         public string Name {get; set;} = null!;
         public bool IsLocked {get; set;}
