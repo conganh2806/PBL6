@@ -16,5 +16,7 @@
     <PackageReference Include="Pomelo.EntityFrameworkCore.MySql" Version="7.0.0" />
     <PackageReference Include="Swashbuckle.AspNetCore" Version="6.5.0" />
     <PackageReference Include="Newtonsoft.Json" Version="13.0.1" />
+    <PackageReference Include="Minio" Version="5.0.0" />
+    <PackageReference Include="AWSSDK.S3" Version="3.7.9.41" />
   </ItemGroup>
 </Project>
