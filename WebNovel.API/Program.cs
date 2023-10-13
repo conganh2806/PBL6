@@ -22,6 +22,7 @@ services.AddDbContext<DataContext>(
 );
 services.AddScoped<IAccountModel, AccountModel>();
 services.AddScoped<ILogService, LogService>();
+services.AddScoped<IAwsS3Service, AwsS3Service>();
 var app = builder.Build();
 
 // Configure the HTTP request pipeline.
