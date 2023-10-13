@@ -23,7 +23,7 @@ namespace Webnovel.API.Databases
         public virtual DbSet<Chapter> Chapter { get; set; } = null!;
         public virtual DbSet<Comment> Comment { get; set; } = null!;
         public virtual DbSet<UpdatedFee> UpdatedFee { get; set; } = null!;
-        public virtual DbSet<UpdatedFee> Preferences { get; set; } = null!;
+        public virtual DbSet<Preferences> Preferences { get; set; } = null!;
 
 
 

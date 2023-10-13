@@ -2,22 +2,178 @@
 using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Webnovel.API.Databases;
 
 #nullable disable
 
-namespace Webnovel.API.Databases.Migrations
+namespace Webnovel.API.Migrations
 {
     [DbContext(typeof(DataContext))]
-    partial class DataContextModelSnapshot : ModelSnapshot
+    [Migration("20231013131447_InitialDB")]
+    partial class InitialDB
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
                 .HasAnnotation("ProductVersion", "7.0.11")
                 .HasAnnotation("Relational:MaxIdentifierLength", 64);
+
+            modelBuilder.Entity("WebNovel.API.Databases.Entities.Bookmarked", b =>
+                {
+                    b.Property<long>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bigint")
+                        .HasColumnOrder(1)
+                        .HasComment("Id định danh (khóa chính)");
+
+                    b.Property<long>("AccountId")
+                        .HasColumnType("bigint");
+
+                    b.Property<long>("ChapterId")
+                        .HasColumnType("bigint");
+
+                    b.Property<DateTimeOffset>("CreatedAt")
+                        .HasColumnType("datetime(6)")
+                        .HasComment("Ngày tạo dữ liệu");
+
+                    b.Property<bool>("DelFlag")
+                        .HasColumnType("tinyint(1)")
+                        .HasComment("Cờ xóa dữ liệu");
+
+                    b.Property<DateTimeOffset?>("DeletedAt")
+                        .HasColumnType("datetime(6)")
+                        .HasComment("Ngày xoá dữ liệu");
+
+                    b.Property<DateTimeOffset?>("UpdatedAt")
+                        .HasColumnType("datetime(6)")
+                        .HasComment("Ngày cập nhật dữ liệu");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("AccountId");
+
+                    b.HasIndex("ChapterId")
+                        .IsUnique();
+
+                    b.ToTable("BookMarked");
+                });
+
+            modelBuilder.Entity("WebNovel.API.Databases.Entities.Chapter", b =>
+                {
+                    b.Property<long>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bigint")
+                        .HasColumnOrder(1)
+                        .HasComment("Id định danh (khóa chính)");
+
+                    b.Property<bool>("ApprovalStatus")
+                        .HasColumnType("tinyint(1)");
+
+                    b.Property<DateTimeOffset>("CreatedAt")
+                        .HasColumnType("datetime(6)")
+                        .HasComment("Ngày tạo dữ liệu");
+
+                    b.Property<bool>("DelFlag")
+                        .HasColumnType("tinyint(1)")
+                        .HasComment("Cờ xóa dữ liệu");
+
+                    b.Property<DateTimeOffset?>("DeletedAt")
+                        .HasColumnType("datetime(6)")
+                        .HasComment("Ngày xoá dữ liệu");
+
+                    b.Property<int?>("Discount")
+                        .HasColumnType("int");
+
+                    b.Property<long>("FeeId")
+                        .HasColumnType("bigint");
+
+                    b.Property<string>("FileContent")
+                        .HasColumnType("longtext");
+
+                    b.Property<string>("Images")
+                        .HasMaxLength(500)
+                        .HasColumnType("varchar(500)");
+
+                    b.Property<bool>("IsLocked")
+                        .HasColumnType("tinyint(1)");
+
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasMaxLength(255)
+                        .HasColumnType("varchar(255)");
+
+                    b.Property<long>("NovelId")
+                        .HasColumnType("bigint");
+
+                    b.Property<DateTime>("PublishDate")
+                        .HasColumnType("datetime(6)");
+
+                    b.Property<int>("Rating")
+                        .HasColumnType("int");
+
+                    b.Property<DateTimeOffset?>("UpdatedAt")
+                        .HasColumnType("datetime(6)")
+                        .HasComment("Ngày cập nhật dữ liệu");
+
+                    b.Property<int>("Views")
+                        .HasColumnType("int");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("FeeId")
+                        .IsUnique();
+
+                    b.HasIndex("NovelId");
+
+                    b.ToTable("Chapter");
+                });
+
+            modelBuilder.Entity("WebNovel.API.Databases.Entities.Comment", b =>
+                {
+                    b.Property<long>("Id")
+                        .HasColumnType("bigint")
+                        .HasColumnOrder(1)
+                        .HasComment("Id định danh (khóa chính)");
+
+                    b.Property<long>("AccountId")
+                        .HasColumnType("bigint");
+
+                    b.Property<DateTime?>("CreateOn")
+                        .HasColumnType("datetime(6)");
+
+                    b.Property<DateTimeOffset>("CreatedAt")
+                        .HasColumnType("datetime(6)")
+                        .HasComment("Ngày tạo dữ liệu");
+
+                    b.Property<bool>("DelFlag")
+                        .HasColumnType("tinyint(1)")
+                        .HasComment("Cờ xóa dữ liệu");
+
+                    b.Property<DateTimeOffset?>("DeletedAt")
+                        .HasColumnType("datetime(6)")
+                        .HasComment("Ngày xoá dữ liệu");
+
+                    b.Property<long>("NovelId")
+                        .HasColumnType("bigint");
+
+                    b.Property<string>("Text")
+                        .IsRequired()
+                        .HasColumnType("longtext");
+
+                    b.Property<DateTimeOffset?>("UpdatedAt")
+                        .HasColumnType("datetime(6)")
+                        .HasComment("Ngày cập nhật dữ liệu");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("AccountId");
+
+                    b.ToTable("Comment");
+                });
 
             modelBuilder.Entity("WebNovel.API.Databases.Entities.ExceptionLog", b =>
                 {
@@ -81,6 +237,94 @@ namespace Webnovel.API.Databases.Migrations
                     b.HasKey("Id");
 
                     b.ToTable("ExceptionLogs");
+                });
+
+            modelBuilder.Entity("WebNovel.API.Databases.Entities.Genre", b =>
+                {
+                    b.Property<long>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bigint")
+                        .HasColumnOrder(1)
+                        .HasComment("Id định danh (khóa chính)");
+
+                    b.Property<DateTimeOffset>("CreatedAt")
+                        .HasColumnType("datetime(6)")
+                        .HasComment("Ngày tạo dữ liệu");
+
+                    b.Property<bool>("DelFlag")
+                        .HasColumnType("tinyint(1)")
+                        .HasComment("Cờ xóa dữ liệu");
+
+                    b.Property<DateTimeOffset?>("DeletedAt")
+                        .HasColumnType("datetime(6)")
+                        .HasComment("Ngày xoá dữ liệu");
+
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("varchar(100)");
+
+                    b.Property<DateTimeOffset?>("UpdatedAt")
+                        .HasColumnType("datetime(6)")
+                        .HasComment("Ngày cập nhật dữ liệu");
+
+                    b.HasKey("Id");
+
+                    b.ToTable("Genre");
+                });
+
+            modelBuilder.Entity("WebNovel.API.Databases.Entities.NovelGenre", b =>
+                {
+                    b.Property<long>("GenreId")
+                        .HasColumnType("bigint");
+
+                    b.Property<long>("NovelId")
+                        .HasColumnType("bigint");
+
+                    b.HasKey("GenreId", "NovelId");
+
+                    b.HasIndex("NovelId");
+
+                    b.ToTable("NovelGenre");
+                });
+
+            modelBuilder.Entity("WebNovel.API.Databases.Entities.Preferences", b =>
+                {
+                    b.Property<long>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bigint")
+                        .HasColumnOrder(1)
+                        .HasComment("Id định danh (khóa chính)");
+
+                    b.Property<long>("AccountId")
+                        .HasColumnType("bigint");
+
+                    b.Property<DateTimeOffset>("CreatedAt")
+                        .HasColumnType("datetime(6)")
+                        .HasComment("Ngày tạo dữ liệu");
+
+                    b.Property<bool>("DelFlag")
+                        .HasColumnType("tinyint(1)")
+                        .HasComment("Cờ xóa dữ liệu");
+
+                    b.Property<DateTimeOffset?>("DeletedAt")
+                        .HasColumnType("datetime(6)")
+                        .HasComment("Ngày xoá dữ liệu");
+
+                    b.Property<long>("NovelId")
+                        .HasColumnType("bigint");
+
+                    b.Property<DateTimeOffset?>("UpdatedAt")
+                        .HasColumnType("datetime(6)")
+                        .HasComment("Ngày cập nhật dữ liệu");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("AccountId");
+
+                    b.HasIndex("NovelId");
+
+                    b.ToTable("Preferences");
                 });
 
             modelBuilder.Entity("WebNovel.API.Databases.Entities.Roles", b =>
@@ -381,7 +625,7 @@ namespace Webnovel.API.Databases.Migrations
 
             modelBuilder.Entity("WebNovel.API.Databases.Entitites.Account", b =>
                 {
-                    b.HasOne("WebNovel.API.Databases.Entities.Role", "Role")
+                    b.HasOne("WebNovel.API.Databases.Entities.Roles", "Role")
                         .WithOne("Account")
                         .HasForeignKey("WebNovel.API.Databases.Entitites.Account", "RoleId")
                         .OnDelete(DeleteBehavior.NoAction)
@@ -406,7 +650,7 @@ namespace Webnovel.API.Databases.Migrations
                     b.Navigation("Bookmarked");
                 });
 
-            modelBuilder.Entity("WebNovel.API.Databases.Entities.Role", b =>
+            modelBuilder.Entity("WebNovel.API.Databases.Entities.Roles", b =>
                 {
                     b.Navigation("Account")
                         .IsRequired();
@@ -436,249 +680,6 @@ namespace Webnovel.API.Databases.Migrations
 
                     b.Navigation("Preferences");
                 });
-
-            modelBuilder.Entity("WebNovel.API.Databases.Entities.Bookmarked", b =>
-                {
-                    b.Property<long>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("bigint")
-                        .HasColumnOrder(1)
-                        .HasComment("Id định danh (khóa chính)");
-
-                    b.Property<long>("AccountId")
-                        .HasColumnType("bigint");
-
-                    b.Property<long>("ChapterId")
-                        .HasColumnType("bigint");
-
-                    b.Property<DateTimeOffset>("CreatedAt")
-                        .HasColumnType("datetime(6)")
-                        .HasComment("Ngày tạo dữ liệu");
-
-                    b.Property<bool>("DelFlag")
-                        .HasColumnType("tinyint(1)")
-                        .HasComment("Cờ xóa dữ liệu");
-
-                    b.Property<DateTimeOffset?>("DeletedAt")
-                        .HasColumnType("datetime(6)")
-                        .HasComment("Ngày xoá dữ liệu");
-
-                    b.Property<DateTimeOffset?>("UpdatedAt")
-                        .HasColumnType("datetime(6)")
-                        .HasComment("Ngày cập nhật dữ liệu");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("AccountId");
-
-                    b.HasIndex("ChapterId")
-                        .IsUnique();
-
-                    b.ToTable("BookMarked");
-                });
-
-            modelBuilder.Entity("WebNovel.API.Databases.Entities.Chapter", b =>
-                {
-                    b.Property<long>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("bigint")
-                        .HasColumnOrder(1)
-                        .HasComment("Id định danh (khóa chính)");
-
-                    b.Property<bool>("ApprovalStatus")
-                        .HasColumnType("tinyint(1)");
-
-                    b.Property<DateTimeOffset>("CreatedAt")
-                        .HasColumnType("datetime(6)")
-                        .HasComment("Ngày tạo dữ liệu");
-
-                    b.Property<bool>("DelFlag")
-                        .HasColumnType("tinyint(1)")
-                        .HasComment("Cờ xóa dữ liệu");
-
-                    b.Property<DateTimeOffset?>("DeletedAt")
-                        .HasColumnType("datetime(6)")
-                        .HasComment("Ngày xoá dữ liệu");
-
-                    b.Property<int?>("Discount")
-                        .HasColumnType("int");
-
-                    b.Property<long>("FeeId")
-                        .HasColumnType("bigint");
-
-                    b.Property<string>("FileContent")
-                        .HasColumnType("longtext");
-
-                    b.Property<string>("Images")
-                        .HasMaxLength(500)
-                        .HasColumnType("varchar(500)");
-
-                    b.Property<bool>("IsLocked")
-                        .HasColumnType("tinyint(1)");
-
-                    b.Property<string>("Name")
-                        .IsRequired()
-                        .HasMaxLength(255)
-                        .HasColumnType("varchar(255)");
-
-                    b.Property<long>("NovelId")
-                        .HasColumnType("bigint");
-
-                    b.Property<DateTime>("PublishDate")
-                        .HasColumnType("datetime(6)");
-
-                    b.Property<int>("Rating")
-                        .HasColumnType("int");
-
-                    b.Property<DateTimeOffset?>("UpdatedAt")
-                        .HasColumnType("datetime(6)")
-                        .HasComment("Ngày cập nhật dữ liệu");
-
-                    b.Property<int>("Views")
-                        .HasColumnType("int");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("FeeId")
-                        .IsUnique();
-
-                    b.HasIndex("NovelId");
-
-                    b.ToTable("Chapter");
-                });
-
-            modelBuilder.Entity("WebNovel.API.Databases.Entities.Comment", b =>
-                {
-                    b.Property<long>("Id")
-                        .HasColumnType("bigint")
-                        .HasColumnOrder(1)
-                        .HasComment("Id định danh (khóa chính)");
-
-                    b.Property<long>("AccountId")
-                        .HasColumnType("bigint");
-
-                    b.Property<DateTime?>("CreateOn")
-                        .HasColumnType("datetime(6)");
-
-                    b.Property<DateTimeOffset>("CreatedAt")
-                        .HasColumnType("datetime(6)")
-                        .HasComment("Ngày tạo dữ liệu");
-
-                    b.Property<bool>("DelFlag")
-                        .HasColumnType("tinyint(1)")
-                        .HasComment("Cờ xóa dữ liệu");
-
-                    b.Property<DateTimeOffset?>("DeletedAt")
-                        .HasColumnType("datetime(6)")
-                        .HasComment("Ngày xoá dữ liệu");
-
-                    b.Property<long>("NovelId")
-                        .HasColumnType("bigint");
-
-                    b.Property<string>("Text")
-                        .IsRequired()
-                        .HasColumnType("longtext");
-
-                    b.Property<DateTimeOffset?>("UpdatedAt")
-                        .HasColumnType("datetime(6)")
-                        .HasComment("Ngày cập nhật dữ liệu");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("AccountId");
-
-                    b.ToTable("Comment");
-                });
-
-            modelBuilder.Entity("WebNovel.API.Databases.Entities.Genre", b =>
-                {
-                    b.Property<long>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("bigint")
-                        .HasColumnOrder(1)
-                        .HasComment("Id định danh (khóa chính)");
-
-                    b.Property<DateTimeOffset>("CreatedAt")
-                        .HasColumnType("datetime(6)")
-                        .HasComment("Ngày tạo dữ liệu");
-
-                    b.Property<bool>("DelFlag")
-                        .HasColumnType("tinyint(1)")
-                        .HasComment("Cờ xóa dữ liệu");
-
-                    b.Property<DateTimeOffset?>("DeletedAt")
-                        .HasColumnType("datetime(6)")
-                        .HasComment("Ngày xoá dữ liệu");
-
-                    b.Property<string>("Name")
-                        .IsRequired()
-                        .HasMaxLength(100)
-                        .HasColumnType("varchar(100)");
-
-                    b.Property<DateTimeOffset?>("UpdatedAt")
-                        .HasColumnType("datetime(6)")
-                        .HasComment("Ngày cập nhật dữ liệu");
-
-                    b.HasKey("Id");
-
-                    b.ToTable("Genre");
-                });
-
-            modelBuilder.Entity("WebNovel.API.Databases.Entities.NovelGenre", b =>
-                {
-                    b.Property<long>("GenreId")
-                        .HasColumnType("bigint");
-
-                    b.Property<long>("NovelId")
-                        .HasColumnType("bigint");
-
-                    b.HasKey("GenreId", "NovelId");
-
-                    b.HasIndex("NovelId");
-
-                    b.ToTable("NovelGenre");
-                });
-
-            modelBuilder.Entity("WebNovel.API.Databases.Entities.Preferences", b =>
-                {
-                    b.Property<long>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("bigint")
-                        .HasColumnOrder(1)
-                        .HasComment("Id định danh (khóa chính)");
-
-                    b.Property<long>("AccountId")
-                        .HasColumnType("bigint");
-
-                    b.Property<DateTimeOffset>("CreatedAt")
-                        .HasColumnType("datetime(6)")
-                        .HasComment("Ngày tạo dữ liệu");
-
-                    b.Property<bool>("DelFlag")
-                        .HasColumnType("tinyint(1)")
-                        .HasComment("Cờ xóa dữ liệu");
-
-                    b.Property<DateTimeOffset?>("DeletedAt")
-                        .HasColumnType("datetime(6)")
-                        .HasComment("Ngày xoá dữ liệu");
-
-                    b.Property<long>("NovelId")
-                        .HasColumnType("bigint");
-
-                    b.Property<DateTimeOffset?>("UpdatedAt")
-                        .HasColumnType("datetime(6)")
-                        .HasComment("Ngày cập nhật dữ liệu");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("AccountId");
-
-                    b.HasIndex("NovelId");
-
-                    b.ToTable("Preferences");
-                });
-
-            modelBuilder.Entity("WebNovel.API.Databases.Entities.Role", b =>
 #pragma warning restore 612, 618
         }
     }
