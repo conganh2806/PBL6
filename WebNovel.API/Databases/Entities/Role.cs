@@ -13,11 +13,11 @@ namespace WebNovel.API.Databases.Entities
     {
         [Key]
         [StringLength(21)]
-        public string Id {get; set;}
+        public string Id { get; set; }
 
         [StringLength(100)]
-        public string Name {get; set;} = null!;
-        
-        public virtual Account Account {get; set;}
+        public string Name { get; set; } = null!;
+
+        public virtual Account Account { get; set; }
     }
 }

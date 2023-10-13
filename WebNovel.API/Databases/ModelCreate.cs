@@ -18,6 +18,65 @@ namespace WebNovel.API.Databases
             .WithOne(e => e.Account)
             .HasForeignKey<Account>(e => e.RoleId)
             .OnDelete(DeleteBehavior.NoAction);
+            
+            modelBuilder.Entity<Account>()
+            .HasMany(e => e.Novels)
+            .WithOne(e => e.Account)
+            .HasForeignKey(e => e.AccountId);
+
+            modelBuilder.Entity<Novel>()
+            .HasMany<Genre>(n => n.Genres)
+            .WithMany(g => g.Novels)
+            .UsingEntity<NovelGenre>();
+
+            modelBuilder.Entity<Comment>()
+            .HasOne(e => e.Novel)
+            .WithMany(e => e.Comments)
+            .HasForeignKey(e => e.Id)
+            .IsRequired();
+
+            modelBuilder.Entity<Comment>()
+            .HasOne(e => e.Account)
+            .WithMany(e => e.Comments)
+            .HasForeignKey(e => e.AccountId)
+            .IsRequired();
+
+            modelBuilder.Entity<Chapter>()
+            .HasOne(e => e.Novel)
+            .WithMany(e => e.Chapters)
+            .HasForeignKey(e => e.NovelId);
+
+            modelBuilder.Entity<Chapter>()
+            .HasOne(e => e.UpdatedFee)
+            .WithOne(e => e.Chapter)
+            .HasForeignKey<Chapter>(e => e.FeeId);
+
+            modelBuilder.Entity<Chapter>()
+            .HasOne(e => e.Bookmarked)
+            .WithOne(e => e.Chapter)
+            .HasForeignKey<Bookmarked>(e => e.ChapterId)
+            .IsRequired();
+
+            modelBuilder.Entity<Account>()
+            .HasMany(e => e.Bookmarkeds)
+            .WithOne(e => e.Account)
+            .HasForeignKey(e => e.AccountId)
+            .IsRequired();
+
+            modelBuilder.Entity<Account>()
+            .HasMany(e => e.Preferences)
+            .WithOne(e => e.Account)
+            .HasForeignKey(e => e.AccountId)
+            .IsRequired();
+
+            modelBuilder.Entity<Novel>()
+            .HasMany(e => e.Preferences)
+            .WithOne(e => e.Novel)
+            .HasForeignKey(e => e.NovelId)
+            .IsRequired();
+
+
+           
             return modelBuilder;
         }
     }
