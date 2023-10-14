@@ -4,7 +4,7 @@ using WebNovel.API.Areas.Models.Accounts;
 using WebNovel.API.Core.Services;
 
 var builder = WebApplication.CreateBuilder(args);
-var connectionString = builder.Configuration.GetConnectionString("DefaultConnection");
+var connectionString = builder.Configuration.GetConnectionString("AzureMySQL");
 // Add services to the container.
 var services = builder.Services;
 services.AddControllers();
