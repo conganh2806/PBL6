@@ -4,32 +4,32 @@ using System.Linq;
 using System.Net;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Mvc;
-using WebNovel.API.Areas.Models.Accounts;
-using WebNovel.API.Areas.Models.Accounts.Schemas;
+using WebNovel.API.Areas.Models.Roles;
+using WebNovel.API.Areas.Models.Roles.Schemas;
 using WebNovel.API.Commons.Schemas;
 using WebNovel.API.Controllers;
 using static WebNovel.API.Commons.Enums.CodeResonse;
 
 namespace WebNovel.API.Areas.Controllers
 {
-    [Route("api/accounts")]
+    [Route("api/roles")]
     [ApiController]
-    public class AccountController : BaseController
+    public class RoleController : BaseController
     {
-        private readonly IAccountModel _accountModel;
+        private readonly IRoleModel _roleModel;
         private readonly IServiceProvider _provider;
-        public AccountController(IAccountModel accountModel, IServiceProvider provider) : base(provider)
+        public RoleController(IRoleModel roleModel, IServiceProvider provider) : base(provider)
         {
-            _accountModel = accountModel;
+            _roleModel = roleModel;
         }
 
         [HttpGet]
-        [ProducesResponseType(typeof(AccountDto), (int)HttpStatusCode.OK)]
-        public async Task<IActionResult> Search([FromQuery] SearchCondition condition)
+        [ProducesResponseType(typeof(RoleDto), (int)HttpStatusCode.OK)]
+        public async Task<IActionResult> Search()
         {
             try
             {
-                return Ok(await _accountModel.GetListAccount(condition));
+                return Ok(await _roleModel.GetListRole());
             }
             catch (Exception e)
             {
@@ -38,12 +38,12 @@ namespace WebNovel.API.Areas.Controllers
         }
 
         [HttpGet("{id}")]
-        [ProducesResponseType(typeof(AccountDto), (int)HttpStatusCode.OK)]
-        public async Task<IActionResult> GetDetail([FromRoute] long id)
+        [ProducesResponseType(typeof(RoleDto), (int)HttpStatusCode.OK)]
+        public async Task<IActionResult> GetDetail([FromRoute] string id)
         {
             try
             {
-                return Ok(_accountModel.GetAccount(id));
+                return Ok(_roleModel.GetRole(id));
             }
             catch (Exception e)
             {
@@ -53,14 +53,14 @@ namespace WebNovel.API.Areas.Controllers
 
         [HttpPost]
         [ProducesResponseType(typeof(ResponseInfo), (int)HttpStatusCode.OK)]
-        public async Task<IActionResult> Create([FromBody] AccountCreateUpdateEntity account)
+        public async Task<IActionResult> Create([FromBody] RoleCreateUpdateEntity Role)
         {
             try
             {
                 ResponseInfo response = new ResponseInfo();
                 if (ModelState.IsValid)
                 {
-                    response = await _accountModel.AddAccount(account);
+                    response = await _roleModel.AddRole(Role);
                 }
                 else
                 {
@@ -76,14 +76,14 @@ namespace WebNovel.API.Areas.Controllers
 
         [HttpPut("{id}")]
         [ProducesResponseType(typeof(ResponseInfo), (int)HttpStatusCode.OK)]
-        public async Task<IActionResult> Update([FromRoute] long id, [FromBody] AccountCreateUpdateEntity account)
+        public async Task<IActionResult> Update([FromRoute] string id, [FromBody] RoleCreateUpdateEntity Role)
         {
             try
             {
                 ResponseInfo response = new ResponseInfo();
                 if (ModelState.IsValid)
                 {
-                    response = await _accountModel.UpdateAccount(id, account);
+                    response = await _roleModel.UpdateRole(id, Role);
                 }
                 else
                 {
