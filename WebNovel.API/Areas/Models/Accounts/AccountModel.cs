@@ -48,7 +48,7 @@ namespace WebNovel.API.Areas.Models.Accounts
                 ResponseInfo result = await ValidateUser(null, account);
                 if (result.Code != CodeResponse.OK)
                 {
-                return result;
+                    return result;
                 }
 
                 var newAccount = new Account()
