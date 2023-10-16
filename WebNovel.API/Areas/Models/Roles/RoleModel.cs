@@ -50,7 +50,7 @@ namespace WebNovel.API.Areas.Models.Roles
                     return result;
                 }
 
-                var newRole = new Databases.Entities.Roles()
+                var newRole = new Role()
                 {
                     Id = role.Id,
                     Name = role.Name,
