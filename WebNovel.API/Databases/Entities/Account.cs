@@ -15,6 +15,7 @@ namespace WebNovel.API.Databases.Entitites
             Comments = new HashSet<Comment>();
             Bookmarkeds = new HashSet<Bookmarked>();
             Preferences = new HashSet<Preferences>();
+            Roles = new HashSet<Role>();
         } 
 
         [StringLength(100)]
@@ -23,8 +24,6 @@ namespace WebNovel.API.Databases.Entitites
         public string Password {get; set;} = null!;
         [StringLength(255)]
         public string Email {get; set;} = null!;
-        public long RoleId {get; set;}
-        public virtual Role Role {get; set;} = null!;
         [StringLength(100)]
         public string NickName {get; set;} = null!;
         [DataType(DataType.Date)]
@@ -34,7 +33,8 @@ namespace WebNovel.API.Databases.Entitites
         public virtual ICollection<Novel> Novels {get; set;} = null!;
         public virtual ICollection<Comment>? Comments {get; set;}
         public virtual ICollection<Bookmarked>? Bookmarkeds {get; set;}
-        public virtual ICollection<Preferences>? Preferences {get; set;}        
+        public virtual ICollection<Preferences>? Preferences {get; set;}       
+        public virtual ICollection<Role> Roles {get; set;} = null!; 
 
     }
 }

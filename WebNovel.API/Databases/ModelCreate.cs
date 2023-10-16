@@ -14,10 +14,9 @@ namespace WebNovel.API.Databases
         public static ModelBuilder OnModelCreating(ModelBuilder modelBuilder)
         {
             modelBuilder.Entity<Account>()
-            .HasOne(e => e.Role)
-            .WithOne(e => e.Account)
-            .HasForeignKey<Account>(e => e.RoleId)
-            .OnDelete(DeleteBehavior.NoAction);
+            .HasMany(e => e.Roles)
+            .WithMany(e => e.Accounts)
+            .UsingEntity<AccountRole>();
             
             modelBuilder.Entity<Account>()
             .HasMany(e => e.Novels)
