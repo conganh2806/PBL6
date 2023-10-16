@@ -15,7 +15,7 @@ namespace Webnovel.API.Databases
         public DataContext(DbContextOptions<DataContext> options) : base(options) { }
 
         public virtual DbSet<Account> Accounts { get; set; } = null!;
-        public virtual DbSet<Roles> Roles { get; set; } = null!;
+        public virtual DbSet<Role> Roles { get; set; } = null!;
         public virtual DbSet<ExceptionLog> ExceptionLogs { get; set; }
         public virtual DbSet<Novel> Novel { get; set; } = null!;
         public virtual DbSet<Genre> Genre { get; set; } = null!;
