@@ -13,10 +13,18 @@ namespace Webnovel.API.Databases
     public class DataContext : DbContext
     {
         public DataContext(DbContextOptions<DataContext> options) : base(options) { }
-        
-        public virtual DbSet<Account> Accounts {get; set;} = null!;
-        public virtual DbSet<Roles> Roles {get; set;} = null!;
+
+        public virtual DbSet<Account> Accounts { get; set; } = null!;
+        public virtual DbSet<Role> Roles { get; set; } = null!;
         public virtual DbSet<ExceptionLog> ExceptionLogs { get; set; }
+        public virtual DbSet<Novel> Novel { get; set; } = null!;
+        public virtual DbSet<Genre> Genre { get; set; } = null!;
+        public virtual DbSet<Bookmarked> BookMarked { get; set; } = null!;
+        public virtual DbSet<Chapter> Chapter { get; set; } = null!;
+        public virtual DbSet<Comment> Comment { get; set; } = null!;
+        public virtual DbSet<UpdatedFee> UpdatedFee { get; set; } = null!;
+        public virtual DbSet<Preferences> Preferences { get; set; } = null!;
+
 
 
         /// <summary>
@@ -73,29 +81,29 @@ namespace Webnovel.API.Databases
                             {
                                 // Nếu là thêm mới thì cập nhật thông tin thêm mới
                                 case EntityState.Added:
-                                {
+                                    {
 
-                                    root.CreatedAt = now;
-                                    root.UpdatedAt = null;
-                                    root.DelFlag = false;
-                                    break;
-                                }
+                                        root.CreatedAt = now;
+                                        root.UpdatedAt = null;
+                                        root.DelFlag = false;
+                                        break;
+                                    }
                                 // Nếu là update thì cập nhật các trường liên quan đến update
                                 case EntityState.Modified:
-                                {
-                                    root.UpdatedAt = now;
-                                    break;
-                                }
-                                 case EntityState.Deleted:
-                                {
-                                    if (!root.ForceDel)
                                     {
-                                        entry.State = EntityState.Modified;
-                                        root.DeletedAt = now;
-                                        root.DelFlag = true;
+                                        root.UpdatedAt = now;
+                                        break;
                                     }
-                                    break;
-                                }
+                                case EntityState.Deleted:
+                                    {
+                                        if (!root.ForceDel)
+                                        {
+                                            entry.State = EntityState.Modified;
+                                            root.DeletedAt = now;
+                                            root.DelFlag = true;
+                                        }
+                                        break;
+                                    }
                             }
                         }
                     }
