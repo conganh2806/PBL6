@@ -20,8 +20,6 @@ namespace WebNovel.API.Databases.Entities
         public int Rating {get; set;}
         public long FeeId {get; set;}
         public virtual UpdatedFee UpdatedFee {get; set;} = null!; 
-        [StringLength(500)]
-        public string? Images {get; set;} 
         public string? FileContent {get; set;}
         public int? Discount {get; set;}
         public bool ApprovalStatus {get; set;}
