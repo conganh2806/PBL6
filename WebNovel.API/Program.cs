@@ -1,6 +1,7 @@
 using Microsoft.EntityFrameworkCore;
 using Webnovel.API.Databases;
 using WebNovel.API.Areas.Models.Accounts;
+using WebNovel.API.Areas.Models.Genres;
 using WebNovel.API.Areas.Models.Novels;
 using WebNovel.API.Areas.Models.Roles;
 using WebNovel.API.Core.Services;
@@ -23,6 +24,7 @@ services.AddDbContext<DataContext>(
         .EnableDetailedErrors()
 );
 //services.AddScoped<IAccountModel, AccountModel>();
+services.AddScoped<IGenreModel, GenreModel>();
 services.AddScoped<IRoleModel, RoleModel>();
 services.AddScoped<INovelModel, NovelModel>();
 services.AddScoped<ILogService, LogService>();
