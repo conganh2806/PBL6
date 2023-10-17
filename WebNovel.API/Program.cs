@@ -29,6 +29,8 @@ services.AddScoped<ILogService, LogService>();
 services.AddScoped<IAwsS3Service, AwsS3Service>();
 var app = builder.Build();
 
+app.UseSwagger();
+app.UseSwaggerUI();
 
 // Configure the HTTP request pipeline.
 if (app.Environment.IsDevelopment())
