@@ -3,6 +3,7 @@ using Webnovel.API.Databases;
 using WebNovel.API.Areas.Models.Accounts;
 using WebNovel.API.Areas.Models.Genres;
 using WebNovel.API.Areas.Models.Novels;
+using WebNovel.API.Areas.Models.Preferences;
 using WebNovel.API.Areas.Models.Roles;
 using WebNovel.API.Core.Services;
 
@@ -27,6 +28,7 @@ services.AddDbContext<DataContext>(
 services.AddScoped<IGenreModel, GenreModel>();
 services.AddScoped<IRoleModel, RoleModel>();
 services.AddScoped<INovelModel, NovelModel>();
+services.AddScoped<IPreferencesModel, PreferencesModel>();
 services.AddScoped<ILogService, LogService>();
 services.AddScoped<IAwsS3Service, AwsS3Service>();
 var app = builder.Build();
