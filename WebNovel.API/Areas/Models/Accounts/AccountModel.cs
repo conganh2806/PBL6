@@ -17,27 +17,40 @@
 // using static WebNovel.API.Commons.Enums.CodeResonse;
 
 
-// namespace WebNovel.API.Areas.Models.Accounts
-// {
-//     public interface IAccountModel
-//     {
-//         Task<List<AccountDto>> GetListAccount(SearchCondition searchCondition);
-//         Task<ResponseInfo> AddAccount(AccountCreateUpdateEntity account);
-//         Task<ResponseInfo> UpdateAccount(long id, AccountCreateUpdateEntity account);
-//         AccountDto GetAccount (long id);
-//     }
-//     public class AccountModel : BaseModel, IAccountModel
-//     {
-//         private readonly ILogger<IAccountModel> _logger;
-//         private string _className = "";
-//         public AccountModel(IServiceProvider provider, ILogger<IAccountModel> logger) : base(provider)
-//         {
-//             _logger = logger ?? throw new ArgumentNullException(nameof(logger));
-//             _className = GetType().Name;
-//         }
+namespace WebNovel.API.Areas.Models.Accounts
+{
+    public interface IAccountModel
+    {
+        Task<List<AccountDto>> GetListAccount(SearchCondition searchCondition);
+        Task<ResponseInfo> AddAccount(AccountCreateUpdateEntity account);
+        Task<ResponseInfo> UpdateAccount(long id, AccountCreateUpdateEntity account);
+        AccountDto GetAccount(long id);
+    }
+    public class AccountModel : BaseModel, IAccountModel
+    {
+        private readonly ILogger<IAccountModel> _logger;
+        private string _className = "";
+        public AccountModel(IServiceProvider provider, ILogger<IAccountModel> logger) : base(provider)
+        {
+            _logger = logger ?? throw new ArgumentNullException(nameof(logger));
+            _className = GetType().Name;
+        }
 
 //         static string GetActualAsyncMethodName([CallerMemberName] string name = null) => name;
+//         static string GetActualAsyncMethodName([CallerMemberName] string name = null) => name;
 
+//         public async Task<ResponseInfo> AddAccount(AccountCreateUpdateEntity account)
+//         {
+//             IDbContextTransaction transaction = null;
+//             string method = GetActualAsyncMethodName();
+//             try
+//             {
+//                 _logger.LogInformation($"[{_className}][{method}] Start");
+//                 ResponseInfo result = await ValidateUser(null, account);
+//                 if (result.Code != CodeResponse.OK)
+//                 {
+//                     return result;
+//                 }
 //         public async Task<ResponseInfo> AddAccount(AccountCreateUpdateEntity account)
 //         {
 //             IDbContextTransaction transaction = null;
@@ -105,7 +118,17 @@
 //                 Email = x.Email,
 //                 RoleName = x.Role.Name
 //             }).ToList();
+//         public async Task<List<AccountDto>> GetListAccount(SearchCondition searchCondition)
+//         {
+//             var listAccount = _context.Accounts.Include(x => x.Role).Select(x => new AccountDto() 
+//             {
+//                 Username = x.Username,
+//                 Email = x.Email,
+//                 RoleName = x.Role.Name
+//             }).ToList();
 
+//             return listAccount;
+//         }
 //             return listAccount;
 //         }
 
@@ -113,7 +136,20 @@
 //         {
 //             IDbContextTransaction transaction = null;
 //             string method = GetActualAsyncMethodName();
+//         public async Task<ResponseInfo> UpdateAccount(long id, AccountCreateUpdateEntity account)
+//         {
+//             IDbContextTransaction transaction = null;
+//             string method = GetActualAsyncMethodName();
 
+//             try
+//             {
+//                 _logger.LogInformation($"[{_className}][{method}] Start");
+//                 ResponseInfo result = await ValidateUser(null, account);
+//                 ResponseInfo response = await ValidateUser(null, account);
+//                 if (result.Code != CodeResponse.OK)
+//                 {
+//                     return result;
+//                 }
 //             try
 //             {
 //                 _logger.LogInformation($"[{_className}][{method}] Start");
@@ -131,7 +167,21 @@
 //                     response.MsgNo = MSG_NO.NOT_FOUND;
 //                     return response;
 //                 }
+//                 var existAccount = _context.Accounts.Where(x => x.Id == id).FirstOrDefault();
+//                 if (existAccount is null) 
+//                 {
+//                     response.Code = CodeResponse.HAVE_ERROR;
+//                     response.MsgNo = MSG_NO.NOT_FOUND;
+//                     return response;
+//                 }
 
+//                 existAccount.NickName = account.NickName;
+//                 existAccount.Username = account.Username;
+//                 existAccount.RoleId = account.RoleId;
+//                 existAccount.Password = Security.Sha256(account.Password);
+//                 existAccount.Phone = account.Phone;
+//                 existAccount.Email = account.Email;
+//                 existAccount.WalletAmmount = account.WalletAmmount;
 //                 existAccount.NickName = account.NickName;
 //                 existAccount.Username = account.Username;
 //                 existAccount.RoleId = account.RoleId;
@@ -143,9 +193,25 @@
 //                 transaction = await _context.Database.BeginTransactionAsync();
 //                 await _context.SaveChangesAsync();
 //                 await transaction.CommitAsync();
+//                 transaction = await _context.Database.BeginTransactionAsync();
+//                 await _context.SaveChangesAsync();
+//                 await transaction.CommitAsync();
 
 //                 _logger.LogInformation($"[{_className}][{method}] End");
+//                 _logger.LogInformation($"[{_className}][{method}] End");
 
+//                 return result;
+//             }
+//             catch(Exception e)
+//             {
+//                 if (transaction != null)
+//                 {
+//                     await _context.RollbackAsync(transaction);
+//                 }
+//                 _logger.LogInformation($"[{_className}][{method}] Exception: {e.Message}");
+//                 throw;
+//             }
+//         }
 //                 return result;
 //             }
 //             catch(Exception e)
@@ -162,6 +228,9 @@
 //         private async Task<ResponseInfo> ValidateUser(long? userId, AccountCreateUpdateEntity account)
 //         {
 //             ResponseInfo result = new ResponseInfo();
+//         private async Task<ResponseInfo> ValidateUser(long? userId, AccountCreateUpdateEntity account)
+//         {
+//             ResponseInfo result = new ResponseInfo();
 
 //             if (await base.ValidatePhone(userId, account.Phone))
 //             {
@@ -169,7 +238,23 @@
 //                 result.Code = CodeResponse.HAVE_ERROR;
 //                 return result;
 //             }
+//             if (await base.ValidatePhone(userId, account.Phone))
+//             {
+//                 result.MsgNo = MSG_NO.USERNAME_HAD_USED;
+//                 result.Code = CodeResponse.HAVE_ERROR;
+//                 return result;
+//             }
 
+//             if (!string.IsNullOrEmpty(account.Password) && (account.Password != account.ConfirmPassword))
+//             {
+//                 result.MsgNo = MSG_NO.CONFIRM_PASSWORD_INVALIDATE;
+//                 result.Code = CodeResponse.HAVE_ERROR;
+//                 return result;
+//             }
+//             return result;
+//         }
+//     }
+// }
 //             if (!string.IsNullOrEmpty(account.Password) && (account.Password != account.ConfirmPassword))
 //             {
 //                 result.MsgNo = MSG_NO.CONFIRM_PASSWORD_INVALIDATE;
