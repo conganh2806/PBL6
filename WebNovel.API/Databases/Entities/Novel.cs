@@ -20,14 +20,14 @@ namespace WebNovel.API.Databases.Entitites
         public string Title { get; set; } = null!;
         public long AccountId { get; set; }
         public Account? Account { get; set; }
-        public int? Year { get; set; }
+        public int Year { get; set; }
         public int Views { get; set; }
         public int Rating { get; set; }
         [StringLength(500)]
         public string? Images { get; set; }
         [StringLength(500)]
         public string Description { get; set; } = null!;
-        public bool? Status { get; set; } //Trạng thái của truyện dùng để cài đặt trạng thái còn trong giai đoạn sáng tác hay k
+        public bool Status { get; set; } //Trạng thái của truyện dùng để cài đặt trạng thái còn trong giai đoạn sáng tác hay k
         public bool ApprovalStatus { get; set; }
         public virtual ICollection<Genre> Genres { get; set; } = null!;
         public virtual ICollection<Comment>? Comments { get; set; }
