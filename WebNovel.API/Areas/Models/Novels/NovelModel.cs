@@ -91,23 +91,26 @@ namespace WebNovel.API.Areas.Models.Novels
 
         public async Task<List<NovelDto>> GetListNovel(SearchCondition searchCondition)
         {
-            var listNovel = _context.Novel.Select(x => new NovelDto()
-            {
-                Id = x.Id,
-                Name = x.Name,
-                Title = x.Title,
-                Author = _context.Accounts.Where(e => e.Id == x.AccountId).FirstOrDefault().NickName,
-                Year = x.Year,
-                Views = x.Views,
-                Rating = x.Rating,
-                Description = x.Description,
-                Status = x.Status,
-                ApprovalStatus = x.ApprovalStatus
-                
+            List<NovelDto> listNovel = new List<NovelDto>();
+            if(searchCondition is null) {
+                listNovel = _context.Novel.Select(x => new NovelDto()
+                {
+                    Id = x.Id,
+                    Name = x.Name,
+                    Title = x.Title,
+                    Author = _context.Accounts.Where(e => e.Id == x.AccountId).FirstOrDefault().NickName,
+                    Year = x.Year,
+                    Views = x.Views,
+                    Rating = x.Rating,
+                    Description = x.Description,
+                    Status = x.Status,
+                    ApprovalStatus = x.ApprovalStatus
+                    
 
 
-            }).ToList();
-
+                }).ToList();
+            }
+            
             return listNovel;
 
         }

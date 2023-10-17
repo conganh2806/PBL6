@@ -25,6 +25,20 @@ namespace WebNovel.API.Areas.Controllers
             _novelModel = novelModel;
         }
 
+        [HttpGet]
+        [ProducesResponseType(typeof(NovelDto), (int)HttpStatusCode.OK)]
+        public async Task<IActionResult> Search()
+        {
+            try
+            {
+                return Ok(await _novelModel.GetListNovel(null));
+            }
+            catch (Exception e)
+            {
+                return StatusCode(500, new { Error = e.Message });
+            }
+        }
+
         [HttpGet("{id}")]
         [ProducesResponseType(typeof(NovelDto), (int)HttpStatusCode.OK)]
         public async Task<IActionResult> GetDetail([FromRoute] long id)
