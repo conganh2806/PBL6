@@ -17,24 +17,24 @@
 // using static WebNovel.API.Commons.Enums.CodeResonse;
 
 
-namespace WebNovel.API.Areas.Models.Accounts
-{
-    public interface IAccountModel
-    {
-        Task<List<AccountDto>> GetListAccount(SearchCondition searchCondition);
-        Task<ResponseInfo> AddAccount(AccountCreateUpdateEntity account);
-        Task<ResponseInfo> UpdateAccount(long id, AccountCreateUpdateEntity account);
-        AccountDto GetAccount(long id);
-    }
-    public class AccountModel : BaseModel, IAccountModel
-    {
-        private readonly ILogger<IAccountModel> _logger;
-        private string _className = "";
-        public AccountModel(IServiceProvider provider, ILogger<IAccountModel> logger) : base(provider)
-        {
-            _logger = logger ?? throw new ArgumentNullException(nameof(logger));
-            _className = GetType().Name;
-        }
+// namespace WebNovel.API.Areas.Models.Accounts
+// {
+//     public interface IAccountModel
+//     {
+//         Task<List<AccountDto>> GetListAccount(SearchCondition searchCondition);
+//         Task<ResponseInfo> AddAccount(AccountCreateUpdateEntity account);
+//         Task<ResponseInfo> UpdateAccount(long id, AccountCreateUpdateEntity account);
+//         AccountDto GetAccount(long id);
+//     }
+//     public class AccountModel : BaseModel, IAccountModel
+//     {
+//         private readonly ILogger<IAccountModel> _logger;
+//         private string _className = "";
+//         public AccountModel(IServiceProvider provider, ILogger<IAccountModel> logger) : base(provider)
+//         {
+//             _logger = logger ?? throw new ArgumentNullException(nameof(logger));
+//             _className = GetType().Name;
+//         }
 
 //         static string GetActualAsyncMethodName([CallerMemberName] string name = null) => name;
 //         static string GetActualAsyncMethodName([CallerMemberName] string name = null) => name;
