@@ -12,21 +12,22 @@ using static WebNovel.API.Commons.Enums.CodeResonse;
 
 namespace WebNovel.API.Areas.Models.Novels
 {
-    public interface INovelModel 
+    public interface INovelModel
     {
         Task<List<NovelDto>> GetListNovel(SearchCondition searchCondition);
         Task<ResponseInfo> AddNovel(NovelCreateUpdateEntity novel);
         Task<ResponseInfo> UpdateNovel(long id, NovelCreateUpdateEntity novel);
-        NovelDto GetNovel (long id);
+        NovelDto GetNovel(long id);
 
     }
 
     public class NovelModel : BaseModel, INovelModel
     {
         private readonly ILogger<INovelModel> _logger;
-        
+
         private string _className = "";
-        public NovelModel(IServiceProvider provider, ILogger<INovelModel> logger) : base(provider) {
+        public NovelModel(IServiceProvider provider, ILogger<INovelModel> logger) : base(provider)
+        {
 
             _logger = logger ?? throw new ArgumentNullException(nameof(logger));
             _className = GetType().Name;
@@ -38,15 +39,17 @@ namespace WebNovel.API.Areas.Models.Novels
         {
             IDbContextTransaction transaction = null;
             string method = GetActualAsyncMethodName();
-            try 
+            try
             {
                 _logger.LogInformation($"[{_className}][{method}] Start");
                 ResponseInfo results = new ResponseInfo();
-                if(results.Code != CodeResponse.OK) {
+                if (results.Code != CodeResponse.OK)
+                {
                     return results;
                 }
 
-                var newNovel = new Novel() {
+                var newNovel = new Novel()
+                {
                     Name = novel.Name,
                     Title = novel.Title,
                     AccountId = novel.AccountId,
@@ -76,10 +79,11 @@ namespace WebNovel.API.Areas.Models.Novels
                 _logger.LogInformation($"[{_className}][{method}] End");
                 return results;
 
-                
+
 
             }
-            catch(Exception e) {
+            catch (Exception e)
+            {
                 if (transaction != null)
                 {
                     await _context.RollbackAsync(transaction);
@@ -92,7 +96,8 @@ namespace WebNovel.API.Areas.Models.Novels
         public async Task<List<NovelDto>> GetListNovel(SearchCondition searchCondition)
         {
             List<NovelDto> listNovel = new List<NovelDto>();
-            if(searchCondition is null) {
+            if (searchCondition is null)
+            {
                 listNovel = _context.Novel.Select(x => new NovelDto()
                 {
                     Id = x.Id,
@@ -105,12 +110,12 @@ namespace WebNovel.API.Areas.Models.Novels
                     Description = x.Description,
                     Status = x.Status,
                     ApprovalStatus = x.ApprovalStatus
-                    
+
 
 
                 }).ToList();
             }
-            
+
             return listNovel;
 
         }
@@ -118,7 +123,7 @@ namespace WebNovel.API.Areas.Models.Novels
         public NovelDto GetNovel(long id)
         {
             var novel = _context.Novel.Where(x => x.Id == id).FirstOrDefault();
-            var novelDto = new NovelDto() 
+            var novelDto = new NovelDto()
             {
                 Id = novel.Id,
                 Name = novel.Name,
@@ -140,7 +145,8 @@ namespace WebNovel.API.Areas.Models.Novels
         {
             IDbContextTransaction transaction = null;
             string method = GetActualAsyncMethodName();
-            try {
+            try
+            {
                 _logger.LogInformation($"[{_className}][{method}] Start");
                 ResponseInfo result = new ResponseInfo();
                 ResponseInfo response = new ResponseInfo();
@@ -151,7 +157,8 @@ namespace WebNovel.API.Areas.Models.Novels
                 }
 
                 var existNovel = _context.Novel.Where(n => n.Id == id).FirstOrDefault();
-                if(existNovel is null) {
+                if (existNovel is null)
+                {
                     response.Code = CodeResponse.HAVE_ERROR;
                     response.MsgNo = MSG_NO.NOT_FOUND;
                     return response;
@@ -176,7 +183,8 @@ namespace WebNovel.API.Areas.Models.Novels
                 return result;
 
             }
-            catch(Exception e) {
+            catch (Exception e)
+            {
                 if (transaction != null)
                 {
                     await _context.RollbackAsync(transaction);
@@ -187,6 +195,6 @@ namespace WebNovel.API.Areas.Models.Novels
 
         }
 
-        
+
     }
 }
