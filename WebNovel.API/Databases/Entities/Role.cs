@@ -13,7 +13,7 @@ namespace WebNovel.API.Databases.Entities
     {
         public Role()
         {
-            Accounts = new HashSet<Account>();
+            Accounts = new HashSet<RolesOfUser>();
         }
 
         [Key]
@@ -22,7 +22,7 @@ namespace WebNovel.API.Databases.Entities
 
         [StringLength(100)]
         public string Name { get; set; } = null!;
-        public virtual ICollection<Account> Accounts { get; set; } = null!;
+        public virtual ICollection<RolesOfUser> Accounts { get; set; }
 
     }
 }

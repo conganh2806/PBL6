@@ -7,7 +7,7 @@ using WebNovel.API.Databases.Entitites;
 
 namespace WebNovel.API.Databases.Entities
 {
-    public class Preferences :TableHaveIdInt
+    public class Preferences :Table
     {
         public long NovelId {get; set;}
         public long AccountId {get; set;}

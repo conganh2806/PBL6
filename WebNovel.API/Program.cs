@@ -6,7 +6,7 @@ using WebNovel.API.Areas.Models.Roles;
 using WebNovel.API.Core.Services;
 
 var builder = WebApplication.CreateBuilder(args);
-var connectionString = builder.Configuration.GetConnectionString("AzureMySQL");
+var connectionString = builder.Configuration.GetConnectionString("DefaultConnection");
 // Add services to the container.
 var services = builder.Services;
 services.AddControllers();
@@ -22,7 +22,7 @@ services.AddDbContext<DataContext>(
         .EnableSensitiveDataLogging()
         .EnableDetailedErrors()
 );
-//services.AddScoped<IAccountModel, AccountModel>();
+services.AddScoped<IAccountModel, AccountModel>();
 services.AddScoped<IRoleModel, RoleModel>();
 services.AddScoped<INovelModel, NovelModel>();
 services.AddScoped<ILogService, LogService>();

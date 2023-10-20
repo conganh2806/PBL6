@@ -15,18 +15,63 @@ namespace WebNovel.API.Databases
         {
             modelBuilder.Entity<Account>()
             .HasMany(e => e.Roles)
-            .WithMany(e => e.Accounts)
-            .UsingEntity<AccountRole>();
+            .WithOne(e => e.Account)
+            .HasForeignKey(e => e.AccountId)
+            .OnDelete(DeleteBehavior.NoAction);
+
+            modelBuilder.Entity<Role>()
+            .HasMany(e => e.Accounts)
+            .WithOne(e => e.Role)
+            .HasForeignKey(e => e.RoleId)
+            .OnDelete(DeleteBehavior.NoAction);
+
+            modelBuilder
+            .Entity<RolesOfUser>()
+            .HasKey(e => new
+            {
+                e.AccountId,
+                e.RoleId
+            });
             
             modelBuilder.Entity<Account>()
-            .HasMany(e => e.Novels)
+            .HasMany(e => e.Preferences)
             .WithOne(e => e.Account)
-            .HasForeignKey(e => e.AccountId);
+            .HasForeignKey(e => e.AccountId)
+            .OnDelete(DeleteBehavior.NoAction);
 
             modelBuilder.Entity<Novel>()
-            .HasMany<Genre>(n => n.Genres)
-            .WithMany(g => g.Novels)
-            .UsingEntity<NovelGenre>();
+            .HasMany(e => e.Preferences)
+            .WithOne(e => e.Novel)
+            .HasForeignKey(e => e.NovelId)
+            .OnDelete(DeleteBehavior.NoAction);
+
+            modelBuilder
+            .Entity<Preferences>()
+            .HasKey(e => new
+            {
+                e.AccountId,
+                e.NovelId
+            });
+
+            modelBuilder.Entity<Novel>()
+            .HasMany(n => n.Genres)
+            .WithOne(g => g.Novel)
+            .HasForeignKey(e => e.NovelId)
+            .OnDelete(DeleteBehavior.NoAction);
+
+            modelBuilder.Entity<Genre>()
+            .HasMany(n => n.Novels)
+            .WithOne(g => g.Genre)
+            .HasForeignKey(e => e.GenreId)
+            .OnDelete(DeleteBehavior.NoAction);
+
+            modelBuilder
+            .Entity<NovelGenre>()
+            .HasKey(e => new
+            {
+                e.GenreId,
+                e.NovelId
+            });
 
             modelBuilder.Entity<Comment>()
             .HasOne(e => e.Novel)
@@ -68,11 +113,7 @@ namespace WebNovel.API.Databases
             .HasForeignKey(e => e.AccountId)
             .IsRequired();
 
-            modelBuilder.Entity<Novel>()
-            .HasMany(e => e.Preferences)
-            .WithOne(e => e.Novel)
-            .HasForeignKey(e => e.NovelId)
-            .IsRequired();
+            
 
 
            
