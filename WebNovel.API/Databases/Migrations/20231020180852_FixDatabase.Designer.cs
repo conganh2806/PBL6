@@ -11,8 +11,8 @@ using Webnovel.API.Databases;
 namespace Webnovel.API.Databases.Migrations
 {
     [DbContext(typeof(DataContext))]
-    [Migration("20231017080544_InitialDB_Ver1")]
-    partial class InitialDB_Ver1
+    [Migration("20231020180852_FixDatabase")]
+    partial class FixDatabase
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -21,21 +21,6 @@ namespace Webnovel.API.Databases.Migrations
             modelBuilder
                 .HasAnnotation("ProductVersion", "7.0.11")
                 .HasAnnotation("Relational:MaxIdentifierLength", 64);
-
-            modelBuilder.Entity("WebNovel.API.Databases.Entities.AccountRole", b =>
-                {
-                    b.Property<long>("AccountId")
-                        .HasColumnType("bigint");
-
-                    b.Property<string>("RoleId")
-                        .HasColumnType("varchar(21)");
-
-                    b.HasKey("AccountId", "RoleId");
-
-                    b.HasIndex("RoleId");
-
-                    b.ToTable("AccountRole");
-                });
 
             modelBuilder.Entity("WebNovel.API.Databases.Entities.Bookmarked", b =>
                 {
@@ -287,27 +272,42 @@ namespace Webnovel.API.Databases.Migrations
             modelBuilder.Entity("WebNovel.API.Databases.Entities.NovelGenre", b =>
                 {
                     b.Property<long>("GenreId")
-                        .HasColumnType("bigint");
+                        .HasColumnType("bigint")
+                        .HasColumnOrder(2);
 
                     b.Property<long>("NovelId")
-                        .HasColumnType("bigint");
+                        .HasColumnType("bigint")
+                        .HasColumnOrder(1);
+
+                    b.Property<DateTimeOffset>("CreatedAt")
+                        .HasColumnType("datetime(6)")
+                        .HasComment("Ngày tạo dữ liệu");
+
+                    b.Property<bool>("DelFlag")
+                        .HasColumnType("tinyint(1)")
+                        .HasComment("Cờ xóa dữ liệu");
+
+                    b.Property<DateTimeOffset?>("DeletedAt")
+                        .HasColumnType("datetime(6)")
+                        .HasComment("Ngày xoá dữ liệu");
+
+                    b.Property<DateTimeOffset?>("UpdatedAt")
+                        .HasColumnType("datetime(6)")
+                        .HasComment("Ngày cập nhật dữ liệu");
 
                     b.HasKey("GenreId", "NovelId");
 
                     b.HasIndex("NovelId");
 
-                    b.ToTable("NovelGenre");
+                    b.ToTable("GenreOfNovels");
                 });
 
             modelBuilder.Entity("WebNovel.API.Databases.Entities.Preferences", b =>
                 {
-                    b.Property<long>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("bigint")
-                        .HasColumnOrder(1)
-                        .HasComment("Id định danh (khóa chính)");
-
                     b.Property<long>("AccountId")
+                        .HasColumnType("bigint");
+
+                    b.Property<long>("NovelId")
                         .HasColumnType("bigint");
 
                     b.Property<DateTimeOffset>("CreatedAt")
@@ -322,16 +322,11 @@ namespace Webnovel.API.Databases.Migrations
                         .HasColumnType("datetime(6)")
                         .HasComment("Ngày xoá dữ liệu");
 
-                    b.Property<long>("NovelId")
-                        .HasColumnType("bigint");
-
                     b.Property<DateTimeOffset?>("UpdatedAt")
                         .HasColumnType("datetime(6)")
                         .HasComment("Ngày cập nhật dữ liệu");
 
-                    b.HasKey("Id");
-
-                    b.HasIndex("AccountId");
+                    b.HasKey("AccountId", "NovelId");
 
                     b.HasIndex("NovelId");
 
@@ -368,6 +363,40 @@ namespace Webnovel.API.Databases.Migrations
                     b.HasKey("Id");
 
                     b.ToTable("Roles");
+                });
+
+            modelBuilder.Entity("WebNovel.API.Databases.Entities.RolesOfUser", b =>
+                {
+                    b.Property<long>("AccountId")
+                        .HasColumnType("bigint")
+                        .HasColumnOrder(1);
+
+                    b.Property<string>("RoleId")
+                        .HasMaxLength(21)
+                        .HasColumnType("varchar(21)")
+                        .HasColumnOrder(2);
+
+                    b.Property<DateTimeOffset>("CreatedAt")
+                        .HasColumnType("datetime(6)")
+                        .HasComment("Ngày tạo dữ liệu");
+
+                    b.Property<bool>("DelFlag")
+                        .HasColumnType("tinyint(1)")
+                        .HasComment("Cờ xóa dữ liệu");
+
+                    b.Property<DateTimeOffset?>("DeletedAt")
+                        .HasColumnType("datetime(6)")
+                        .HasComment("Ngày xoá dữ liệu");
+
+                    b.Property<DateTimeOffset?>("UpdatedAt")
+                        .HasColumnType("datetime(6)")
+                        .HasComment("Ngày cập nhật dữ liệu");
+
+                    b.HasKey("AccountId", "RoleId");
+
+                    b.HasIndex("RoleId");
+
+                    b.ToTable("RolesOfUsers");
                 });
 
             modelBuilder.Entity("WebNovel.API.Databases.Entities.UpdatedFee", b =>
@@ -502,7 +531,6 @@ namespace Webnovel.API.Databases.Migrations
                         .HasComment("Ngày xoá dữ liệu");
 
                     b.Property<string>("Description")
-                        .IsRequired()
                         .HasMaxLength(500)
                         .HasColumnType("varchar(500)");
 
@@ -541,21 +569,6 @@ namespace Webnovel.API.Databases.Migrations
                     b.HasIndex("AccountId");
 
                     b.ToTable("Novel");
-                });
-
-            modelBuilder.Entity("WebNovel.API.Databases.Entities.AccountRole", b =>
-                {
-                    b.HasOne("WebNovel.API.Databases.Entitites.Account", null)
-                        .WithMany()
-                        .HasForeignKey("AccountId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.HasOne("WebNovel.API.Databases.Entities.Role", null)
-                        .WithMany()
-                        .HasForeignKey("RoleId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
                 });
 
             modelBuilder.Entity("WebNovel.API.Databases.Entities.Bookmarked", b =>
@@ -617,17 +630,21 @@ namespace Webnovel.API.Databases.Migrations
 
             modelBuilder.Entity("WebNovel.API.Databases.Entities.NovelGenre", b =>
                 {
-                    b.HasOne("WebNovel.API.Databases.Entities.Genre", null)
-                        .WithMany()
+                    b.HasOne("WebNovel.API.Databases.Entities.Genre", "Genre")
+                        .WithMany("Novels")
                         .HasForeignKey("GenreId")
-                        .OnDelete(DeleteBehavior.Cascade)
+                        .OnDelete(DeleteBehavior.NoAction)
                         .IsRequired();
 
-                    b.HasOne("WebNovel.API.Databases.Entitites.Novel", null)
-                        .WithMany()
+                    b.HasOne("WebNovel.API.Databases.Entitites.Novel", "Novel")
+                        .WithMany("Genres")
                         .HasForeignKey("NovelId")
-                        .OnDelete(DeleteBehavior.Cascade)
+                        .OnDelete(DeleteBehavior.NoAction)
                         .IsRequired();
+
+                    b.Navigation("Genre");
+
+                    b.Navigation("Novel");
                 });
 
             modelBuilder.Entity("WebNovel.API.Databases.Entities.Preferences", b =>
@@ -635,13 +652,13 @@ namespace Webnovel.API.Databases.Migrations
                     b.HasOne("WebNovel.API.Databases.Entitites.Account", "Account")
                         .WithMany("Preferences")
                         .HasForeignKey("AccountId")
-                        .OnDelete(DeleteBehavior.Cascade)
+                        .OnDelete(DeleteBehavior.NoAction)
                         .IsRequired();
 
                     b.HasOne("WebNovel.API.Databases.Entitites.Novel", "Novel")
                         .WithMany("Preferences")
                         .HasForeignKey("NovelId")
-                        .OnDelete(DeleteBehavior.Cascade)
+                        .OnDelete(DeleteBehavior.NoAction)
                         .IsRequired();
 
                     b.Navigation("Account");
@@ -649,10 +666,29 @@ namespace Webnovel.API.Databases.Migrations
                     b.Navigation("Novel");
                 });
 
+            modelBuilder.Entity("WebNovel.API.Databases.Entities.RolesOfUser", b =>
+                {
+                    b.HasOne("WebNovel.API.Databases.Entitites.Account", "Account")
+                        .WithMany("Roles")
+                        .HasForeignKey("AccountId")
+                        .OnDelete(DeleteBehavior.NoAction)
+                        .IsRequired();
+
+                    b.HasOne("WebNovel.API.Databases.Entities.Role", "Role")
+                        .WithMany("Accounts")
+                        .HasForeignKey("RoleId")
+                        .OnDelete(DeleteBehavior.NoAction)
+                        .IsRequired();
+
+                    b.Navigation("Account");
+
+                    b.Navigation("Role");
+                });
+
             modelBuilder.Entity("WebNovel.API.Databases.Entitites.Novel", b =>
                 {
                     b.HasOne("WebNovel.API.Databases.Entitites.Account", "Account")
-                        .WithMany("Novels")
+                        .WithMany()
                         .HasForeignKey("AccountId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
@@ -663,6 +699,16 @@ namespace Webnovel.API.Databases.Migrations
             modelBuilder.Entity("WebNovel.API.Databases.Entities.Chapter", b =>
                 {
                     b.Navigation("Bookmarked");
+                });
+
+            modelBuilder.Entity("WebNovel.API.Databases.Entities.Genre", b =>
+                {
+                    b.Navigation("Novels");
+                });
+
+            modelBuilder.Entity("WebNovel.API.Databases.Entities.Role", b =>
+                {
+                    b.Navigation("Accounts");
                 });
 
             modelBuilder.Entity("WebNovel.API.Databases.Entities.UpdatedFee", b =>
@@ -676,9 +722,9 @@ namespace Webnovel.API.Databases.Migrations
 
                     b.Navigation("Comments");
 
-                    b.Navigation("Novels");
-
                     b.Navigation("Preferences");
+
+                    b.Navigation("Roles");
                 });
 
             modelBuilder.Entity("WebNovel.API.Databases.Entitites.Novel", b =>
@@ -686,6 +732,8 @@ namespace Webnovel.API.Databases.Migrations
                     b.Navigation("Chapters");
 
                     b.Navigation("Comments");
+
+                    b.Navigation("Genres");
 
                     b.Navigation("Preferences");
                 });
