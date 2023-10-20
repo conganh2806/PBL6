@@ -9,21 +9,25 @@ using WebNovel.API.Databases.Entitites;
 
 namespace WebNovel.API.Databases.Entities
 {
-    public class NovelGenre : Table
+    public class RolesOfUser : Table
     {
-        public NovelGenre()
+        public RolesOfUser()
         {
             ForceDel = true;
         }
+
         [Key]
         [Column(Order = 1)]
-        public long NovelId {get; set;}
-        
+        public long AccountId { set; get; }
+
         [Key]
         [Column(Order = 2)]
-        public long GenreId {get; set;}
-        public virtual Novel Novel { set; get; }
+        [StringLength(21)]
+        public string RoleId { set; get; }
 
-        public virtual Genre Genre { set; get; }
+        public virtual Account Account { set; get; }
+
+        public virtual Role Role { set; get; }
+
     }
 }

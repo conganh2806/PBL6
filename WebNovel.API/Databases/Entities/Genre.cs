@@ -6,11 +6,11 @@ namespace WebNovel.API.Databases.Entities
     public class Genre : TableHaveIdInt
     {
         public Genre() {
-            this.Novels = new HashSet<Novel>();
+            this.Novels = new HashSet<NovelGenre>();
         }
 
         [StringLength(100)]
         public string Name {get; set;} = null!;
-        public virtual ICollection<Novel> Novels {get; set;} = null!;
+        public virtual ICollection<NovelGenre> Novels {get; set;} = null!;
     }
 }
