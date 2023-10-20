@@ -22,8 +22,8 @@ namespace WebNovel.API.Areas.Models.Preferences
     {
         Task<List<PreferencesDto>> GetListPreference();
         Task<ResponseInfo> AddPreference(PreferencesCreateUpdateEntity account);
-        Task<ResponseInfo> UpdatePreference(long id, PreferencesCreateUpdateEntity account);
-        PreferencesDto GetPreference(long id);
+        PreferencesDto GetPreferenceByAccount(long AccountId);
+        PreferencesDto GetPreferenceByNovel(long NovelId);
     }
     public class PreferencesModel : BaseModel, IPreferencesModel
     {
@@ -52,7 +52,6 @@ namespace WebNovel.API.Areas.Models.Preferences
 
                 var newPreference = new Databases.Entities.Preferences()
                 {
-                    Id = preference.Id,
                     NovelId = preference.NovelId,
                     AccountId = preference.AccountId,
                 };
@@ -85,12 +84,23 @@ namespace WebNovel.API.Areas.Models.Preferences
             }
         }
 
-        public PreferencesDto GetPreference(long id)
+        public PreferencesDto GetPreferenceByAccount(long AccountId)
         {
-            var preference = _context.Preferences.Where(x => x.Id == id).FirstOrDefault();
+            var preference = _context.Preferences.Where(x => x.AccountId == AccountId).FirstOrDefault();
             var preferenceDto = new PreferencesDto()
             {
-                Id = preference.Id,
+                NovelId = preference.NovelId,
+                AccountId = preference.AccountId,
+            };
+
+            return preferenceDto;
+        }
+
+        public PreferencesDto GetPreferenceByNovel(long NovelId)
+        {
+            var preference = _context.Preferences.Where(x => x.NovelId == NovelId).FirstOrDefault();
+            var preferenceDto = new PreferencesDto()
+            {
                 NovelId = preference.NovelId,
                 AccountId = preference.AccountId,
             };
@@ -102,67 +112,11 @@ namespace WebNovel.API.Areas.Models.Preferences
         {
             var listPreference = _context.Preferences.Select(x => new PreferencesDto()
             {
-                Id = x.Id,
                 NovelId = x.NovelId,
                 AccountId = x.AccountId,
             }).ToList();
 
             return listPreference;
         }
-
-        public async Task<ResponseInfo> UpdatePreference(long id, PreferencesCreateUpdateEntity preference)
-        {
-            IDbContextTransaction transaction = null;
-            string method = GetActualAsyncMethodName();
-
-            try
-            {
-                _logger.LogInformation($"[{_className}][{method}] Start");
-                ResponseInfo result = new ResponseInfo();
-                ResponseInfo response = new ResponseInfo();
-                if (result.Code != CodeResponse.OK)
-                {
-                    return result;
-                }
-
-                var existPreference = _context.Preferences.Where(x => x.Id == id).FirstOrDefault();
-                if (existPreference is null)
-                {
-                    response.Code = CodeResponse.HAVE_ERROR;
-                    response.MsgNo = MSG_NO.NOT_FOUND;
-                    return response;
-                }
-
-                existPreference.NovelId = preference.NovelId;
-                existPreference.AccountId = preference.AccountId;
-
-                var strategy = _context.Database.CreateExecutionStrategy();
-                await strategy.ExecuteAsync(
-                    async () =>
-                    {
-                        using (var trn = await _context.Database.BeginTransactionAsync())
-                        {
-                            await _context.SaveChangesAsync();
-                            await trn.CommitAsync();
-                        }
-                    }
-                );
-
-                _logger.LogInformation($"[{_className}][{method}] End");
-
-                return result;
-            }
-            catch (Exception e)
-            {
-                if (transaction != null)
-                {
-                    await _context.RollbackAsync(transaction);
-                }
-                _logger.LogInformation($"[{_className}][{method}] Exception: {e.Message}");
-                throw;
-            }
-        }
-
-
     }
 }

@@ -37,13 +37,27 @@ namespace WebNovel.API.Areas.Controllers
             }
         }
 
-        [HttpGet("{id}")]
+        [HttpGet("{NovelId}")]
         [ProducesResponseType(typeof(PreferencesDto), (int)HttpStatusCode.OK)]
-        public async Task<IActionResult> GetDetail([FromRoute] long id)
+        public async Task<IActionResult> GetDetailByNovel([FromRoute] long NovelId)
         {
             try
             {
-                return Ok(_preferencesModel.GetPreference(id));
+                return Ok(_preferencesModel.GetPreferenceByNovel(NovelId));
+            }
+            catch (Exception e)
+            {
+                return StatusCode(500, new { Error = e.Message });
+            }
+        }
+
+        [HttpGet("{AccountId}")]
+        [ProducesResponseType(typeof(PreferencesDto), (int)HttpStatusCode.OK)]
+        public async Task<IActionResult> GetDetailByAccount([FromRoute] long AccountId)
+        {
+            try
+            {
+                return Ok(_preferencesModel.GetPreferenceByAccount(AccountId));
             }
             catch (Exception e)
             {
@@ -61,29 +75,6 @@ namespace WebNovel.API.Areas.Controllers
                 if (ModelState.IsValid)
                 {
                     response = await _preferencesModel.AddPreference(preference);
-                }
-                else
-                {
-                    response.Code = CodeResponse.NOT_VALIDATE;
-                }
-                return Ok(response);
-            }
-            catch (Exception e)
-            {
-                return StatusCode(500, new { Error = e.Message });
-            }
-        }
-
-        [HttpPut("{id}")]
-        [ProducesResponseType(typeof(ResponseInfo), (int)HttpStatusCode.OK)]
-        public async Task<IActionResult> Update([FromRoute] long id, [FromBody] PreferencesCreateUpdateEntity preference)
-        {
-            try
-            {
-                ResponseInfo response = new ResponseInfo();
-                if (ModelState.IsValid)
-                {
-                    response = await _preferencesModel.UpdatePreference(id, preference);
                 }
                 else
                 {
