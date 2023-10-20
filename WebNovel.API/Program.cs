@@ -1,12 +1,16 @@
 using Microsoft.EntityFrameworkCore;
 using Webnovel.API.Databases;
 using WebNovel.API.Areas.Models.Accounts;
+using WebNovel.API.Areas.Models.Chapter;
+using WebNovel.API.Areas.Models.Genres;
 using WebNovel.API.Areas.Models.Novels;
+using WebNovel.API.Areas.Models.Preferences;
 using WebNovel.API.Areas.Models.Roles;
+using WebNovel.API.Areas.Models.UpdatedFees;
 using WebNovel.API.Core.Services;
 
 var builder = WebApplication.CreateBuilder(args);
-var connectionString = builder.Configuration.GetConnectionString("DefaultConnection");
+var connectionString = builder.Configuration.GetConnectionString("AzureMySQL");
 // Add services to the container.
 var services = builder.Services;
 services.AddControllers();
@@ -14,7 +18,7 @@ services.AddControllers();
 services.AddEndpointsApiExplorer();
 services.AddSwaggerGen();
 
-var serverVersion = new MySqlServerVersion(new Version(8, 0, 34));
+var serverVersion = ServerVersion.AutoDetect(connectionString);
 services.AddDbContext<DataContext>(
     dbContextOptions => dbContextOptions
         .UseMySql(connectionString, serverVersion, options => options.EnableRetryOnFailure())
@@ -23,10 +27,17 @@ services.AddDbContext<DataContext>(
         .EnableDetailedErrors()
 );
 services.AddScoped<IAccountModel, AccountModel>();
+services.AddScoped<IGenreModel, GenreModel>();
 services.AddScoped<IRoleModel, RoleModel>();
 services.AddScoped<INovelModel, NovelModel>();
+services.AddScoped<IChapterModel, ChapterModel>();
+services.AddScoped<IPreferencesModel, PreferencesModel>();
+services.AddScoped<IUpdatedFeeModel, UpdatedFeeModel>();
 services.AddScoped<ILogService, LogService>();
 services.AddScoped<IAwsS3Service, AwsS3Service>();
+
+
+
 var app = builder.Build();
 
 app.UseSwagger();

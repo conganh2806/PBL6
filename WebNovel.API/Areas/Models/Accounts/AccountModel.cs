@@ -25,7 +25,7 @@ namespace WebNovel.API.Areas.Models.Accounts
         Task<List<AccountDto>> GetListAccount(SearchCondition searchCondition);
         Task<ResponseInfo> AddAccount(AccountCreateUpdateEntity account);
         Task<ResponseInfo> UpdateAccount(long id, AccountCreateUpdateEntity account);
-        AccountDto GetAccount (long id);
+        AccountDto GetAccount(long id);
     }
     public class AccountModel : BaseModel, IAccountModel
     {
@@ -106,7 +106,7 @@ namespace WebNovel.API.Areas.Models.Accounts
 
         public AccountDto GetAccount(long id)
         {
-            var account = _context.Accounts.Include(x => x.Roles).ThenInclude(x =>x.Role).Where(x => x.Id == id).FirstOrDefault();
+            var account = _context.Accounts.Include(x => x.Roles).ThenInclude(x => x.Role).Where(x => x.Id == id).FirstOrDefault();
             var accountDto = new AccountDto
             {
                 NickName = account.NickName,
@@ -123,7 +123,7 @@ namespace WebNovel.API.Areas.Models.Accounts
 
         public async Task<List<AccountDto>> GetListAccount(SearchCondition searchCondition)
         {
-            var listAccount = _context.Accounts.Include(x => x.Roles).ThenInclude(x =>x.Role).Select(x => new AccountDto() 
+            var listAccount = _context.Accounts.Include(x => x.Roles).ThenInclude(x => x.Role).Select(x => new AccountDto()
             {
                 Username = x.Username,
                 Email = x.Email,
@@ -149,7 +149,7 @@ namespace WebNovel.API.Areas.Models.Accounts
                 }
 
                 var existAccount = await _context.Accounts.Include(x => x.Roles).ThenInclude(x => x.Role).Where(x => x.Id == id).FirstOrDefaultAsync();
-                if (existAccount is null) 
+                if (existAccount is null)
                 {
                     response.Code = CodeResponse.HAVE_ERROR;
                     response.MsgNo = MSG_NO.NOT_FOUND;
@@ -194,7 +194,7 @@ namespace WebNovel.API.Areas.Models.Accounts
 
                 return result;
             }
-            catch(Exception e)
+            catch (Exception e)
             {
                 if (transaction != null)
                 {
