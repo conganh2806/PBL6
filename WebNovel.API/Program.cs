@@ -10,7 +10,7 @@ using WebNovel.API.Areas.Models.UpdatedFees;
 using WebNovel.API.Core.Services;
 
 var builder = WebApplication.CreateBuilder(args);
-var connectionString = builder.Configuration.GetConnectionString("DefaultConnection");
+var connectionString = builder.Configuration.GetConnectionString("AzureMySQL");
 // Add services to the container.
 var services = builder.Services;
 services.AddControllers();
@@ -18,7 +18,7 @@ services.AddControllers();
 services.AddEndpointsApiExplorer();
 services.AddSwaggerGen();
 
-var serverVersion = new MySqlServerVersion(new Version(8, 0, 34));
+var serverVersion = ServerVersion.AutoDetect(connectionString);
 services.AddDbContext<DataContext>(
     dbContextOptions => dbContextOptions
         .UseMySql(connectionString, serverVersion, options => options.EnableRetryOnFailure())
