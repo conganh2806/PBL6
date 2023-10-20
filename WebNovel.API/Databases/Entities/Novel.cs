@@ -7,7 +7,7 @@ namespace WebNovel.API.Databases.Entitites
     {
         public Novel()
         {
-            this.Genres = new HashSet<Genre>();
+            this.Genres = new HashSet<NovelGenre>();
             this.Comments = new HashSet<Comment>();
             this.Chapters = new HashSet<Chapter>();
             this.Preferences = new HashSet<Preferences>();
@@ -26,10 +26,10 @@ namespace WebNovel.API.Databases.Entitites
         [StringLength(500)]
         public string? Images { get; set; }
         [StringLength(500)]
-        public string Description { get; set; } = null!;
+        public string? Description { get; set; }
         public bool Status { get; set; } //Trạng thái của truyện dùng để cài đặt trạng thái còn trong giai đoạn sáng tác hay k
         public bool ApprovalStatus { get; set; }
-        public virtual ICollection<Genre> Genres { get; set; } = null!;
+        public virtual ICollection<NovelGenre> Genres { get; set; } = null!;
         public virtual ICollection<Comment>? Comments { get; set; }
         public virtual ICollection<Chapter>? Chapters { get; set; }
         public virtual ICollection<Preferences>? Preferences { get; set; }

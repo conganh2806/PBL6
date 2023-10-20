@@ -11,11 +11,10 @@ namespace WebNovel.API.Databases.Entitites
         {
                 public Account()
                 {
-                        Novels = new HashSet<Novel>();
                         Comments = new HashSet<Comment>();
                         Bookmarkeds = new HashSet<Bookmarked>();
                         Preferences = new HashSet<Preferences>();
-                        Roles = new HashSet<Role>();
+                        Roles = new HashSet<RolesOfUser>();
                 }
 
                 [StringLength(100)]
@@ -34,11 +33,10 @@ namespace WebNovel.API.Databases.Entitites
                 public bool IsActive { get; set; }
                 public bool IsAdmin { get; set; }
                 public string? Phone { get; set; }
-                public virtual ICollection<Novel> Novels { get; set; } = null!;
                 public virtual ICollection<Comment>? Comments { get; set; }
                 public virtual ICollection<Bookmarked>? Bookmarkeds { get; set; }
                 public virtual ICollection<Preferences>? Preferences { get; set; }
-                public virtual ICollection<Role> Roles { get; set; } = null!;
+                public virtual ICollection<RolesOfUser> Roles { get; set; } = null!;
 
         }
 }
