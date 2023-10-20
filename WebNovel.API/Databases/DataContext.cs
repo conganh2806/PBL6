@@ -20,7 +20,7 @@ namespace Webnovel.API.Databases
         public virtual DbSet<ExceptionLog> ExceptionLogs { get; set; }
         public virtual DbSet<Novel> Novel { get; set; } = null!;
         public virtual DbSet<Genre> Genre { get; set; } = null!;
-        public virtual DbSet<NovelGenre> GenreOfNovels { get; set; };
+        public virtual DbSet<NovelGenre> GenreOfNovels { get; set; }
         public virtual DbSet<Bookmarked> BookMarked { get; set; } = null!;
         public virtual DbSet<Chapter> Chapter { get; set; } = null!;
         public virtual DbSet<Comment> Comment { get; set; } = null!;
