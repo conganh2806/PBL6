@@ -6,6 +6,7 @@ using WebNovel.API.Areas.Models.Novels.Schemas;
 using WebNovel.API.Commons.Enums;
 using WebNovel.API.Commons.Schemas;
 using WebNovel.API.Core.Models;
+using WebNovel.API.Databases.Entities;
 using WebNovel.API.Databases.Entitites;
 using static WebNovel.API.Commons.Enums.CodeResonse;
 
@@ -61,6 +62,15 @@ namespace WebNovel.API.Areas.Models.Novels
                     ApprovalStatus = novel.ApprovalStatus
                 };
 
+                if(novel.GenreIds.Any()) {
+                    foreach(var genreId in novel.GenreIds) {
+                        newNovel.Genres.Add (new NovelGenre(){
+                            NovelId = novel.Id,
+                            GenreId = genreId
+                        });
+                    }
+                }
+
                 var strategy = _context.Database.CreateExecutionStrategy();
                 await strategy.ExecuteAsync(
                     async () =>
@@ -106,11 +116,12 @@ namespace WebNovel.API.Areas.Models.Novels
                     Author = _context.Accounts.Where(e => e.Id == x.AccountId).FirstOrDefault().NickName,
                     Year = x.Year,
                     Views = x.Views,
+                    ImagesURL = x.ImageURL,
                     Rating = x.Rating,
                     Description = x.Description,
                     Status = x.Status,
-                    ApprovalStatus = x.ApprovalStatus
-
+                    ApprovalStatus = x.ApprovalStatus,
+                    GenreName = x.Genres.Select(x => x.Genre.Name).ToList()
 
 
                 }).ToList();
@@ -131,10 +142,12 @@ namespace WebNovel.API.Areas.Models.Novels
                 Author = _context.Accounts.Where(n => n.Id == novel.AccountId).FirstOrDefault().NickName,
                 Year = novel.Year,
                 Views = novel.Views,
+                ImagesURL = novel.ImageURL,
                 Rating = novel.Rating,
                 Description = novel.Description,
                 Status = novel.Status,
-                ApprovalStatus = novel.ApprovalStatus
+                ApprovalStatus = novel.ApprovalStatus,
+                GenreName = novel.Genres.Select(x => x.Genre.Name).ToList()
 
             };
 
@@ -172,7 +185,15 @@ namespace WebNovel.API.Areas.Models.Novels
                 existNovel.Description = novel.Description;
                 existNovel.Status = novel.Status;
                 existNovel.ApprovalStatus = novel.Status;
-
+                _context.GenreOfNovels.RemoveRange(_context.GenreOfNovels.Where(x => x.NovelId == existNovel.Id));
+                foreach (var genreId in novel.GenreIds)
+                {
+                    existNovel.Genres.Add(new NovelGenre()
+                    {
+                        NovelId = existNovel.Id,
+                        GenreId = genreId
+                    });
+                }
 
                 transaction = await _context.Database.BeginTransactionAsync();
                 await _context.SaveChangesAsync();
