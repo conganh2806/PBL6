@@ -59,7 +59,8 @@ namespace WebNovel.API.Areas.Models.Novels
                     Rating = novel.Rating,
                     Description = novel.Description,
                     Status = novel.Status,
-                    ApprovalStatus = novel.ApprovalStatus
+                    ApprovalStatus = novel.ApprovalStatus,
+                    ImageURL = novel.ImagesURL
                 };
 
                 if(novel.GenreIds.Any()) {
@@ -185,6 +186,7 @@ namespace WebNovel.API.Areas.Models.Novels
                 existNovel.Description = novel.Description;
                 existNovel.Status = novel.Status;
                 existNovel.ApprovalStatus = novel.Status;
+                existNovel.ImageURL = novel.ImagesURL;
                 _context.GenreOfNovels.RemoveRange(_context.GenreOfNovels.Where(x => x.NovelId == existNovel.Id));
                 foreach (var genreId in novel.GenreIds)
                 {
@@ -195,9 +197,18 @@ namespace WebNovel.API.Areas.Models.Novels
                     });
                 }
 
-                transaction = await _context.Database.BeginTransactionAsync();
-                await _context.SaveChangesAsync();
-                await transaction.CommitAsync();
+
+                var strategy = _context.Database.CreateExecutionStrategy();
+                await strategy.ExecuteAsync(
+                    async () =>
+                    {
+                        using (var trn = await _context.Database.BeginTransactionAsync())
+                        {
+                            await _context.SaveChangesAsync();
+                            await trn.CommitAsync();
+                        }
+                    }
+                );
 
 
                 _logger.LogInformation($"[{_className}][{method}] End");
