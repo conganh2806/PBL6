@@ -14,7 +14,7 @@ using static WebNovel.API.Commons.Enums.CodeResonse;
 
 namespace WebNovel.API.Areas.Controllers
 {
-    [Route("[controller]")]
+    [Route("api/novel")]
     public class NovelController : BaseController
     {
         private readonly INovelModel _novelModel;

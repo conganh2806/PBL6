@@ -134,7 +134,10 @@ namespace WebNovel.API.Areas.Models.Novels
 
         public NovelDto GetNovel(long id)
         {
-            var novel = _context.Novel.Where(x => x.Id == id).FirstOrDefault();
+            var novel = _context.Novel.Include(x => x.Genres).ThenInclude(x => x.Genre).Where(x => x.Id == id).FirstOrDefault();
+            var genres = _context.Genre.Where(t => novel.Genres.Select(x => x.GenreId).ToList().Contains(t.Id)).ToList();
+            
+
             var novelDto = new NovelDto()
             {
                 Id = novel.Id,
@@ -148,8 +151,8 @@ namespace WebNovel.API.Areas.Models.Novels
                 Description = novel.Description,
                 Status = novel.Status,
                 ApprovalStatus = novel.ApprovalStatus,
-                GenreName = novel.Genres.Select(x => x.Genre.Name).ToList()
-
+                GenreIds = genres.Select(x => x.Id).ToList(),
+                GenreName = genres.Select(x => x.Name).ToList()
             };
 
             return novelDto;
