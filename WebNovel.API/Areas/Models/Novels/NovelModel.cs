@@ -106,15 +106,18 @@ namespace WebNovel.API.Areas.Models.Novels
 
         public async Task<List<NovelDto>> GetListNovel(SearchCondition searchCondition)
         {
-            List<NovelDto> listNovel = new List<NovelDto>();
+            
+            List<NovelDto> listNovel =  new List<NovelDto>();
+            
             if (searchCondition is null)
             {
-                listNovel = _context.Novel.Select(x => new NovelDto()
+                var novels = await _context.Novel.ToListAsync();
+                var novelDtoTasks  =  novels.Select(async x => new NovelDto()
                 {
                     Id = x.Id,
                     Name = x.Name,
                     Title = x.Title,
-                    Author = _context.Accounts.Where(e => e.Id == x.AccountId).FirstOrDefault().NickName,
+                    Author = (await _context.Accounts.FirstOrDefaultAsync(e => e.Id == x.AccountId))?.NickName,
                     Year = x.Year,
                     Views = x.Views,
                     ImagesURL = x.ImageURL,
@@ -122,10 +125,21 @@ namespace WebNovel.API.Areas.Models.Novels
                     Description = x.Description,
                     Status = x.Status,
                     ApprovalStatus = x.ApprovalStatus,
-                    GenreName = x.Genres.Select(x => x.Genre.Name).ToList()
+
+                    GenreName = await _context.GenreOfNovels
+                                        .Where(gn => gn.NovelId == x.Id)
+                                        .Select(gn => gn.Genre.Name)
+                                        .ToListAsync()
 
 
-                }).ToList();
+
+
+                });
+
+
+                var novelDtoList = await Task.WhenAll(novelDtoTasks);
+                listNovel = novelDtoList.ToList();
+                
             }
 
             return listNovel;
