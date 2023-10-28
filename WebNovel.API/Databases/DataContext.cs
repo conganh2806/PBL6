@@ -26,7 +26,7 @@ namespace Webnovel.API.Databases
         public virtual DbSet<Comment> Comment { get; set; } = null!;
         public virtual DbSet<UpdatedFee> UpdatedFee { get; set; } = null!;
         public virtual DbSet<Preferences> Preferences { get; set; } = null!;
-
+        public virtual DbSet<Rating> Ratings { get; set; } = null!;
 
 
         /// <summary>
