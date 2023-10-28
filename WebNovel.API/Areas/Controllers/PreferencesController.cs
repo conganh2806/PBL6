@@ -37,7 +37,7 @@ namespace WebNovel.API.Areas.Controllers
             }
         }
 
-        [HttpGet("{NovelId}")]
+        [HttpGet("NovelId={NovelId}")]
         [ProducesResponseType(typeof(PreferencesDto), (int)HttpStatusCode.OK)]
         public async Task<IActionResult> GetDetailByNovel([FromRoute] long NovelId)
         {
@@ -51,13 +51,27 @@ namespace WebNovel.API.Areas.Controllers
             }
         }
 
-        [HttpGet("{AccountId}")]
+        [HttpGet("AccountId={AccountId}")]
         [ProducesResponseType(typeof(PreferencesDto), (int)HttpStatusCode.OK)]
         public async Task<IActionResult> GetDetailByAccount([FromRoute] long AccountId)
         {
             try
             {
                 return Ok(_preferencesModel.GetPreferenceByAccount(AccountId));
+            }
+            catch (Exception e)
+            {
+                return StatusCode(500, new { Error = e.Message });
+            }
+        }
+
+        [HttpGet("{AccountId}/{NovelId}")]
+        [ProducesResponseType(typeof(PreferencesDto), (int)HttpStatusCode.OK)]
+        public async Task<IActionResult> GetDetail([FromRoute] long AccountId, [FromRoute] long NovelId)
+        {
+            try
+            {
+                return Ok(_preferencesModel.GetPreference(AccountId, NovelId));
             }
             catch (Exception e)
             {
