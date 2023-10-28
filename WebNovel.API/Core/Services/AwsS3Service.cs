@@ -14,6 +14,7 @@ namespace WebNovel.API.Core.Services
         Task<string> UploadToS3(IFormFile file, string fileName, string folder);
         Task<Stream> GetFile(string folder, string fileName);
         Task DeleteFromS3(string folder, List<string> objects);
+        string GetFileImg(string folder, string fileName);
     }
     public class AwsS3Service : IAwsS3Service
     {
@@ -88,8 +89,7 @@ namespace WebNovel.API.Core.Services
             string bucketName = awsConfig["BucketName"];
             MemoryStream newMemoryStream = new MemoryStream();
             await file.CopyToAsync(newMemoryStream);
-            string fileExtension = Path.GetExtension(file.FileName);
-            fileName = $"{folder}/{fileName}{fileExtension}";
+            fileName = $"{folder}/{fileName}";
             TransferUtilityUploadRequest uploadRequest = new TransferUtilityUploadRequest
             {
                 InputStream = newMemoryStream,
@@ -100,6 +100,12 @@ namespace WebNovel.API.Core.Services
 
             await fileTransferUtility.UploadAsync(uploadRequest);
             return $"https://{awsConfig["BucketName"]}.s3-{awsConfig["Region"]}.amazonaws.com/{folder}/{fileName}";
+        }
+
+        public string GetFileImg(string folder, string fileName)
+        {
+            var awsConfig = _configuration.GetSection("Aws");
+            return $"https://{awsConfig["BucketName"]}.s3-{awsConfig["Region"]}.amazonaws.com/{fileName}";
         }
     }
 }

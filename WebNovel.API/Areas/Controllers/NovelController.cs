@@ -45,7 +45,7 @@ namespace WebNovel.API.Areas.Controllers
         {
             try
             {
-                return Ok(_novelModel.GetNovel(id));
+                return Ok(_novelModel.GetNovelAsync(id));
             }
             catch (Exception e)
             {
@@ -54,15 +54,14 @@ namespace WebNovel.API.Areas.Controllers
         }
 
         [HttpPost]
-        [ProducesResponseType(typeof(ResponseInfo), (int)HttpStatusCode.OK)]
-        public async Task<IActionResult> Create([FromBody] NovelCreateUpdateEntity novel)
+        public async Task<IActionResult> Create([FromForm]NovelCreateUpdateEntity novel)
         {
             try
             {
                 ResponseInfo response = new ResponseInfo();
                 if (ModelState.IsValid)
                 {
-                    response = await _novelModel.AddNovel(novel);
+                    response = await _novelModel.AddNovel(novel.File, novel);
                 }
                 else
                 {
@@ -78,14 +77,14 @@ namespace WebNovel.API.Areas.Controllers
 
         [HttpPut("{id}")]
         [ProducesResponseType(typeof(ResponseInfo), (int)HttpStatusCode.OK)]
-        public async Task<IActionResult> Update([FromRoute] long id, [FromBody] NovelCreateUpdateEntity novel)
+        public async Task<IActionResult> Update([FromRoute] long id, [FromForm] NovelCreateUpdateEntity novel)
         {
             try
             {
                 ResponseInfo response = new ResponseInfo();
                 if (ModelState.IsValid)
                 {
-                    response = await _novelModel.UpdateNovel(id, novel);
+                    response = await _novelModel.UpdateNovel(id, novel, novel.File);
                 }
                 else
                 {
@@ -98,8 +97,5 @@ namespace WebNovel.API.Areas.Controllers
                 return StatusCode(500, new { Error = e.Message });
             }
         }
-
-
-
     }
 }
