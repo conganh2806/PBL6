@@ -32,7 +32,7 @@ namespace WebNovel.API.Databases
                 e.AccountId,
                 e.RoleId
             });
-            
+
             modelBuilder.Entity<Account>()
             .HasMany(e => e.Preferences)
             .WithOne(e => e.Account)
@@ -113,10 +113,28 @@ namespace WebNovel.API.Databases
             .HasForeignKey(e => e.AccountId)
             .IsRequired();
 
-            
+            modelBuilder.Entity<Account>()
+            .HasMany(e => e.Ratings)
+            .WithOne(e => e.Account)
+            .HasForeignKey(e => e.AccountId)
+            .OnDelete(DeleteBehavior.NoAction);
+
+            modelBuilder.Entity<Novel>()
+            .HasMany(e => e.Ratings)
+            .WithOne(e => e.Novel)
+            .HasForeignKey(e => e.NovelId)
+            .OnDelete(DeleteBehavior.NoAction);
+
+            modelBuilder
+            .Entity<Rating>()
+            .HasKey(e => new
+            {
+                e.AccountId,
+                e.NovelId
+            });
 
 
-           
+
             return modelBuilder;
         }
     }
