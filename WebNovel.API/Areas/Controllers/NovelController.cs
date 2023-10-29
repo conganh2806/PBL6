@@ -45,7 +45,7 @@ namespace WebNovel.API.Areas.Controllers
         {
             try
             {
-                return Ok(_novelModel.GetNovelAsync(id));
+                return Ok(await _novelModel.GetNovelAsync(id));
             }
             catch (Exception e)
             {
@@ -54,7 +54,7 @@ namespace WebNovel.API.Areas.Controllers
         }
 
         [HttpPost]
-        public async Task<IActionResult> Create([FromForm]NovelCreateUpdateEntity novel)
+        public async Task<IActionResult> Create([FromForm] NovelCreateUpdateEntity novel)
         {
             try
             {
