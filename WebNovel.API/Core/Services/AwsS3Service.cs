@@ -38,13 +38,13 @@ namespace WebNovel.API.Core.Services
             var client = new AmazonS3Client(credentials, config);
             return new TransferUtility(client);
         }
-        
+
         public async Task DeleteFromS3(string folder, List<string> objects)
         {
             var files = new List<KeyVersion>();
             foreach (var file in objects)
             {
-                files.Add(new KeyVersion() {Key = $"{folder}/{file}"});
+                files.Add(new KeyVersion() { Key = $"{folder}/{file}" });
             }
             var awsConfig = _configuration.GetSection("Aws");
             if (fileTransferUtility == null)
@@ -105,7 +105,7 @@ namespace WebNovel.API.Core.Services
         public string GetFileImg(string folder, string fileName)
         {
             var awsConfig = _configuration.GetSection("Aws");
-            return $"https://{awsConfig["BucketName"]}.s3-{awsConfig["Region"]}.amazonaws.com/{fileName}";
+            return $"https://{awsConfig["BucketName"]}.s3-{awsConfig["Region"]}.amazonaws.com/{folder}/{fileName}";
         }
     }
 }
