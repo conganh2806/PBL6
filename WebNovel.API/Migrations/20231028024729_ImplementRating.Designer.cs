@@ -2,17 +2,20 @@
 using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Webnovel.API.Databases;
 
 #nullable disable
 
-namespace Webnovel.API.Migrations
+namespace Webnovel.API.Databases.Migrations
 {
     [DbContext(typeof(DataContext))]
-    partial class DataContextModelSnapshot : ModelSnapshot
+    [Migration("20231028024729_ImplementRating")]
+    partial class ImplementRating
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -531,7 +534,7 @@ namespace Webnovel.API.Migrations
                         .HasMaxLength(500)
                         .HasColumnType("varchar(500)");
 
-                    b.Property<string>("ImageURL")
+                    b.Property<string>("Images")
                         .HasMaxLength(500)
                         .HasColumnType("varchar(500)");
 

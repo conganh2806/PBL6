@@ -24,6 +24,7 @@ namespace WebNovel.API.Areas.Models.Preferences
         Task<ResponseInfo> AddPreference(PreferencesCreateUpdateEntity account);
         PreferencesDto GetPreferenceByAccount(long AccountId);
         PreferencesDto GetPreferenceByNovel(long NovelId);
+        PreferencesDto GetPreference(long AccountId, long NovelId);
     }
     public class PreferencesModel : BaseModel, IPreferencesModel
     {
@@ -103,6 +104,18 @@ namespace WebNovel.API.Areas.Models.Preferences
             {
                 NovelId = preference.NovelId,
                 AccountId = preference.AccountId,
+            };
+
+            return preferenceDto;
+        }
+
+        public PreferencesDto GetPreference(long AccountId, long NovelId)
+        {
+            var preference = _context.Preferences.Where(x => x.NovelId == NovelId && x.AccountId == AccountId).FirstOrDefault();
+            var preferenceDto = new PreferencesDto()
+            {
+                NovelId = preference.NovelId,
+                AccountId = preference.AccountId
             };
 
             return preferenceDto;

@@ -4,32 +4,32 @@ using System.Linq;
 using System.Net;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Mvc;
-using WebNovel.API.Areas.Models.Preferences;
-using WebNovel.API.Areas.Models.Preferences.Schemas;
+using WebNovel.API.Areas.Models.Rating;
+using WebNovel.API.Areas.Models.Rating.Schemas;
 using WebNovel.API.Commons.Schemas;
 using WebNovel.API.Controllers;
 using static WebNovel.API.Commons.Enums.CodeResonse;
 
 namespace WebNovel.API.Areas.Controllers
 {
-    [Route("api/preferences")]
+    [Route("api/ratings")]
     [ApiController]
-    public class PreferencesController : BaseController
+    public class RatingController : BaseController
     {
-        private readonly IPreferencesModel _preferencesModel;
+        private readonly IRatingModel _ratingModel;
         private readonly IServiceProvider _provider;
-        public PreferencesController(IPreferencesModel preferencesModel, IServiceProvider provider) : base(provider)
+        public RatingController(IRatingModel ratingModel, IServiceProvider provider) : base(provider)
         {
-            _preferencesModel = preferencesModel;
+            _ratingModel = ratingModel;
         }
 
         [HttpGet]
-        [ProducesResponseType(typeof(PreferencesDto), (int)HttpStatusCode.OK)]
+        [ProducesResponseType(typeof(RatingDto), (int)HttpStatusCode.OK)]
         public async Task<IActionResult> Search()
         {
             try
             {
-                return Ok(await _preferencesModel.GetListPreference());
+                return Ok(await _ratingModel.GetListRating());
             }
             catch (Exception e)
             {
@@ -38,12 +38,12 @@ namespace WebNovel.API.Areas.Controllers
         }
 
         [HttpGet("NovelId={NovelId}")]
-        [ProducesResponseType(typeof(PreferencesDto), (int)HttpStatusCode.OK)]
+        [ProducesResponseType(typeof(RatingDto), (int)HttpStatusCode.OK)]
         public async Task<IActionResult> GetDetailByNovel([FromRoute] long NovelId)
         {
             try
             {
-                return Ok(_preferencesModel.GetPreferenceByNovel(NovelId));
+                return Ok(_ratingModel.GetRatingByNovel(NovelId));
             }
             catch (Exception e)
             {
@@ -52,12 +52,12 @@ namespace WebNovel.API.Areas.Controllers
         }
 
         [HttpGet("AccountId={AccountId}")]
-        [ProducesResponseType(typeof(PreferencesDto), (int)HttpStatusCode.OK)]
+        [ProducesResponseType(typeof(RatingDto), (int)HttpStatusCode.OK)]
         public async Task<IActionResult> GetDetailByAccount([FromRoute] long AccountId)
         {
             try
             {
-                return Ok(_preferencesModel.GetPreferenceByAccount(AccountId));
+                return Ok(_ratingModel.GetRatingByAccount(AccountId));
             }
             catch (Exception e)
             {
@@ -66,12 +66,12 @@ namespace WebNovel.API.Areas.Controllers
         }
 
         [HttpGet("{AccountId}/{NovelId}")]
-        [ProducesResponseType(typeof(PreferencesDto), (int)HttpStatusCode.OK)]
+        [ProducesResponseType(typeof(RatingDto), (int)HttpStatusCode.OK)]
         public async Task<IActionResult> GetDetail([FromRoute] long AccountId, [FromRoute] long NovelId)
         {
             try
             {
-                return Ok(_preferencesModel.GetPreference(AccountId, NovelId));
+                return Ok(_ratingModel.GetRating(AccountId, NovelId));
             }
             catch (Exception e)
             {
@@ -81,14 +81,37 @@ namespace WebNovel.API.Areas.Controllers
 
         [HttpPost]
         [ProducesResponseType(typeof(ResponseInfo), (int)HttpStatusCode.OK)]
-        public async Task<IActionResult> Create([FromBody] PreferencesCreateUpdateEntity preference)
+        public async Task<IActionResult> Create([FromBody] RatingCreateUpdateEntity rating)
         {
             try
             {
                 ResponseInfo response = new ResponseInfo();
                 if (ModelState.IsValid)
                 {
-                    response = await _preferencesModel.AddPreference(preference);
+                    response = await _ratingModel.AddRating(rating);
+                }
+                else
+                {
+                    response.Code = CodeResponse.NOT_VALIDATE;
+                }
+                return Ok(response);
+            }
+            catch (Exception e)
+            {
+                return StatusCode(500, new { Error = e.Message });
+            }
+        }
+
+        [HttpPut("{AccountId}/{NovelId}")]
+        [ProducesResponseType(typeof(ResponseInfo), (int)HttpStatusCode.OK)]
+        public async Task<IActionResult> Update([FromRoute] long AccountId, [FromRoute] long NovelId, [FromBody] RatingCreateUpdateEntity rating)
+        {
+            try
+            {
+                ResponseInfo response = new ResponseInfo();
+                if (ModelState.IsValid)
+                {
+                    response = await _ratingModel.UpdateRating(AccountId, NovelId, rating);
                 }
                 else
                 {
