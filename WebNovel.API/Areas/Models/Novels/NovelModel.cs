@@ -120,7 +120,7 @@ namespace WebNovel.API.Areas.Models.Novels
                     Author = x.Account.Username,
                     Year = x.Year,
                     Views = x.Views,
-                    ImagesURL = _awsS3Service.GetFileImg(x.Id.ToString(),$"{x.ImageURL}"),
+                    ImagesURL = _awsS3Service.GetFileImg(x.Id.ToString(), $"{x.ImageURL}"),
                     Rating = x.Rating,
                     Description = x.Description,
                     Status = x.Status,
@@ -140,26 +140,21 @@ namespace WebNovel.API.Areas.Models.Novels
 
         public async Task<NovelDto> GetNovelAsync(long id)
         {
-            var novel = await _context.Novel.Include(x => x.Genres).ThenInclude(x => x.Genre).Where(x => x.Id == id).FirstOrDefaultAsync();
-            var genres = await _context.GenreOfNovels.Include(x => x.Novel).Include(x => x.Genre).Where(x => x.NovelId == novel.Id).ToListAsync();
-
-
-            var novelDto = new NovelDto()
+            var novel = await _context.Novel.Include(x => x.Genres).Include(x => x.Account).Where(x => x.Id == id).FirstOrDefaultAsync();
+            var novelDto = new NovelDto
             {
                 Id = novel.Id,
                 Name = novel.Name,
                 Title = novel.Title,
-                Author = (await _context.Accounts.Where(n => n.Id == novel.AccountId)
-                .FirstOrDefaultAsync()).NickName,
+                Author = novel.Account.Username,
                 Year = novel.Year,
                 Views = novel.Views,
-                ImagesURL = _awsS3Service.GetFileImg(novel.Id.ToString(),$"{novel.ImageURL}"),
+                ImagesURL = _awsS3Service.GetFileImg(novel.Id.ToString(), $"{novel.ImageURL}"),
                 Rating = novel.Rating,
                 Description = novel.Description,
                 Status = novel.Status,
                 ApprovalStatus = novel.ApprovalStatus,
-                GenreIds = genres.Select(x => x.GenreId).ToList(),
-                GenreName = genres.Select(x => x.Genre.Name).ToList()
+                GenreName = await _context.GenreOfNovels.Include(x => x.Genre).Select(x => x.Genre.Name).ToListAsync()
             };
 
             return novelDto;
