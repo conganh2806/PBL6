@@ -6,6 +6,8 @@ using WebNovel.API.Areas.Models.Novels.Schemas;
 using WebNovel.API.Commons.Enums;
 using WebNovel.API.Commons.Schemas;
 using WebNovel.API.Core.Models;
+using WebNovel.API.Core.Services;
+using WebNovel.API.Databases.Entities;
 using WebNovel.API.Databases.Entitites;
 using static WebNovel.API.Commons.Enums.CodeResonse;
 
@@ -15,27 +17,29 @@ namespace WebNovel.API.Areas.Models.Novels
     public interface INovelModel
     {
         Task<List<NovelDto>> GetListNovel(SearchCondition searchCondition);
-        Task<ResponseInfo> AddNovel(NovelCreateUpdateEntity novel);
-        Task<ResponseInfo> UpdateNovel(long id, NovelCreateUpdateEntity novel);
-        NovelDto GetNovel(long id);
+        Task<ResponseInfo> AddNovel(IFormFile formFile, NovelCreateUpdateEntity novel);
+        Task<ResponseInfo> UpdateNovel(long id, NovelCreateUpdateEntity novel, IFormFile formFile);
+        Task<NovelDto> GetNovelAsync(long id);
 
     }
 
     public class NovelModel : BaseModel, INovelModel
     {
         private readonly ILogger<INovelModel> _logger;
+        private readonly IAwsS3Service _awsS3Service;
 
         private string _className = "";
-        public NovelModel(IServiceProvider provider, ILogger<INovelModel> logger) : base(provider)
+        public NovelModel(IServiceProvider provider, ILogger<INovelModel> logger, IAwsS3Service awsS3Service) : base(provider)
         {
 
             _logger = logger ?? throw new ArgumentNullException(nameof(logger));
             _className = GetType().Name;
+            _awsS3Service = awsS3Service;
         }
 
         static string GetActualAsyncMethodName([CallerMemberName] string name = "") => name;
 
-        public async Task<ResponseInfo> AddNovel(NovelCreateUpdateEntity novel)
+        public async Task<ResponseInfo> AddNovel(IFormFile formFile, NovelCreateUpdateEntity novel)
         {
             IDbContextTransaction transaction = null;
             string method = GetActualAsyncMethodName();
@@ -43,11 +47,9 @@ namespace WebNovel.API.Areas.Models.Novels
             {
                 _logger.LogInformation($"[{_className}][{method}] Start");
                 ResponseInfo results = new ResponseInfo();
-                if (results.Code != CodeResponse.OK)
-                {
-                    return results;
-                }
-
+                var fileType = System.IO.Path.GetExtension(formFile.FileName);
+                await _awsS3Service.UploadToS3(formFile, $"thumbnail{fileType}", novel.Id.ToString());
+                var fileName = $"thumbnail{fileType}";
                 var newNovel = new Novel()
                 {
                     Name = novel.Name,
@@ -58,8 +60,21 @@ namespace WebNovel.API.Areas.Models.Novels
                     Rating = novel.Rating,
                     Description = novel.Description,
                     Status = novel.Status,
-                    ApprovalStatus = novel.ApprovalStatus
+                    ApprovalStatus = novel.ApprovalStatus,
+                    ImageURL = fileName,
                 };
+
+                if (novel.GenreIds.Any())
+                {
+                    foreach (var genreId in novel.GenreIds)
+                    {
+                        newNovel.Genres.Add(new NovelGenre()
+                        {
+                            NovelId = novel.Id,
+                            GenreId = genreId
+                        });
+                    }
+                }
 
                 var strategy = _context.Database.CreateExecutionStrategy();
                 await strategy.ExecuteAsync(
@@ -75,12 +90,8 @@ namespace WebNovel.API.Areas.Models.Novels
 
                 );
 
-
                 _logger.LogInformation($"[{_className}][{method}] End");
                 return results;
-
-
-
             }
             catch (Exception e)
             {
@@ -95,53 +106,66 @@ namespace WebNovel.API.Areas.Models.Novels
 
         public async Task<List<NovelDto>> GetListNovel(SearchCondition searchCondition)
         {
+
             List<NovelDto> listNovel = new List<NovelDto>();
+
             if (searchCondition is null)
             {
-                listNovel = _context.Novel.Select(x => new NovelDto()
+                var novels = await _context.Novel.Include(x => x.Genres).Include(x => x.Account).ToListAsync();
+                var novelDtoTasks = novels.Select(x => new NovelDto()
                 {
                     Id = x.Id,
                     Name = x.Name,
                     Title = x.Title,
-                    Author = _context.Accounts.Where(e => e.Id == x.AccountId).FirstOrDefault().NickName,
+                    Author = x.Account.Username,
                     Year = x.Year,
                     Views = x.Views,
+                    ImagesURL = _awsS3Service.GetFileImg(x.Id.ToString(),$"{x.ImageURL}"),
                     Rating = x.Rating,
                     Description = x.Description,
                     Status = x.Status,
-                    ApprovalStatus = x.ApprovalStatus
-
-
-
+                    ApprovalStatus = x.ApprovalStatus,
                 }).ToList();
+
+                foreach (var novel in novelDtoTasks)
+                {
+                    novel.GenreName = await _context.GenreOfNovels.Include(x => x.Genre).Select(x => x.Genre.Name).ToListAsync();
+                }
+
+                listNovel = novelDtoTasks.ToList();
             }
 
             return listNovel;
-
         }
 
-        public NovelDto GetNovel(long id)
+        public async Task<NovelDto> GetNovelAsync(long id)
         {
-            var novel = _context.Novel.Where(x => x.Id == id).FirstOrDefault();
+            var novel = await _context.Novel.Include(x => x.Genres).ThenInclude(x => x.Genre).Where(x => x.Id == id).FirstOrDefaultAsync();
+            var genres = await _context.GenreOfNovels.Include(x => x.Novel).Include(x => x.Genre).Where(x => x.NovelId == novel.Id).ToListAsync();
+
+
             var novelDto = new NovelDto()
             {
                 Id = novel.Id,
                 Name = novel.Name,
                 Title = novel.Title,
-                Author = _context.Accounts.Where(n => n.Id == novel.AccountId).FirstOrDefault().NickName,
+                Author = (await _context.Accounts.Where(n => n.Id == novel.AccountId)
+                .FirstOrDefaultAsync()).NickName,
                 Year = novel.Year,
                 Views = novel.Views,
+                ImagesURL = _awsS3Service.GetFileImg(novel.Id.ToString(),$"{novel.ImageURL}"),
                 Rating = novel.Rating,
                 Description = novel.Description,
                 Status = novel.Status,
-                ApprovalStatus = novel.ApprovalStatus
-
+                ApprovalStatus = novel.ApprovalStatus,
+                GenreIds = genres.Select(x => x.GenreId).ToList(),
+                GenreName = genres.Select(x => x.Genre.Name).ToList()
             };
 
             return novelDto;
         }
 
-        public async Task<ResponseInfo> UpdateNovel(long id, NovelCreateUpdateEntity novel)
+        public async Task<ResponseInfo> UpdateNovel(long id, NovelCreateUpdateEntity novel, IFormFile formFile)
         {
             IDbContextTransaction transaction = null;
             string method = GetActualAsyncMethodName();
@@ -151,11 +175,6 @@ namespace WebNovel.API.Areas.Models.Novels
                 ResponseInfo result = new ResponseInfo();
                 ResponseInfo response = new ResponseInfo();
 
-                if (result.Code != CodeResponse.OK)
-                {
-                    return result;
-                }
-
                 var existNovel = _context.Novel.Where(n => n.Id == id).FirstOrDefault();
                 if (existNovel is null)
                 {
@@ -163,6 +182,14 @@ namespace WebNovel.API.Areas.Models.Novels
                     response.MsgNo = MSG_NO.NOT_FOUND;
                     return response;
                 }
+
+                var fileNames = new List<string>
+                {
+                    existNovel.ImageURL
+                };
+                var fileName = formFile.FileName;
+                await _awsS3Service.DeleteFromS3(id.ToString(), fileNames);
+                await _awsS3Service.UploadToS3(formFile, existNovel.ImageURL, id.ToString());
 
                 existNovel.Name = novel.Name;
                 existNovel.Title = novel.Title;
@@ -172,12 +199,27 @@ namespace WebNovel.API.Areas.Models.Novels
                 existNovel.Description = novel.Description;
                 existNovel.Status = novel.Status;
                 existNovel.ApprovalStatus = novel.Status;
+                _context.GenreOfNovels.RemoveRange(_context.GenreOfNovels.Where(x => x.NovelId == existNovel.Id));
+                foreach (var genreId in novel.GenreIds)
+                {
+                    existNovel.Genres.Add(new NovelGenre()
+                    {
+                        NovelId = existNovel.Id,
+                        GenreId = genreId
+                    });
+                }
 
-
-                transaction = await _context.Database.BeginTransactionAsync();
-                await _context.SaveChangesAsync();
-                await transaction.CommitAsync();
-
+                var strategy = _context.Database.CreateExecutionStrategy();
+                await strategy.ExecuteAsync(
+                    async () =>
+                    {
+                        using (var trn = await _context.Database.BeginTransactionAsync())
+                        {
+                            await _context.SaveChangesAsync();
+                            await trn.CommitAsync();
+                        }
+                    }
+                );
 
                 _logger.LogInformation($"[{_className}][{method}] End");
                 return result;
@@ -194,7 +236,5 @@ namespace WebNovel.API.Areas.Models.Novels
             }
 
         }
-
-
     }
 }

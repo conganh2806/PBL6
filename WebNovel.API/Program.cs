@@ -10,7 +10,7 @@ using WebNovel.API.Areas.Models.UpdatedFees;
 using WebNovel.API.Core.Services;
 
 var builder = WebApplication.CreateBuilder(args);
-var connectionString = builder.Configuration.GetConnectionString("AzureMySQL");
+var connectionString = builder.Configuration.GetConnectionString("DefaultConnection");
 // Add services to the container.
 var services = builder.Services;
 services.AddControllers();

@@ -24,7 +24,7 @@ namespace WebNovel.API.Databases.Entitites
         public int Views { get; set; }
         public int Rating { get; set; }
         [StringLength(500)]
-        public string? Images { get; set; }
+        public string? ImageURL { get; set; }
         [StringLength(500)]
         public string? Description { get; set; }
         public bool Status { get; set; } //Trạng thái của truyện dùng để cài đặt trạng thái còn trong giai đoạn sáng tác hay k
