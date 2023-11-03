@@ -112,7 +112,7 @@ namespace WebNovel.API.Areas.Models.Novels
             if (searchCondition is null)
             {
                 var novels = await _context.Novel.Include(x => x.Genres).Include(x => x.Account).ToListAsync();
-                var novelDtoTasks = novels.Select(x => new NovelDto()
+                var novelDtoTasks = novels.Select(async x => new NovelDto()
                 {
                     Id = x.Id,
                     Name = x.Name,
@@ -125,14 +125,17 @@ namespace WebNovel.API.Areas.Models.Novels
                     Description = x.Description,
                     Status = x.Status,
                     ApprovalStatus = x.ApprovalStatus,
+                    NumChapter = (await _context.Chapter.Where(e => e.NovelId == x.Id).ToListAsync()).Count
                 }).ToList();
 
-                foreach (var novel in novelDtoTasks)
+                var novelDtoList = await Task.WhenAll(novelDtoTasks);
+
+                foreach (var novel in novelDtoList)
                 {
                     novel.GenreName = await _context.GenreOfNovels.Include(x => x.Genre).Select(x => x.Genre.Name).ToListAsync();
                 }
 
-                listNovel = novelDtoTasks.ToList();
+                listNovel = novelDtoList.ToList();
             }
 
             return listNovel;
@@ -154,7 +157,8 @@ namespace WebNovel.API.Areas.Models.Novels
                 Description = novel.Description,
                 Status = novel.Status,
                 ApprovalStatus = novel.ApprovalStatus,
-                GenreName = await _context.GenreOfNovels.Include(x => x.Genre).Select(x => x.Genre.Name).ToListAsync()
+                GenreName = await _context.GenreOfNovels.Include(x => x.Genre).Select(x => x.Genre.Name).ToListAsync(),
+                NumChapter = (await _context.Chapter.Where(e => e.NovelId == novel.Id).ToListAsync()).Count
             };
 
             return novelDto;
