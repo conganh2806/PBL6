@@ -3,7 +3,7 @@ using WebNovel.API.Databases.Entities;
 
 namespace WebNovel.API.Databases.Entitites
 {
-    public class Novel : TableHaveIdInt
+    public class Novel : TableHaveIdString
     {
         public Novel()
         {
