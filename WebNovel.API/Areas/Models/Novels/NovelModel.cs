@@ -112,63 +112,35 @@ namespace WebNovel.API.Areas.Models.Novels
 
             List<NovelDto> listNovel = new List<NovelDto>();
 
-            if (searchCondition.SearchString is null)
+            var novels = await _context.Novel.Include(x => x.Genres).Include(x => x.Account)
+            .Where( x => string.IsNullOrEmpty(searchCondition.Key) 
+                        || x.Title.Contains(searchCondition.Key) 
+                        || x.Account != null && x.Account.NickName.Contains(searchCondition.Key))
+                        .ToListAsync();
+            var novelDtoTasks = novels.Select(async x => new NovelDto()
             {
-                var novels = await _context.Novel.Include(x => x.Genres).Include(x => x.Account).ToListAsync();
-                var novelDtoTasks = novels.Select(async x => new NovelDto()
-                {
-                    Id = x.Id,
-                    Name = x.Name,
-                    Title = x.Title,
-                    Author = x.Account.Username,
-                    Year = x.Year,
-                    Views = x.Views,
-                    ImagesURL = _awsS3Service.GetFileImg(x.Id.ToString(), $"{x.ImageURL}"),
-                    Rating = x.Rating,
-                    Description = x.Description,
-                    Status = x.Status,
-                    ApprovalStatus = x.ApprovalStatus,
-                    NumChapter = (await _context.Chapter.Where(e => e.NovelId == x.Id).ToListAsync()).Count
-                }).ToList();
+                Id = x.Id,
+                Name = x.Name,
+                Title = x.Title,
+                Author = x.Account.Username,
+                Year = x.Year,
+                Views = x.Views,
+                ImagesURL = _awsS3Service.GetFileImg(x.Id.ToString(), $"{x.ImageURL}"),
+                Rating = x.Rating,
+                Description = x.Description,
+                Status = x.Status,
+                ApprovalStatus = x.ApprovalStatus,
+                NumChapter = (await _context.Chapter.Where(e => e.NovelId == x.Id).ToListAsync()).Count
+            }).ToList();
 
-                var novelDtoList = await Task.WhenAll(novelDtoTasks);
+            var novelDtoList = await Task.WhenAll(novelDtoTasks);
 
-                foreach (var novel in novelDtoList)
-                {
-                    novel.GenreName = await _context.GenreOfNovels.Include(x => x.Genre).Select(x => x.Genre.Name).ToListAsync();
-                }
-
-                listNovel = novelDtoList.ToList();
-                
+            foreach (var novel in novelDtoList)
+            {
+                novel.GenreName = await _context.GenreOfNovels.Include(x => x.Genre).Select(x => x.Genre.Name).ToListAsync();
             }
-            else {
-                var novels = await _context.Novel.Include(x => x.Genres).Include(x => x.Account).Where(x => x.Title.Contains(searchCondition.SearchString)).ToListAsync();
-                var novelDtoTasks = novels.Select(async x => new NovelDto()
-                {
-                    Id = x.Id,
-                    Name = x.Name,
-                    Title = x.Title,
-                    Author = x.Account.Username,
-                    Year = x.Year,
-                    Views = x.Views,
-                    ImagesURL = _awsS3Service.GetFileImg(x.Id.ToString(), $"{x.ImageURL}"),
-                    Rating = x.Rating,
-                    Description = x.Description,
-                    Status = x.Status,
-                    ApprovalStatus = x.ApprovalStatus,
-                    NumChapter = (await _context.Chapter.Where(e => e.NovelId == x.Id).ToListAsync()).Count
-                }).ToList();
 
-                var novelDtoList = await Task.WhenAll(novelDtoTasks);
-
-                foreach (var novel in novelDtoList)
-                {
-                    novel.GenreName = await _context.GenreOfNovels.Include(x => x.Genre).Select(x => x.Genre.Name).ToListAsync();
-                }
-
-                listNovel = novelDtoList.ToList();
-
-            }
+            listNovel = novelDtoList.ToList();
 
             return listNovel;
         }

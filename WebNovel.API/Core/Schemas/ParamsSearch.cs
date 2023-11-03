@@ -16,6 +16,8 @@ namespace WebNovel.API.Core.Schemas
             CurrentPage = 1;
         }
 
+        public string? Key {get; set;}
+
         public int CurrentPage { set; get; }
 
         public int PageSize { set; get; }
