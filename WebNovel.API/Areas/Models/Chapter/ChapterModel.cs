@@ -15,9 +15,9 @@ namespace WebNovel.API.Areas.Models.Chapter
     {
         Task<List<ChapterDto>> GetListChapter();
         Task<ResponseInfo> AddChapter(IFormFile formFile, ChapterCreateUpdateEntity chapter);
-        Task<ResponseInfo> UpdateChapter(long id, ChapterCreateUpdateEntity chapter, IFormFile formFile);
-        Task<ChapterDto> GetChapterAsync(long id);
-        Task<List<ChapterDto>> GetChapterByNovel(long NovelId);
+        Task<ResponseInfo> UpdateChapter(string id, ChapterCreateUpdateEntity chapter, IFormFile formFile);
+        Task<ChapterDto> GetChapterAsync(string id);
+        Task<List<ChapterDto>> GetChapterByNovel(string NovelId);
     }
 
     public class ChapterModel : BaseModel, IChapterModel
@@ -39,17 +39,21 @@ namespace WebNovel.API.Areas.Models.Chapter
             string method = GetActualAsyncMethodName();
             try
             {
+
+                var GuID = Guid.NewGuid();
+
                 _logger.LogInformation($"[{_className}][{method}] Start");
                 ResponseInfo result = new ResponseInfo();
                 var fileType = System.IO.Path.GetExtension(formFile.FileName);
-                await _awsS3Service.UploadToS3(formFile, $"text{fileType}", chapter.NovelId.ToString() + "/" + chapter.Id.ToString());
+                await _awsS3Service.UploadToS3(formFile, $"text{fileType}", chapter.NovelId.ToString() + "/" + GuID.ToString());
                 var fileName = $"text{fileType}";
 
                 var newChapter = new Databases.Entities.Chapter()
                 {
+                    Id = GuID.ToString(),
                     Name = chapter.Name,
                     IsLocked = chapter.IsLocked,
-                    PublishDate = chapter.PublishDate,
+                    PublishDate = DateTime.Now,
                     Views = chapter.Views,
                     Rating = chapter.Rating,
                     FeeId = chapter.FeeId,
@@ -89,7 +93,7 @@ namespace WebNovel.API.Areas.Models.Chapter
 
         }
 
-        public async Task<ChapterDto> GetChapterAsync(long id)
+        public async Task<ChapterDto> GetChapterAsync(string id)
         {
             var chapter = await _context.Chapter.Where(x => x.Id == id).FirstOrDefaultAsync();
             var novelDto = new ChapterDto()
@@ -111,7 +115,7 @@ namespace WebNovel.API.Areas.Models.Chapter
             return novelDto;
         }
 
-        public async Task<List<ChapterDto>> GetChapterByNovel(long NovelId)
+        public async Task<List<ChapterDto>> GetChapterByNovel(string NovelId)
         {
             List<ChapterDto> listChapter = new List<ChapterDto>();
 
@@ -158,7 +162,7 @@ namespace WebNovel.API.Areas.Models.Chapter
             return listChapter;
         }
 
-        public async Task<ResponseInfo> UpdateChapter(long id, ChapterCreateUpdateEntity chapter, IFormFile formFile)
+        public async Task<ResponseInfo> UpdateChapter(string id, ChapterCreateUpdateEntity chapter, IFormFile formFile)
         {
             IDbContextTransaction transaction = null;
             string method = GetActualAsyncMethodName();
@@ -186,7 +190,6 @@ namespace WebNovel.API.Areas.Models.Chapter
 
                 existChapter.Name = chapter.Name;
                 existChapter.IsLocked = chapter.IsLocked;
-                existChapter.PublishDate = chapter.PublishDate;
                 existChapter.Views = chapter.Views;
                 existChapter.Rating = chapter.Rating;
                 existChapter.FeeId = chapter.FeeId;
