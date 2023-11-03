@@ -21,6 +21,6 @@ namespace WebNovel.API.Areas.Models.Novels.Schemas
         public bool Status { get; set; }
         public bool ApprovalStatus { get; set; }
         public List<long> GenreIds { get; set; }
-
+        public int NumChapter { get; set; }
     }
 }
