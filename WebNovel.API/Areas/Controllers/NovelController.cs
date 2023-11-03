@@ -41,7 +41,7 @@ namespace WebNovel.API.Areas.Controllers
 
         [HttpGet("{id}")]
         [ProducesResponseType(typeof(NovelDto), (int)HttpStatusCode.OK)]
-        public async Task<IActionResult> GetDetail([FromRoute] long id)
+        public async Task<IActionResult> GetDetail([FromRoute] string id)
         {
             try
             {
@@ -77,7 +77,7 @@ namespace WebNovel.API.Areas.Controllers
 
         [HttpPut("{id}")]
         [ProducesResponseType(typeof(ResponseInfo), (int)HttpStatusCode.OK)]
-        public async Task<IActionResult> Update([FromRoute] long id, [FromForm] NovelCreateUpdateEntity novel)
+        public async Task<IActionResult> Update([FromRoute] string id, [FromForm] NovelCreateUpdateEntity novel)
         {
             try
             {

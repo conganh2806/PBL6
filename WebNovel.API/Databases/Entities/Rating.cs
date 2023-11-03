@@ -9,7 +9,7 @@ namespace WebNovel.API.Databases.Entitites
 {
     public class Rating : Table
     {
-        public long NovelId { get; set; }
+        public string NovelId { get; set; }
         public long AccountId { get; set; }
         public float RateScore { get; set; }
         public virtual Novel Novel { get; set; } = null!;
