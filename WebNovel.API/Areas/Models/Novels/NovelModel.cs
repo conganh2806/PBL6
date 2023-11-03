@@ -112,7 +112,7 @@ namespace WebNovel.API.Areas.Models.Novels
 
             List<NovelDto> listNovel = new List<NovelDto>();
 
-            if (searchCondition is null)
+            if (searchCondition.SearchString is null)
             {
                 var novels = await _context.Novel.Include(x => x.Genres).Include(x => x.Account).ToListAsync();
                 var novelDtoTasks = novels.Select(x => new NovelDto()
@@ -136,6 +136,32 @@ namespace WebNovel.API.Areas.Models.Novels
                 }
 
                 listNovel = novelDtoTasks.ToList();
+                
+            }
+            else {
+                var novels = await _context.Novel.Include(x => x.Genres).Include(x => x.Account).Where(x => x.Title.Contains(searchCondition.SearchString)).ToListAsync();
+                var novelDtoTasks = novels.Select(x => new NovelDto()
+                {
+                    Id = x.Id,
+                    Name = x.Name,
+                    Title = x.Title,
+                    Author = x.Account.Username,
+                    Year = x.Year,
+                    Views = x.Views,
+                    ImagesURL = _awsS3Service.GetFileImg(x.Id.ToString(), $"{x.ImageURL}"),
+                    Rating = x.Rating,
+                    Description = x.Description,
+                    Status = x.Status,
+                    ApprovalStatus = x.ApprovalStatus,
+                }).ToList();
+
+                foreach (var novel in novelDtoTasks)
+                {
+                    novel.GenreName = await _context.GenreOfNovels.Include(x => x.Genre).Select(x => x.Genre.Name).ToListAsync();
+                }
+
+                listNovel = novelDtoTasks.ToList();
+
             }
 
             return listNovel;

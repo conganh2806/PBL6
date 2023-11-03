@@ -8,6 +8,6 @@ namespace WebNovel.API.Areas.Models.Accounts.Schemas
 {
     public class SearchCondition : ParamsSearch
     {
-        
+        public string? SearchString {get; set;}
     }
 }

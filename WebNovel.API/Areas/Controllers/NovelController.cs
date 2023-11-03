@@ -6,6 +6,7 @@ using System.Net;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
+using WebNovel.API.Areas.Models.Accounts.Schemas;
 using WebNovel.API.Areas.Models.Novels;
 using WebNovel.API.Areas.Models.Novels.Schemas;
 using WebNovel.API.Commons.Schemas;
@@ -27,11 +28,11 @@ namespace WebNovel.API.Areas.Controllers
 
         [HttpGet]
         [ProducesResponseType(typeof(NovelDto), (int)HttpStatusCode.OK)]
-        public async Task<IActionResult> Search()
+        public async Task<IActionResult> Search([FromQuery] SearchCondition searchCondition)
         {
             try
             {
-                return Ok(await _novelModel.GetListNovel(null));
+                return Ok(await _novelModel.GetListNovel(searchCondition));
             }
             catch (Exception e)
             {
