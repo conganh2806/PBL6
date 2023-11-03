@@ -42,7 +42,7 @@ namespace WebNovel.API.Areas.Controllers
 
         [HttpGet("{id}")]
         [ProducesResponseType(typeof(ChapterDto), (int)HttpStatusCode.OK)]
-        public async Task<IActionResult> GetDetail([FromRoute] long id)
+        public async Task<IActionResult> GetDetail([FromRoute] string id)
         {
             try
             {
@@ -56,7 +56,7 @@ namespace WebNovel.API.Areas.Controllers
 
         [HttpGet("NovelId={NovelId}")]
         [ProducesResponseType(typeof(ChapterDto), (int)HttpStatusCode.OK)]
-        public async Task<IActionResult> GetDetailByNovel([FromRoute] long NovelId)
+        public async Task<IActionResult> GetDetailByNovel([FromRoute] string NovelId)
         {
             try
             {
@@ -93,7 +93,7 @@ namespace WebNovel.API.Areas.Controllers
 
         [HttpPut("{id}")]
         [ProducesResponseType(typeof(ResponseInfo), (int)HttpStatusCode.OK)]
-        public async Task<IActionResult> Update([FromRoute] long id, [FromForm] ChapterCreateUpdateEntity chapter)
+        public async Task<IActionResult> Update([FromRoute] string id, [FromForm] ChapterCreateUpdateEntity chapter)
         {
             try
             {

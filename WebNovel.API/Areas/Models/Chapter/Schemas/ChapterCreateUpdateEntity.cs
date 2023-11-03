@@ -8,7 +8,7 @@ namespace WebNovel.API.Areas.Models.Chapter.Schemas
 {
     public class ChapterCreateUpdateEntity
     {
-        public long Id { get; set; }
+        public string? Id { get; set; }
         public string Name { get; set; } = null!;
         public bool IsLocked { get; set; }
         public DateTime? PublishDate { get; set; }
@@ -19,7 +19,7 @@ namespace WebNovel.API.Areas.Models.Chapter.Schemas
         public string? FileContent { get; set; }
         public int? Discount { get; set; }
         public bool ApprovalStatus { get; set; }
-        public long NovelId { get; set; }
+        public string NovelId { get; set; }
         public IFormFile File { get; set; }
     }
 }

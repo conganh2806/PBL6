@@ -17,11 +17,11 @@ namespace WebNovel.API.Databases.Entities
         }
         [Key]
         [Column(Order = 1)]
-        public string NovelId {get; set;}
-        
+        public string NovelId { get; set; }
+
         [Key]
         [Column(Order = 2)]
-        public long GenreId {get; set;}
+        public long GenreId { get; set; }
         public virtual Novel Novel { set; get; }
 
         public virtual Genre Genre { set; get; }
