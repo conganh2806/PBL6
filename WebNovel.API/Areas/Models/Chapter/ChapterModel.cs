@@ -49,7 +49,7 @@ namespace WebNovel.API.Areas.Models.Chapter
                 {
                     Name = chapter.Name,
                     IsLocked = chapter.IsLocked,
-                    PublishDate = chapter.PublishDate,
+                    PublishDate = DateTime.Now,
                     Views = chapter.Views,
                     Rating = chapter.Rating,
                     FeeId = chapter.FeeId,
@@ -186,7 +186,6 @@ namespace WebNovel.API.Areas.Models.Chapter
 
                 existChapter.Name = chapter.Name;
                 existChapter.IsLocked = chapter.IsLocked;
-                existChapter.PublishDate = chapter.PublishDate;
                 existChapter.Views = chapter.Views;
                 existChapter.Rating = chapter.Rating;
                 existChapter.FeeId = chapter.FeeId;
