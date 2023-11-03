@@ -17,6 +17,7 @@ namespace WebNovel.API.Areas.Models.Chapter
         Task<ResponseInfo> AddChapter(IFormFile formFile, ChapterCreateUpdateEntity chapter);
         Task<ResponseInfo> UpdateChapter(long id, ChapterCreateUpdateEntity chapter, IFormFile formFile);
         Task<ChapterDto> GetChapterAsync(long id);
+        Task<List<ChapterDto>> GetChapterByNovel(long NovelId);
     }
 
     public class ChapterModel : BaseModel, IChapterModel
@@ -90,7 +91,7 @@ namespace WebNovel.API.Areas.Models.Chapter
 
         public async Task<ChapterDto> GetChapterAsync(long id)
         {
-            var chapter = _context.Chapter.Where(x => x.Id == id).FirstOrDefault();
+            var chapter = await _context.Chapter.Where(x => x.Id == id).FirstOrDefaultAsync();
             var novelDto = new ChapterDto()
             {
                 Id = chapter.Id,
@@ -110,12 +111,11 @@ namespace WebNovel.API.Areas.Models.Chapter
             return novelDto;
         }
 
-
-        public async Task<List<ChapterDto>> GetListChapter()
+        public async Task<List<ChapterDto>> GetChapterByNovel(long NovelId)
         {
             List<ChapterDto> listChapter = new List<ChapterDto>();
 
-            listChapter = _context.Chapter.Select(x => new ChapterDto()
+            listChapter = await _context.Chapter.Select(x => new ChapterDto()
             {
                 Id = x.Id,
                 Name = x.Name,
@@ -129,7 +129,31 @@ namespace WebNovel.API.Areas.Models.Chapter
                 ApprovalStatus = x.ApprovalStatus,
                 NovelId = x.NovelId
 
-            }).ToList();
+            }).Where(x => x.NovelId == NovelId).ToListAsync();
+
+            return listChapter;
+        }
+
+
+        public async Task<List<ChapterDto>> GetListChapter()
+        {
+            List<ChapterDto> listChapter = new List<ChapterDto>();
+
+            listChapter = await _context.Chapter.Select(x => new ChapterDto()
+            {
+                Id = x.Id,
+                Name = x.Name,
+                IsLocked = x.IsLocked,
+                PublishDate = x.PublishDate,
+                Views = x.Views,
+                Rating = x.Rating,
+                FeeId = x.FeeId,
+                FileContent = _awsS3Service.GetFileImg(x.NovelId.ToString() + "/" + x.Id.ToString(), $"{x.FileContent}"),
+                Discount = x.Discount,
+                ApprovalStatus = x.ApprovalStatus,
+                NovelId = x.NovelId
+
+            }).ToListAsync();
 
             return listChapter;
         }
