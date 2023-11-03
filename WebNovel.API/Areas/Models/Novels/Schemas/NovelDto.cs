@@ -4,7 +4,7 @@ namespace WebNovel.API.Areas.Models.Novels.Schemas
 {
     public class NovelDto
     {
-        public long Id {get; set;}
+        public string Id {get; set;}
         [StringLength(255)]
         public string Name {get; set;} = null!;
         [StringLength(255)]

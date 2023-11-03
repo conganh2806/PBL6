@@ -17,7 +17,7 @@ namespace WebNovel.API.Databases.Entities
         }
         [Key]
         [Column(Order = 1)]
-        public long NovelId {get; set;}
+        public string NovelId {get; set;}
         
         [Key]
         [Column(Order = 2)]
