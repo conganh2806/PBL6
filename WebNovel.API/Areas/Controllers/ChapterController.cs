@@ -54,6 +54,20 @@ namespace WebNovel.API.Areas.Controllers
             }
         }
 
+        [HttpGet("NovelId={NovelId}")]
+        [ProducesResponseType(typeof(ChapterDto), (int)HttpStatusCode.OK)]
+        public async Task<IActionResult> GetDetailByNovel([FromRoute] long NovelId)
+        {
+            try
+            {
+                return Ok(await _chapterModel.GetChapterByNovel(NovelId));
+            }
+            catch (Exception e)
+            {
+                return StatusCode(500, new { Error = e.Message });
+            }
+        }
+
         [HttpPost]
         [ProducesResponseType(typeof(ResponseInfo), (int)HttpStatusCode.OK)]
         public async Task<IActionResult> Create([FromForm] ChapterCreateUpdateEntity chapter)
