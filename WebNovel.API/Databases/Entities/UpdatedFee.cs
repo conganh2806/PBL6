@@ -10,10 +10,14 @@ namespace WebNovel.API.Databases.Entities
 {
     public class UpdatedFee : TableHaveIdInt
     {
-        public float Fee {get; set;}
-        [DataType(DataType.DateTime)] 
-        public DateTime DateUpdated {get; set;} 
-        public virtual Chapter? Chapter {get; set;}
-        
+        public UpdatedFee()
+        {
+            this.Chapters = new HashSet<Chapter>();
+        }
+        public float Fee { get; set; }
+        [DataType(DataType.DateTime)]
+        public DateTime DateUpdated { get; set; }
+        public virtual ICollection<Chapter>? Chapters { get; set; }
+
     }
 }

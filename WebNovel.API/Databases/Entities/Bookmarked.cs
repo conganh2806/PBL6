@@ -10,10 +10,10 @@ namespace WebNovel.API.Databases.Entities
 {
     public class Bookmarked : TableHaveIdInt
     {
-        public string AccountId {get; set;}
-        public virtual Account Account {get; set;} = null!;
-        public long ChapterId {get; set;}
-        public virtual Chapter Chapter {get; set;} = null!;
-        
+        public string AccountId { get; set; }
+        public virtual Account Account { get; set; } = null!;
+        public string ChapterId { get; set; }
+        public virtual Chapter Chapter { get; set; } = null!;
+
     }
 }

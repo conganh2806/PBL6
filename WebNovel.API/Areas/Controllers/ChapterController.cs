@@ -42,11 +42,25 @@ namespace WebNovel.API.Areas.Controllers
 
         [HttpGet("{id}")]
         [ProducesResponseType(typeof(ChapterDto), (int)HttpStatusCode.OK)]
-        public async Task<IActionResult> GetDetail([FromRoute] long id)
+        public async Task<IActionResult> GetDetail([FromRoute] string id)
         {
             try
             {
                 return Ok(await _chapterModel.GetChapterAsync(id));
+            }
+            catch (Exception e)
+            {
+                return StatusCode(500, new { Error = e.Message });
+            }
+        }
+
+        [HttpGet("NovelId={NovelId}")]
+        [ProducesResponseType(typeof(ChapterDto), (int)HttpStatusCode.OK)]
+        public async Task<IActionResult> GetDetailByNovel([FromRoute] string NovelId)
+        {
+            try
+            {
+                return Ok(await _chapterModel.GetChapterByNovel(NovelId));
             }
             catch (Exception e)
             {
@@ -79,7 +93,7 @@ namespace WebNovel.API.Areas.Controllers
 
         [HttpPut("{id}")]
         [ProducesResponseType(typeof(ResponseInfo), (int)HttpStatusCode.OK)]
-        public async Task<IActionResult> Update([FromRoute] long id, [FromForm] ChapterCreateUpdateEntity chapter)
+        public async Task<IActionResult> Update([FromRoute] string id, [FromForm] ChapterCreateUpdateEntity chapter)
         {
             try
             {

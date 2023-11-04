@@ -18,8 +18,8 @@ namespace WebNovel.API.Areas.Models.Novels
     {
         Task<List<NovelDto>> GetListNovel(SearchCondition searchCondition);
         Task<ResponseInfo> AddNovel(IFormFile formFile, NovelCreateUpdateEntity novel);
-        Task<ResponseInfo> UpdateNovel(long id, NovelCreateUpdateEntity novel, IFormFile formFile);
-        Task<NovelDto> GetNovelAsync(long id);
+        Task<ResponseInfo> UpdateNovel(string id, NovelCreateUpdateEntity novel, IFormFile formFile);
+        Task<NovelDto> GetNovelAsync(string id);
 
     }
 
@@ -45,13 +45,16 @@ namespace WebNovel.API.Areas.Models.Novels
             string method = GetActualAsyncMethodName();
             try
             {
+                var GuID = Guid.NewGuid();
+
                 _logger.LogInformation($"[{_className}][{method}] Start");
                 ResponseInfo results = new ResponseInfo();
                 var fileType = System.IO.Path.GetExtension(formFile.FileName);
-                await _awsS3Service.UploadToS3(formFile, $"thumbnail{fileType}", novel.Id.ToString());
+                await _awsS3Service.UploadToS3(formFile, $"thumbnail{fileType}", GuID.ToString());
                 var fileName = $"thumbnail{fileType}";
                 var newNovel = new Novel()
                 {
+                    Id = GuID.ToString(),
                     Name = novel.Name,
                     Title = novel.Title,
                     AccountId = novel.AccountId,
@@ -127,18 +130,20 @@ namespace WebNovel.API.Areas.Models.Novels
                     ApprovalStatus = x.ApprovalStatus,
                 }).ToList();
 
+
                 foreach (var novel in novelDtoTasks)
                 {
                     novel.GenreName = await _context.GenreOfNovels.Include(x => x.Genre).Select(x => x.Genre.Name).ToListAsync();
+                    novel.NumChapter = (await _context.Chapter.Where(e => e.NovelId == novel.Id).ToListAsync()).Count;
                 }
 
-                listNovel = novelDtoTasks.ToList();
+                listNovel = novelDtoTasks;
             }
 
             return listNovel;
         }
 
-        public async Task<NovelDto> GetNovelAsync(long id)
+        public async Task<NovelDto> GetNovelAsync(string id)
         {
             var novel = await _context.Novel.Include(x => x.Genres).Include(x => x.Account).Where(x => x.Id == id).FirstOrDefaultAsync();
             var novelDto = new NovelDto
@@ -154,13 +159,14 @@ namespace WebNovel.API.Areas.Models.Novels
                 Description = novel.Description,
                 Status = novel.Status,
                 ApprovalStatus = novel.ApprovalStatus,
-                GenreName = await _context.GenreOfNovels.Include(x => x.Genre).Select(x => x.Genre.Name).ToListAsync()
+                GenreName = await _context.GenreOfNovels.Include(x => x.Genre).Select(x => x.Genre.Name).ToListAsync(),
+                NumChapter = (await _context.Chapter.Where(e => e.NovelId == novel.Id).ToListAsync()).Count
             };
 
             return novelDto;
         }
 
-        public async Task<ResponseInfo> UpdateNovel(long id, NovelCreateUpdateEntity novel, IFormFile formFile)
+        public async Task<ResponseInfo> UpdateNovel(string id, NovelCreateUpdateEntity novel, IFormFile formFile)
         {
             IDbContextTransaction transaction = null;
             string method = GetActualAsyncMethodName();
