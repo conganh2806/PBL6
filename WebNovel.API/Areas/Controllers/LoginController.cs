@@ -24,7 +24,7 @@ namespace WebNovel.API.Areas.Controllers
 
         [HttpPost("login")]
         [ProducesResponseType(typeof(TokenResponse), (int)HttpStatusCode.OK)]
-        public async Task<IActionResult> CheckAccount([FromBody] UserEntity user)
+        public async Task<IActionResult> Login([FromBody] UserEntity user)
         {
             try
             {

@@ -10,9 +10,10 @@ using WebNovel.API.Areas.Models.Rating;
 using WebNovel.API.Areas.Models.Roles;
 using WebNovel.API.Areas.Models.UpdatedFees;
 using WebNovel.API.Core.Services;
+using WebNovel.API.Core.Services.Schemas;
 
 var builder = WebApplication.CreateBuilder(args);
-var connectionString = builder.Configuration.GetConnectionString("AzureMySQL");
+var connectionString = builder.Configuration.GetConnectionString("DefaultConnection");
 // Add services to the container.
 var services = builder.Services;
 services.AddControllers();
@@ -40,6 +41,11 @@ services.AddScoped<ILogService, LogService>();
 services.AddScoped<IAwsS3Service, AwsS3Service>();
 services.AddScoped<ITokenService, TokenService>();
 services.AddScoped<ILoginModel, LoginModel>();
+
+services.AddOptions<JwtSettings>()
+    .BindConfiguration($"{nameof(JwtSettings)}")
+    .ValidateDataAnnotations()
+    .ValidateOnStart();
 
 
 var app = builder.Build();
