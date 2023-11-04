@@ -113,11 +113,11 @@ namespace WebNovel.API.Areas.Models.Novels
             List<NovelDto> listNovel = new List<NovelDto>();
 
             var novels = await _context.Novel.Include(x => x.Genres).Include(x => x.Account)
-            .Where( x => string.IsNullOrEmpty(searchCondition.Key) 
-                        || x.Title.Contains(searchCondition.Key) 
+            .Where(x => string.IsNullOrEmpty(searchCondition.Key)
+                        || x.Title.Contains(searchCondition.Key)
                         || x.Account != null && x.Account.NickName.Contains(searchCondition.Key))
                         .ToListAsync();
-            var novelDtoTasks = novels.Select(async x => new NovelDto()
+            var novelDtoTasks = novels.Select(x => new NovelDto()
             {
                 Id = x.Id,
                 Name = x.Name,
@@ -130,114 +130,114 @@ namespace WebNovel.API.Areas.Models.Novels
                 Description = x.Description,
                 Status = x.Status,
                 ApprovalStatus = x.ApprovalStatus,
-                NumChapter = (await _context.Chapter.Where(e => e.NovelId == x.Id).ToListAsync()).Count
             }).ToList();
 
-            var novelDtoList = await Task.WhenAll(novelDtoTasks);
 
-            foreach (var novel in novelDtoList)
+            foreach (var novel in novelDtoTasks)
             {
                 novel.GenreName = await _context.GenreOfNovels.Include(x => x.Genre).Select(x => x.Genre.Name).ToListAsync();
+                novel.NumChapter = (await _context.Chapter.Where(e => e.NovelId == novel.Id).ToListAsync()).Count;
             }
 
-            listNovel = novelDtoList.ToList();
+            listNovel = novelDtoTasks;
+        }
 
             return listNovel;
         }
 
-        public async Task<NovelDto> GetNovelAsync(string id)
+    public async Task<NovelDto> GetNovelAsync(string id)
+    {
+        var novel = await _context.Novel.Include(x => x.Genres).Include(x => x.Account).Where(x => x.Id == id).FirstOrDefaultAsync();
+        var novelDto = new NovelDto
         {
-            var novel = await _context.Novel.Include(x => x.Genres).Include(x => x.Account).Where(x => x.Id == id).FirstOrDefaultAsync();
-            var novelDto = new NovelDto
-            {
-                Id = novel.Id,
-                Name = novel.Name,
-                Title = novel.Title,
-                Author = novel.Account.Username,
-                Year = novel.Year,
-                Views = novel.Views,
-                ImagesURL = _awsS3Service.GetFileImg(novel.Id.ToString(), $"{novel.ImageURL}"),
-                Rating = novel.Rating,
-                Description = novel.Description,
-                Status = novel.Status,
-                ApprovalStatus = novel.ApprovalStatus,
-                GenreName = await _context.GenreOfNovels.Include(x => x.Genre).Select(x => x.Genre.Name).ToListAsync(),
-                NumChapter = (await _context.Chapter.Where(e => e.NovelId == novel.Id).ToListAsync()).Count
-            };
+            Id = novel.Id,
+            Name = novel.Name,
+            Title = novel.Title,
+            Author = novel.Account.Username,
+            Year = novel.Year,
+            Views = novel.Views,
+            ImagesURL = _awsS3Service.GetFileImg(novel.Id.ToString(), $"{novel.ImageURL}"),
+            Rating = novel.Rating,
+            Description = novel.Description,
+            Status = novel.Status,
+            ApprovalStatus = novel.ApprovalStatus,
+            GenreName = await _context.GenreOfNovels.Include(x => x.Genre).Select(x => x.Genre.Name).ToListAsync(),
+            NumChapter = (await _context.Chapter.Where(e => e.NovelId == novel.Id).ToListAsync()).Count
+        };
 
-            return novelDto;
-        }
+        return novelDto;
+    }
 
-        public async Task<ResponseInfo> UpdateNovel(string id, NovelCreateUpdateEntity novel, IFormFile formFile)
+    public async Task<ResponseInfo> UpdateNovel(string id, NovelCreateUpdateEntity novel, IFormFile formFile)
+    {
+        IDbContextTransaction transaction = null;
+        string method = GetActualAsyncMethodName();
+        try
         {
-            IDbContextTransaction transaction = null;
-            string method = GetActualAsyncMethodName();
-            try
+            _logger.LogInformation($"[{_className}][{method}] Start");
+            ResponseInfo result = new ResponseInfo();
+            ResponseInfo response = new ResponseInfo();
+
+            var existNovel = _context.Novel.Where(n => n.Id == id).FirstOrDefault();
+            if (existNovel is null)
             {
-                _logger.LogInformation($"[{_className}][{method}] Start");
-                ResponseInfo result = new ResponseInfo();
-                ResponseInfo response = new ResponseInfo();
+                response.Code = CodeResponse.HAVE_ERROR;
+                response.MsgNo = MSG_NO.NOT_FOUND;
+                return response;
+            }
 
-                var existNovel = _context.Novel.Where(n => n.Id == id).FirstOrDefault();
-                if (existNovel is null)
-                {
-                    response.Code = CodeResponse.HAVE_ERROR;
-                    response.MsgNo = MSG_NO.NOT_FOUND;
-                    return response;
-                }
-
-                var fileNames = new List<string>
+            var fileNames = new List<string>
                 {
                     existNovel.ImageURL
                 };
-                var fileName = formFile.FileName;
-                await _awsS3Service.DeleteFromS3(id.ToString(), fileNames);
-                await _awsS3Service.UploadToS3(formFile, existNovel.ImageURL, id.ToString());
+            var fileName = formFile.FileName;
+            await _awsS3Service.DeleteFromS3(id.ToString(), fileNames);
+            await _awsS3Service.UploadToS3(formFile, existNovel.ImageURL, id.ToString());
 
-                existNovel.Name = novel.Name;
-                existNovel.Title = novel.Title;
-                existNovel.Year = novel.Year;
-                existNovel.Views = novel.Views;
-                existNovel.Rating = novel.Rating;
-                existNovel.Description = novel.Description;
-                existNovel.Status = novel.Status;
-                existNovel.ApprovalStatus = novel.Status;
-                _context.GenreOfNovels.RemoveRange(_context.GenreOfNovels.Where(x => x.NovelId == existNovel.Id));
-                foreach (var genreId in novel.GenreIds)
-                {
-                    existNovel.Genres.Add(new NovelGenre()
-                    {
-                        NovelId = existNovel.Id,
-                        GenreId = genreId
-                    });
-                }
-
-                var strategy = _context.Database.CreateExecutionStrategy();
-                await strategy.ExecuteAsync(
-                    async () =>
-                    {
-                        using (var trn = await _context.Database.BeginTransactionAsync())
-                        {
-                            await _context.SaveChangesAsync();
-                            await trn.CommitAsync();
-                        }
-                    }
-                );
-
-                _logger.LogInformation($"[{_className}][{method}] End");
-                return result;
-
-            }
-            catch (Exception e)
+            existNovel.Name = novel.Name;
+            existNovel.Title = novel.Title;
+            existNovel.Year = novel.Year;
+            existNovel.Views = novel.Views;
+            existNovel.Rating = novel.Rating;
+            existNovel.Description = novel.Description;
+            existNovel.Status = novel.Status;
+            existNovel.ApprovalStatus = novel.Status;
+            _context.GenreOfNovels.RemoveRange(_context.GenreOfNovels.Where(x => x.NovelId == existNovel.Id));
+            foreach (var genreId in novel.GenreIds)
             {
-                if (transaction != null)
+                existNovel.Genres.Add(new NovelGenre()
                 {
-                    await _context.RollbackAsync(transaction);
-                }
-                _logger.LogInformation($"[{_className}][{method}] Exception: {e.Message}");
-                throw;
+                    NovelId = existNovel.Id,
+                    GenreId = genreId
+                });
             }
+
+            var strategy = _context.Database.CreateExecutionStrategy();
+            await strategy.ExecuteAsync(
+                async () =>
+                {
+                    using (var trn = await _context.Database.BeginTransactionAsync())
+                    {
+                        await _context.SaveChangesAsync();
+                        await trn.CommitAsync();
+                    }
+                }
+            );
+
+            _logger.LogInformation($"[{_className}][{method}] End");
+            return result;
 
         }
+        catch (Exception e)
+        {
+            if (transaction != null)
+            {
+                await _context.RollbackAsync(transaction);
+            }
+            _logger.LogInformation($"[{_className}][{method}] Exception: {e.Message}");
+            throw;
+        }
+
     }
+}
 }
