@@ -1,4 +1,5 @@
 using System.Runtime.CompilerServices;
+using CSharpVitamins;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Storage;
 using WebNovel.API.Areas.Models.Chapter.Schemas;
@@ -40,7 +41,7 @@ namespace WebNovel.API.Areas.Models.Chapter
             try
             {
 
-                var GuID = Guid.NewGuid();
+                var GuID = (ShortGuid)Guid.NewGuid();
 
                 _logger.LogInformation($"[{_className}][{method}] Start");
                 ResponseInfo result = new ResponseInfo();

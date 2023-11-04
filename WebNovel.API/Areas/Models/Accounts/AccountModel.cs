@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Runtime.CompilerServices;
 using System.Threading.Tasks;
+using CSharpVitamins;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Storage;
 using Microsoft.OpenApi.Models;
@@ -48,6 +49,8 @@ namespace WebNovel.API.Areas.Models.Accounts
             string method = GetActualAsyncMethodName();
             try
             {
+                var GuID = (ShortGuid)Guid.NewGuid();
+
                 _logger.LogInformation($"[{_className}][{method}] Start");
                 ResponseInfo result = await ValidateUser(null, account);
                 if (result.Code != CodeResponse.OK)
@@ -57,13 +60,15 @@ namespace WebNovel.API.Areas.Models.Accounts
 
                 var newAccount = new Account()
                 {
-                    Id = account.Id,
+                    Id = GuID.ToString(),
                     NickName = account.NickName,
                     Username = account.Username,
                     Password = Security.Sha256(account.Password),
                     Status = A001.NORMAL.CODE,
                     Email = account.Email,
-                    Phone = account.Phone
+                    Phone = account.Phone,
+                    IsAdmin = account.IsAdmin,
+                    IsActive = account.IsActive,
                 };
                 if (account.RoleIds.Any())
                 {
@@ -74,7 +79,6 @@ namespace WebNovel.API.Areas.Models.Accounts
                             RoleId = roleId,
                             AccountId = account.Id,
                         });
-                        newAccount.IsAdmin = account.IsAdmin;
                     }
                 }
 
@@ -110,11 +114,13 @@ namespace WebNovel.API.Areas.Models.Accounts
         public async Task<AccountDto> FindByEmailAsync(string email)
         {
             var account = await _context.Accounts.Include(x => x.Roles).ThenInclude(x => x.Role).Where(x => x.Email == email).FirstOrDefaultAsync();
-            if (account == null) {
+            if (account == null)
+            {
                 return null;
             }
             var accountDto = new AccountDto
             {
+                Id = account.Id,
                 NickName = account.NickName,
                 Username = account.Username,
                 Status = account.Status,
@@ -130,11 +136,13 @@ namespace WebNovel.API.Areas.Models.Accounts
         public async Task<AccountDto> GetAccount(string id)
         {
             var account = await _context.Accounts.Include(x => x.Roles).ThenInclude(x => x.Role).Where(x => x.Id.ToString() == id).FirstOrDefaultAsync();
-            if (account == null) {
+            if (account == null)
+            {
                 return null;
             }
             var accountDto = new AccountDto
             {
+                Id = account.Id,
                 NickName = account.NickName,
                 Username = account.Username,
                 Status = account.Status,
@@ -151,9 +159,14 @@ namespace WebNovel.API.Areas.Models.Accounts
         {
             var listAccount = _context.Accounts.Include(x => x.Roles).ThenInclude(x => x.Role).Select(x => new AccountDto()
             {
+                Id = x.Id,
+                NickName = x.NickName,
                 Username = x.Username,
+                Status = x.Status,
                 Email = x.Email,
-                RoleName = x.Roles.Select(x => x.Role.Name).ToList()
+                Phone = x.Phone,
+                IsAdmin = x.IsAdmin,
+                RoleIds = x.Roles.Select(x => x.RoleId).ToList()
             }).ToList();
 
             return listAccount;
