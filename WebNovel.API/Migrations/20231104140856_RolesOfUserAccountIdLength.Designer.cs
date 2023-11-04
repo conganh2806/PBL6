@@ -11,8 +11,8 @@ using Webnovel.API.Databases;
 namespace Webnovel.API.Migrations
 {
     [DbContext(typeof(DataContext))]
-    [Migration("20231103090007_StringID")]
-    partial class StringID
+    [Migration("20231104140856_RolesOfUserAccountIdLength")]
+    partial class RolesOfUserAccountIdLength
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -30,12 +30,13 @@ namespace Webnovel.API.Migrations
                         .HasColumnOrder(1)
                         .HasComment("Id định danh (khóa chính)");
 
-                    b.Property<long>("AccountId")
-                        .HasColumnType("bigint");
+                    b.Property<string>("AccountId")
+                        .IsRequired()
+                        .HasColumnType("varchar(36)");
 
                     b.Property<string>("ChapterId")
                         .IsRequired()
-                        .HasColumnType("varchar(255)");
+                        .HasColumnType("varchar(36)");
 
                     b.Property<DateTimeOffset>("CreatedAt")
                         .HasColumnType("datetime(6)")
@@ -66,8 +67,8 @@ namespace Webnovel.API.Migrations
             modelBuilder.Entity("WebNovel.API.Databases.Entities.Chapter", b =>
                 {
                     b.Property<string>("Id")
-                        .HasColumnType("varchar(255)")
-                        .HasColumnOrder(1)
+                        .HasMaxLength(36)
+                        .HasColumnType("varchar(36)")
                         .HasComment("Id định danh (khóa chính)");
 
                     b.Property<bool>("ApprovalStatus")
@@ -104,7 +105,7 @@ namespace Webnovel.API.Migrations
 
                     b.Property<string>("NovelId")
                         .IsRequired()
-                        .HasColumnType("varchar(255)");
+                        .HasColumnType("varchar(36)");
 
                     b.Property<DateTime>("PublishDate")
                         .HasColumnType("datetime(6)");
@@ -131,10 +132,10 @@ namespace Webnovel.API.Migrations
             modelBuilder.Entity("WebNovel.API.Databases.Entities.Comment", b =>
                 {
                     b.Property<string>("NovelId")
-                        .HasColumnType("varchar(255)");
+                        .HasColumnType("varchar(36)");
 
-                    b.Property<long>("AccountId")
-                        .HasColumnType("bigint");
+                    b.Property<string>("AccountId")
+                        .HasColumnType("varchar(36)");
 
                     b.Property<DateTime?>("CreateOn")
                         .HasColumnType("datetime(6)");
@@ -276,7 +277,7 @@ namespace Webnovel.API.Migrations
                         .HasColumnOrder(2);
 
                     b.Property<string>("NovelId")
-                        .HasColumnType("varchar(255)")
+                        .HasColumnType("varchar(36)")
                         .HasColumnOrder(1);
 
                     b.Property<DateTimeOffset>("CreatedAt")
@@ -304,11 +305,11 @@ namespace Webnovel.API.Migrations
 
             modelBuilder.Entity("WebNovel.API.Databases.Entities.Preferences", b =>
                 {
-                    b.Property<long>("AccountId")
-                        .HasColumnType("bigint");
+                    b.Property<string>("AccountId")
+                        .HasColumnType("varchar(36)");
 
                     b.Property<string>("NovelId")
-                        .HasColumnType("varchar(255)");
+                        .HasColumnType("varchar(36)");
 
                     b.Property<DateTimeOffset>("CreatedAt")
                         .HasColumnType("datetime(6)")
@@ -367,8 +368,9 @@ namespace Webnovel.API.Migrations
 
             modelBuilder.Entity("WebNovel.API.Databases.Entities.RolesOfUser", b =>
                 {
-                    b.Property<long>("AccountId")
-                        .HasColumnType("bigint")
+                    b.Property<string>("AccountId")
+                        .HasMaxLength(36)
+                        .HasColumnType("varchar(36)")
                         .HasColumnOrder(1);
 
                     b.Property<string>("RoleId")
@@ -436,10 +438,9 @@ namespace Webnovel.API.Migrations
 
             modelBuilder.Entity("WebNovel.API.Databases.Entitites.Account", b =>
                 {
-                    b.Property<long>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("bigint")
-                        .HasColumnOrder(1)
+                    b.Property<string>("Id")
+                        .HasMaxLength(36)
+                        .HasColumnType("varchar(36)")
                         .HasComment("Id định danh (khóa chính)");
 
                     b.Property<DateTimeOffset>("CreatedAt")
@@ -484,6 +485,12 @@ namespace Webnovel.API.Migrations
                     b.Property<string>("Phone")
                         .HasColumnType("longtext");
 
+                    b.Property<string>("RefreshToken")
+                        .HasColumnType("longtext");
+
+                    b.Property<DateTime?>("RefreshTokenExpiryTime")
+                        .HasColumnType("datetime(6)");
+
                     b.Property<int>("Status")
                         .HasColumnType("int");
 
@@ -507,12 +514,13 @@ namespace Webnovel.API.Migrations
             modelBuilder.Entity("WebNovel.API.Databases.Entitites.Novel", b =>
                 {
                     b.Property<string>("Id")
-                        .HasColumnType("varchar(255)")
-                        .HasColumnOrder(1)
+                        .HasMaxLength(36)
+                        .HasColumnType("varchar(36)")
                         .HasComment("Id định danh (khóa chính)");
 
-                    b.Property<long>("AccountId")
-                        .HasColumnType("bigint");
+                    b.Property<string>("AccountId")
+                        .IsRequired()
+                        .HasColumnType("varchar(36)");
 
                     b.Property<bool>("ApprovalStatus")
                         .HasColumnType("tinyint(1)");
@@ -572,11 +580,11 @@ namespace Webnovel.API.Migrations
 
             modelBuilder.Entity("WebNovel.API.Databases.Entitites.Rating", b =>
                 {
-                    b.Property<long>("AccountId")
-                        .HasColumnType("bigint");
+                    b.Property<string>("AccountId")
+                        .HasColumnType("varchar(36)");
 
                     b.Property<string>("NovelId")
-                        .HasColumnType("varchar(255)");
+                        .HasColumnType("varchar(36)");
 
                     b.Property<DateTimeOffset>("CreatedAt")
                         .HasColumnType("datetime(6)")

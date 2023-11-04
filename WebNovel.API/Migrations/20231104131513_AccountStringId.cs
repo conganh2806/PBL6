@@ -7,7 +7,7 @@ using Microsoft.EntityFrameworkCore.Migrations;
 namespace Webnovel.API.Migrations
 {
     /// <inheritdoc />
-    public partial class StringID : Migration
+    public partial class AccountStringId : Migration
     {
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
@@ -19,8 +19,8 @@ namespace Webnovel.API.Migrations
                 name: "Accounts",
                 columns: table => new
                 {
-                    Id = table.Column<long>(type: "bigint", nullable: false, comment: "Id định danh (khóa chính)")
-                        .Annotation("MySql:ValueGenerationStrategy", MySqlValueGenerationStrategy.IdentityColumn),
+                    Id = table.Column<string>(type: "varchar(21)", maxLength: 21, nullable: false, comment: "Id định danh (khóa chính)")
+                        .Annotation("MySql:CharSet", "utf8mb4"),
                     Username = table.Column<string>(type: "varchar(100)", maxLength: 100, nullable: false)
                         .Annotation("MySql:CharSet", "utf8mb4"),
                     Password = table.Column<string>(type: "varchar(255)", maxLength: 255, nullable: false)
@@ -37,6 +37,9 @@ namespace Webnovel.API.Migrations
                     IsAdmin = table.Column<bool>(type: "tinyint(1)", nullable: false),
                     Phone = table.Column<string>(type: "longtext", nullable: true)
                         .Annotation("MySql:CharSet", "utf8mb4"),
+                    RefreshToken = table.Column<string>(type: "longtext", nullable: true)
+                        .Annotation("MySql:CharSet", "utf8mb4"),
+                    RefreshTokenExpiryTime = table.Column<DateTime>(type: "datetime(6)", nullable: false),
                     CreatedAt = table.Column<DateTimeOffset>(type: "datetime(6)", nullable: false, comment: "Ngày tạo dữ liệu"),
                     UpdatedAt = table.Column<DateTimeOffset>(type: "datetime(6)", nullable: true, comment: "Ngày cập nhật dữ liệu"),
                     DeletedAt = table.Column<DateTimeOffset>(type: "datetime(6)", nullable: true, comment: "Ngày xoá dữ liệu"),
@@ -142,13 +145,14 @@ namespace Webnovel.API.Migrations
                 name: "Novel",
                 columns: table => new
                 {
-                    Id = table.Column<string>(type: "varchar(255)", nullable: false, comment: "Id định danh (khóa chính)")
+                    Id = table.Column<string>(type: "varchar(21)", maxLength: 21, nullable: false, comment: "Id định danh (khóa chính)")
                         .Annotation("MySql:CharSet", "utf8mb4"),
                     Name = table.Column<string>(type: "varchar(255)", maxLength: 255, nullable: false)
                         .Annotation("MySql:CharSet", "utf8mb4"),
                     Title = table.Column<string>(type: "varchar(255)", maxLength: 255, nullable: false)
                         .Annotation("MySql:CharSet", "utf8mb4"),
-                    AccountId = table.Column<long>(type: "bigint", nullable: false),
+                    AccountId = table.Column<string>(type: "varchar(21)", nullable: false)
+                        .Annotation("MySql:CharSet", "utf8mb4"),
                     Year = table.Column<int>(type: "int", nullable: false),
                     Views = table.Column<int>(type: "int", nullable: false),
                     Rating = table.Column<int>(type: "int", nullable: false),
@@ -179,7 +183,8 @@ namespace Webnovel.API.Migrations
                 name: "RolesOfUsers",
                 columns: table => new
                 {
-                    AccountId = table.Column<long>(type: "bigint", nullable: false),
+                    AccountId = table.Column<string>(type: "varchar(21)", maxLength: 21, nullable: false)
+                        .Annotation("MySql:CharSet", "utf8mb4"),
                     RoleId = table.Column<string>(type: "varchar(21)", maxLength: 21, nullable: false)
                         .Annotation("MySql:CharSet", "utf8mb4"),
                     CreatedAt = table.Column<DateTimeOffset>(type: "datetime(6)", nullable: false, comment: "Ngày tạo dữ liệu"),
@@ -207,7 +212,7 @@ namespace Webnovel.API.Migrations
                 name: "Chapter",
                 columns: table => new
                 {
-                    Id = table.Column<string>(type: "varchar(255)", nullable: false, comment: "Id định danh (khóa chính)")
+                    Id = table.Column<string>(type: "varchar(21)", maxLength: 21, nullable: false, comment: "Id định danh (khóa chính)")
                         .Annotation("MySql:CharSet", "utf8mb4"),
                     Name = table.Column<string>(type: "varchar(255)", maxLength: 255, nullable: false)
                         .Annotation("MySql:CharSet", "utf8mb4"),
@@ -220,7 +225,7 @@ namespace Webnovel.API.Migrations
                         .Annotation("MySql:CharSet", "utf8mb4"),
                     Discount = table.Column<int>(type: "int", nullable: true),
                     ApprovalStatus = table.Column<bool>(type: "tinyint(1)", nullable: false),
-                    NovelId = table.Column<string>(type: "varchar(255)", nullable: false)
+                    NovelId = table.Column<string>(type: "varchar(21)", nullable: false)
                         .Annotation("MySql:CharSet", "utf8mb4"),
                     CreatedAt = table.Column<DateTimeOffset>(type: "datetime(6)", nullable: false, comment: "Ngày tạo dữ liệu"),
                     UpdatedAt = table.Column<DateTimeOffset>(type: "datetime(6)", nullable: true, comment: "Ngày cập nhật dữ liệu"),
@@ -250,8 +255,9 @@ namespace Webnovel.API.Migrations
                 columns: table => new
                 {
                     Id = table.Column<long>(type: "bigint", nullable: false, comment: "Id định danh (khóa chính)"),
-                    AccountId = table.Column<long>(type: "bigint", nullable: false),
-                    NovelId = table.Column<string>(type: "varchar(255)", nullable: false)
+                    AccountId = table.Column<string>(type: "varchar(21)", nullable: false)
+                        .Annotation("MySql:CharSet", "utf8mb4"),
+                    NovelId = table.Column<string>(type: "varchar(21)", nullable: false)
                         .Annotation("MySql:CharSet", "utf8mb4"),
                     Text = table.Column<string>(type: "longtext", nullable: false)
                         .Annotation("MySql:CharSet", "utf8mb4"),
@@ -283,7 +289,7 @@ namespace Webnovel.API.Migrations
                 name: "GenreOfNovels",
                 columns: table => new
                 {
-                    NovelId = table.Column<string>(type: "varchar(255)", nullable: false)
+                    NovelId = table.Column<string>(type: "varchar(21)", nullable: false)
                         .Annotation("MySql:CharSet", "utf8mb4"),
                     GenreId = table.Column<long>(type: "bigint", nullable: false),
                     CreatedAt = table.Column<DateTimeOffset>(type: "datetime(6)", nullable: false, comment: "Ngày tạo dữ liệu"),
@@ -311,9 +317,10 @@ namespace Webnovel.API.Migrations
                 name: "Preferences",
                 columns: table => new
                 {
-                    NovelId = table.Column<string>(type: "varchar(255)", nullable: false)
+                    NovelId = table.Column<string>(type: "varchar(21)", nullable: false)
                         .Annotation("MySql:CharSet", "utf8mb4"),
-                    AccountId = table.Column<long>(type: "bigint", nullable: false),
+                    AccountId = table.Column<string>(type: "varchar(21)", nullable: false)
+                        .Annotation("MySql:CharSet", "utf8mb4"),
                     CreatedAt = table.Column<DateTimeOffset>(type: "datetime(6)", nullable: false, comment: "Ngày tạo dữ liệu"),
                     UpdatedAt = table.Column<DateTimeOffset>(type: "datetime(6)", nullable: true, comment: "Ngày cập nhật dữ liệu"),
                     DeletedAt = table.Column<DateTimeOffset>(type: "datetime(6)", nullable: true, comment: "Ngày xoá dữ liệu"),
@@ -339,9 +346,10 @@ namespace Webnovel.API.Migrations
                 name: "Ratings",
                 columns: table => new
                 {
-                    NovelId = table.Column<string>(type: "varchar(255)", nullable: false)
+                    NovelId = table.Column<string>(type: "varchar(21)", nullable: false)
                         .Annotation("MySql:CharSet", "utf8mb4"),
-                    AccountId = table.Column<long>(type: "bigint", nullable: false),
+                    AccountId = table.Column<string>(type: "varchar(21)", nullable: false)
+                        .Annotation("MySql:CharSet", "utf8mb4"),
                     RateScore = table.Column<float>(type: "float", nullable: false),
                     CreatedAt = table.Column<DateTimeOffset>(type: "datetime(6)", nullable: false, comment: "Ngày tạo dữ liệu"),
                     UpdatedAt = table.Column<DateTimeOffset>(type: "datetime(6)", nullable: true, comment: "Ngày cập nhật dữ liệu"),
@@ -370,8 +378,9 @@ namespace Webnovel.API.Migrations
                 {
                     Id = table.Column<long>(type: "bigint", nullable: false, comment: "Id định danh (khóa chính)")
                         .Annotation("MySql:ValueGenerationStrategy", MySqlValueGenerationStrategy.IdentityColumn),
-                    AccountId = table.Column<long>(type: "bigint", nullable: false),
-                    ChapterId = table.Column<string>(type: "varchar(255)", nullable: false)
+                    AccountId = table.Column<string>(type: "varchar(21)", nullable: false)
+                        .Annotation("MySql:CharSet", "utf8mb4"),
+                    ChapterId = table.Column<string>(type: "varchar(21)", nullable: false)
                         .Annotation("MySql:CharSet", "utf8mb4"),
                     CreatedAt = table.Column<DateTimeOffset>(type: "datetime(6)", nullable: false, comment: "Ngày tạo dữ liệu"),
                     UpdatedAt = table.Column<DateTimeOffset>(type: "datetime(6)", nullable: true, comment: "Ngày cập nhật dữ liệu"),
