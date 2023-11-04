@@ -18,7 +18,7 @@ namespace WebNovel.API.Databases.Entities
 
         [Key]
         [Column(Order = 1)]
-        [StringLength(21)]
+        [StringLength(36)]
         public string AccountId { set; get; }
 
         [Key]

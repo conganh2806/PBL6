@@ -20,7 +20,7 @@ namespace WebNovel.API.Databases
                 /// </summary>
                 [Key]
                 [Comment("Id định danh (khóa chính)")]
-                [StringLength(21)]
+                [StringLength(36)]
                 public string Id { set; get; }
         }
 }
