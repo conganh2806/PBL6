@@ -3,6 +3,7 @@ using Webnovel.API.Databases;
 using WebNovel.API.Areas.Models.Accounts;
 using WebNovel.API.Areas.Models.Chapter;
 using WebNovel.API.Areas.Models.Genres;
+using WebNovel.API.Areas.Models.Login;
 using WebNovel.API.Areas.Models.Novels;
 using WebNovel.API.Areas.Models.Preferences;
 using WebNovel.API.Areas.Models.Rating;
@@ -37,7 +38,8 @@ services.AddScoped<IRatingModel, RatingModel>();
 services.AddScoped<IUpdatedFeeModel, UpdatedFeeModel>();
 services.AddScoped<ILogService, LogService>();
 services.AddScoped<IAwsS3Service, AwsS3Service>();
-
+services.AddScoped<ITokenService, TokenService>();
+services.AddScoped<ILoginModel, LoginModel>();
 
 
 var app = builder.Build();
