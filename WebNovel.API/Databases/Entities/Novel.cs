@@ -19,7 +19,7 @@ namespace WebNovel.API.Databases.Entitites
         public string Name { get; set; } = null!;
         [StringLength(255)]
         public string Title { get; set; } = null!;
-        public long AccountId { get; set; }
+        public string AccountId { get; set; }
         public Account? Account { get; set; }
         public int Year { get; set; }
         public int Views { get; set; }

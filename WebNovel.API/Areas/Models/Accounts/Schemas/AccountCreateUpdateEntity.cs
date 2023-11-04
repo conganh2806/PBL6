@@ -8,7 +8,7 @@ namespace WebNovel.API.Areas.Models.Accounts.Schemas
 {
     public class AccountCreateUpdateEntity
     {
-        public long Id {get; set;}
+        public String Id {get; set;}
         [StringLength(100, ErrorMessage = "E005")]
         public string Username {get; set;} = null!;
         [StringLength(255, ErrorMessage = "E005")]
@@ -23,5 +23,7 @@ namespace WebNovel.API.Areas.Models.Accounts.Schemas
         public List<string> RoleIds { set; get; }
         public bool IsAdmin { get; set; }
         public bool IsActive { get; set; }
+        public string? RefreshToken { get; set; }
+        public DateTime RefreshTokenExpiryTime { get; set; }
     }
 }

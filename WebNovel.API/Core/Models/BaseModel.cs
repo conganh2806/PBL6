@@ -25,20 +25,20 @@ namespace WebNovel.API.Core.Models
             _context = context ?? throw new ArgumentNullException(nameof(context));
             _logService = logService ?? throw new ArgumentNullException(nameof(logService));
         }
-        protected async Task<bool> ValidatePhone(long? userId, string phone)
+        protected async Task<bool> ValidatePhone(string userId, string phone)
         {
             return await _context.Accounts
                 .AnyAsync(x => 
                     x.Phone == phone &&
-                    (!userId.HasValue || x.Id != userId));
+                    (x.Id != userId));
         }
 
-        protected async Task<bool> ValidateEmail(long? userId, string email)
+        protected async Task<bool> ValidateEmail(string? userId, string email)
         {
             return await _context.Accounts
                 .AnyAsync(x => 
                     x.Email == email &&
-                    (!userId.HasValue || x.Id != userId));
+                    (x.Id != userId));
         }
     }
 }

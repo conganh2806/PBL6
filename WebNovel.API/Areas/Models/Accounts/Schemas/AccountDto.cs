@@ -9,6 +9,7 @@ namespace WebNovel.API.Areas.Models.Accounts.Schemas
 {
     public class AccountDto
     {
+        public string Id {get; set;}
         [StringLength(100)]
         public string Username {get; set;}
         [StringLength(255)]
@@ -21,5 +22,7 @@ namespace WebNovel.API.Areas.Models.Accounts.Schemas
         public string Phone {get; set;}
         public List<string> RoleIds { set; get; }
         public bool IsAdmin { get; set; }
+        public string? RefreshToken { get; set; }
+        public DateTime RefreshTokenExpiryTime { get; set; }
     }
 }

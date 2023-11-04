@@ -18,5 +18,7 @@
     <PackageReference Include="Newtonsoft.Json" Version="13.0.1" />
     <PackageReference Include="Minio" Version="5.0.0" />
     <PackageReference Include="AWSSDK.S3" Version="3.7.9.41" />
+    <PackageReference Include="Microsoft.AspNetCore.ApiAuthorization.IdentityServer" Version="7.0.7" />
+    <PackageReference Include="Microsoft.AspNetCore.Identity.EntityFrameworkCore" Version="7.0.7" />
   </ItemGroup>
 </Project>

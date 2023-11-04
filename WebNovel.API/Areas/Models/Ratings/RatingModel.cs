@@ -23,10 +23,10 @@ namespace WebNovel.API.Areas.Models.Rating
     {
         Task<List<RatingDto>> GetListRating();
         Task<ResponseInfo> AddRating(RatingCreateUpdateEntity rating);
-        RatingDto GetRatingByAccount(long AccountId);
+        RatingDto GetRatingByAccount(string AccountId);
         RatingDto GetRatingByNovel(long NovelId);
-        RatingDto GetRating(long AccountId, long NovelId);
-        Task<ResponseInfo> UpdateRating(long AccountId, long NovelId, RatingCreateUpdateEntity rating);
+        RatingDto GetRating(string AccountId, long NovelId);
+        Task<ResponseInfo> UpdateRating(string AccountId, long NovelId, RatingCreateUpdateEntity rating);
     }
     public class RatingModel : BaseModel, IRatingModel
     {
@@ -88,7 +88,7 @@ namespace WebNovel.API.Areas.Models.Rating
             }
         }
 
-        public RatingDto GetRatingByAccount(long AccountId)
+        public RatingDto GetRatingByAccount(string AccountId)
         {
             var Rating = _context.Ratings.Where(x => x.AccountId == AccountId).FirstOrDefault();
             var RatingDto = new RatingDto()
@@ -114,7 +114,7 @@ namespace WebNovel.API.Areas.Models.Rating
             return RatingDto;
         }
 
-        public RatingDto GetRating(long AccountId, long NovelId)
+        public RatingDto GetRating(string AccountId, long NovelId)
         {
             var Rating = _context.Ratings.Where(x => x.NovelId == NovelId && x.AccountId == AccountId).FirstOrDefault();
             var RatingDto = new RatingDto()
@@ -139,7 +139,7 @@ namespace WebNovel.API.Areas.Models.Rating
             return listRating;
         }
 
-        public async Task<ResponseInfo> UpdateRating(long AccountId, long NovelId, RatingCreateUpdateEntity rating)
+        public async Task<ResponseInfo> UpdateRating(string AccountId, long NovelId, RatingCreateUpdateEntity rating)
         {
             IDbContextTransaction transaction = null;
             string method = GetActualAsyncMethodName();

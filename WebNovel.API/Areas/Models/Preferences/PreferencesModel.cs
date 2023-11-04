@@ -22,9 +22,9 @@ namespace WebNovel.API.Areas.Models.Preferences
     {
         Task<List<PreferencesDto>> GetListPreference();
         Task<ResponseInfo> AddPreference(PreferencesCreateUpdateEntity account);
-        PreferencesDto GetPreferenceByAccount(long AccountId);
+        PreferencesDto GetPreferenceByAccount(string AccountId);
         PreferencesDto GetPreferenceByNovel(long NovelId);
-        PreferencesDto GetPreference(long AccountId, long NovelId);
+        PreferencesDto GetPreference(string AccountId, long NovelId);
     }
     public class PreferencesModel : BaseModel, IPreferencesModel
     {
@@ -85,7 +85,7 @@ namespace WebNovel.API.Areas.Models.Preferences
             }
         }
 
-        public PreferencesDto GetPreferenceByAccount(long AccountId)
+        public PreferencesDto GetPreferenceByAccount(string AccountId)
         {
             var preference = _context.Preferences.Where(x => x.AccountId == AccountId).FirstOrDefault();
             var preferenceDto = new PreferencesDto()
@@ -109,7 +109,7 @@ namespace WebNovel.API.Areas.Models.Preferences
             return preferenceDto;
         }
 
-        public PreferencesDto GetPreference(long AccountId, long NovelId)
+        public PreferencesDto GetPreference(string AccountId, long NovelId)
         {
             var preference = _context.Preferences.Where(x => x.NovelId == NovelId && x.AccountId == AccountId).FirstOrDefault();
             var preferenceDto = new PreferencesDto()

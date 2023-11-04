@@ -7,8 +7,11 @@ using WebNovel.API.Databases.Entities;
 
 namespace WebNovel.API.Databases.Entitites
 {
-        public class Account : TableHaveIdInt
+        public class Account
         {
+                [Key]
+                [StringLength(21)]
+                public string Id { get; set; }
                 public Account()
                 {
                         Comments = new HashSet<Comment>();
@@ -34,6 +37,8 @@ namespace WebNovel.API.Databases.Entitites
                 public bool IsActive { get; set; }
                 public bool IsAdmin { get; set; }
                 public string? Phone { get; set; }
+                public string? RefreshToken { get; set; }
+                public DateTime RefreshTokenExpiryTime { get; set; }
                 public virtual ICollection<Comment>? Comments { get; set; }
                 public virtual ICollection<Bookmarked>? Bookmarkeds { get; set; }
                 public virtual ICollection<Preferences>? Preferences { get; set; }

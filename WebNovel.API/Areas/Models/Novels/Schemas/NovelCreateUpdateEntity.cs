@@ -12,7 +12,7 @@ namespace WebNovel.API.Areas.Models.Novels.Schemas
         public string Name {get; set;} = null!;
         [StringLength(255, ErrorMessage = "E005")]
         public string Title {get; set;} = null!;
-        public long AccountId {get; set;}
+        public string AccountId {get; set;}
         public int Year {get; set;}
         public int Views {get; set;}
         public int Rating {get; set;}
@@ -24,5 +24,7 @@ namespace WebNovel.API.Areas.Models.Novels.Schemas
         public bool ApprovalStatus {get; set;}
         public List<long> GenreIds {get; set;} 
         public IFormFile File {get; set;}
+        public string? RefreshToken { get; set; }
+        public DateTime RefreshTokenExpiryTime { get; set; }
     }
 }

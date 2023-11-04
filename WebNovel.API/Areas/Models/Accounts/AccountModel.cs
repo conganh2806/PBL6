@@ -24,8 +24,11 @@ namespace WebNovel.API.Areas.Models.Accounts
     {
         Task<List<AccountDto>> GetListAccount(SearchCondition searchCondition);
         Task<ResponseInfo> AddAccount(AccountCreateUpdateEntity account);
-        Task<ResponseInfo> UpdateAccount(long id, AccountCreateUpdateEntity account);
-        AccountDto GetAccount(long id);
+        Task<ResponseInfo> UpdateAccount(string id, AccountCreateUpdateEntity account);
+        Task<AccountDto> GetAccount(string id);
+        Task<AccountDto> FindByEmailAsync(string email);
+        Task<ResponseInfo> UpdateToken(AccountCreateUpdateEntity account);
+        Task<string> LoginWithPasswordAsync(string email, string password);
     }
     public class AccountModel : BaseModel, IAccountModel
     {
@@ -104,9 +107,32 @@ namespace WebNovel.API.Areas.Models.Accounts
             }
         }
 
-        public AccountDto GetAccount(long id)
+        public async Task<AccountDto> FindByEmailAsync(string email)
         {
-            var account = _context.Accounts.Include(x => x.Roles).ThenInclude(x => x.Role).Where(x => x.Id == id).FirstOrDefault();
+            var account = await _context.Accounts.Include(x => x.Roles).ThenInclude(x => x.Role).Where(x => x.Email == email).FirstOrDefaultAsync();
+            if (account == null) {
+                return null;
+            }
+            var accountDto = new AccountDto
+            {
+                NickName = account.NickName,
+                Username = account.Username,
+                Status = account.Status,
+                Email = account.Email,
+                Phone = account.Phone,
+                IsAdmin = account.IsAdmin,
+                RoleIds = account.Roles.Select(x => x.RoleId).ToList()
+            };
+
+            return accountDto;
+        }
+
+        public async Task<AccountDto> GetAccount(string id)
+        {
+            var account = await _context.Accounts.Include(x => x.Roles).ThenInclude(x => x.Role).Where(x => x.Id.ToString() == id).FirstOrDefaultAsync();
+            if (account == null) {
+                return null;
+            }
             var accountDto = new AccountDto
             {
                 NickName = account.NickName,
@@ -133,7 +159,7 @@ namespace WebNovel.API.Areas.Models.Accounts
             return listAccount;
         }
 
-        public async Task<ResponseInfo> UpdateAccount(long id, AccountCreateUpdateEntity account)
+        public async Task<ResponseInfo> UpdateAccount(string id, AccountCreateUpdateEntity account)
         {
             IDbContextTransaction transaction = null;
             string method = GetActualAsyncMethodName();
@@ -205,7 +231,29 @@ namespace WebNovel.API.Areas.Models.Accounts
             }
         }
 
-        private async Task<ResponseInfo> ValidateUser(long? userId, AccountCreateUpdateEntity account)
+        public async Task<ResponseInfo> UpdateToken(AccountCreateUpdateEntity account)
+        {
+            ResponseInfo result = await ValidateUser(null, account);
+            var item = await _context.Accounts.Where(x => x.Id == account.Id).FirstOrDefaultAsync();
+
+            item.RefreshToken = account.RefreshToken;
+            item.RefreshTokenExpiryTime = account.RefreshTokenExpiryTime;
+
+            var strategy = _context.Database.CreateExecutionStrategy();
+            await strategy.ExecuteAsync(
+                async () =>
+                {
+                    using (var trn = await _context.Database.BeginTransactionAsync())
+                    {
+                        await _context.SaveChangesAsync();
+                        await trn.CommitAsync();
+                    }
+                }
+            );
+            return result;
+        }
+
+        private async Task<ResponseInfo> ValidateUser(string userId, AccountCreateUpdateEntity account)
         {
             ResponseInfo result = new ResponseInfo();
 
@@ -223,6 +271,22 @@ namespace WebNovel.API.Areas.Models.Accounts
                 return result;
             }
             return result;
+        }
+
+        public async Task<string> LoginWithPasswordAsync(string email, string password)
+        {
+            var user = await _context.Accounts.Where(x => x.Email == email && x.Password == Security.Sha256(password)).FirstOrDefaultAsync();
+            if (user == null)
+            {
+                throw new UnauthorizedAccessException("Authentication Failed.");
+            }
+
+            // if (!user.IsVerifyEmail)
+            // {
+            //     throw new UnauthorizedAccessException("Email's not confirmed.");
+            // }
+
+            return user.Id;
         }
     }
 }
