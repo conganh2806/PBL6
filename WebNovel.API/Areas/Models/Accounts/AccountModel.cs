@@ -133,9 +133,9 @@ namespace WebNovel.API.Areas.Models.Accounts
             return accountDto;
         }
 
-        public async Task<AccountDto> GetAccount(string id)
+        public async Task<AccountDto?> GetAccount(string id)
         {
-            var account = await _context.Accounts.Include(x => x.Roles).ThenInclude(x => x.Role).Where(x => x.Id.ToString() == id).FirstOrDefaultAsync();
+            var account = await _context.Accounts.Include(x => x.Roles).ThenInclude(x => x.Role).Where(x => x.Id == id).FirstOrDefaultAsync();
             if (account == null)
             {
                 return null;

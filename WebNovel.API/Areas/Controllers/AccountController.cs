@@ -43,7 +43,7 @@ namespace WebNovel.API.Areas.Controllers
         {
             try
             {
-                return Ok(_accountModel.GetAccount(id));
+                return Ok(await _accountModel.GetAccount(id));
             }
             catch (Exception e)
             {
