@@ -18,10 +18,12 @@ namespace WebNovel.API.Areas.Models.Login
 
         private readonly ILogger<ILoginModel> _logger;
         private string _className = "";
-        public LoginModel (IServiceProvider provider, ILogger<ILoginModel> logger) : base(provider)
+        public LoginModel (IServiceProvider provider, ILogger<ILoginModel> logger, IAccountModel accountModel, ITokenService  tokenService) : base(provider)
         {
             _logger = logger ?? throw new ArgumentNullException(nameof(logger));
             _className = GetType().Name;
+            _accountModel = accountModel;
+            _tokenService = tokenService;
         }
         
         public async Task<TokenResponse> Login(string email, string password)

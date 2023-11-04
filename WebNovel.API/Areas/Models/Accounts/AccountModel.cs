@@ -129,12 +129,13 @@ namespace WebNovel.API.Areas.Models.Accounts
 
         public async Task<AccountDto> GetAccount(string id)
         {
-            var account = await _context.Accounts.Include(x => x.Roles).ThenInclude(x => x.Role).Where(x => x.Id.ToString() == id).FirstOrDefaultAsync();
+            var account = await _context.Accounts.Include(x => x.Roles).ThenInclude(x => x.Role).Where(x => x.Id == id).FirstOrDefaultAsync();
             if (account == null) {
                 return null;
             }
             var accountDto = new AccountDto
             {
+                Id = id,
                 NickName = account.NickName,
                 Username = account.Username,
                 Status = account.Status,
@@ -233,23 +234,31 @@ namespace WebNovel.API.Areas.Models.Accounts
 
         public async Task<ResponseInfo> UpdateToken(AccountCreateUpdateEntity account)
         {
-            ResponseInfo result = await ValidateUser(null, account);
-            var item = await _context.Accounts.Where(x => x.Id == account.Id).FirstOrDefaultAsync();
+            ResponseInfo result = new();
+            string method = GetActualAsyncMethodName();
+            try
+            {
+                var item = await _context.Accounts.Where(x => x.Id == account.Id).FirstOrDefaultAsync();
 
-            item.RefreshToken = account.RefreshToken;
-            item.RefreshTokenExpiryTime = account.RefreshTokenExpiryTime;
+                item.RefreshToken = account.RefreshToken;
+                item.RefreshTokenExpiryTime = account.RefreshTokenExpiryTime;
 
-            var strategy = _context.Database.CreateExecutionStrategy();
-            await strategy.ExecuteAsync(
-                async () =>
-                {
-                    using (var trn = await _context.Database.BeginTransactionAsync())
+                var strategy = _context.Database.CreateExecutionStrategy();
+                await strategy.ExecuteAsync(
+                    async () =>
                     {
-                        await _context.SaveChangesAsync();
-                        await trn.CommitAsync();
+                        using (var trn = await _context.Database.BeginTransactionAsync())
+                        {
+                            await _context.SaveChangesAsync();
+                            await trn.CommitAsync();
+                        }
                     }
-                }
-            );
+                );
+            }catch (Exception e)
+            {
+                _logger.LogInformation($"[{_className}][{method}] Exception: {e.Message}");
+                throw;
+            }
             return result;
         }
 

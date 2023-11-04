@@ -7,7 +7,7 @@ using WebNovel.API.Databases.Entities;
 
 namespace WebNovel.API.Databases.Entitites
 {
-        public class Account
+        public class Account : Table
         {
                 [Key]
                 [StringLength(21)]
