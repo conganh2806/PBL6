@@ -4,6 +4,7 @@ using System.Diagnostics;
 using System.Linq;
 using System.Net;
 using System.Threading.Tasks;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
 using WebNovel.API.Areas.Models.Accounts.Schemas;
@@ -16,6 +17,7 @@ using static WebNovel.API.Commons.Enums.CodeResonse;
 namespace WebNovel.API.Areas.Controllers
 {
     [Route("api/novel")]
+    [Authorize]
     public class NovelController : BaseController
     {
         private readonly INovelModel _novelModel;
@@ -55,6 +57,7 @@ namespace WebNovel.API.Areas.Controllers
         }
 
         [HttpPost]
+        [Authorize]
         public async Task<IActionResult> Create([FromForm] NovelCreateUpdateEntity novel)
         {
             try
@@ -78,6 +81,7 @@ namespace WebNovel.API.Areas.Controllers
 
         [HttpPut("{id}")]
         [ProducesResponseType(typeof(ResponseInfo), (int)HttpStatusCode.OK)]
+        [Authorize]
         public async Task<IActionResult> Update([FromRoute] string id, [FromForm] NovelCreateUpdateEntity novel)
         {
             try

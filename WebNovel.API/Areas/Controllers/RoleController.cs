@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Net;
 using System.Threading.Tasks;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using WebNovel.API.Areas.Models.Roles;
 using WebNovel.API.Areas.Models.Roles.Schemas;
@@ -53,6 +54,7 @@ namespace WebNovel.API.Areas.Controllers
 
         [HttpPost]
         [ProducesResponseType(typeof(ResponseInfo), (int)HttpStatusCode.OK)]
+        [Authorize]
         public async Task<IActionResult> Create([FromBody] RoleCreateUpdateEntity Role)
         {
             try
@@ -76,6 +78,7 @@ namespace WebNovel.API.Areas.Controllers
 
         [HttpPut("{id}")]
         [ProducesResponseType(typeof(ResponseInfo), (int)HttpStatusCode.OK)]
+        [Authorize]
         public async Task<IActionResult> Update([FromRoute] string id, [FromBody] RoleCreateUpdateEntity Role)
         {
             try
