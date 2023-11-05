@@ -149,7 +149,9 @@ namespace WebNovel.API.Areas.Models.Accounts
                 Email = account.Email,
                 Phone = account.Phone,
                 IsAdmin = account.IsAdmin,
-                RoleIds = account.Roles.Select(x => x.RoleId).ToList()
+                RoleIds = account.Roles.Select(x => x.RoleId).ToList(),
+                RefreshToken = account.RefreshToken,
+                RefreshTokenExpiryTime = account.RefreshTokenExpiryTime,
             };
 
             return accountDto;
@@ -166,7 +168,9 @@ namespace WebNovel.API.Areas.Models.Accounts
                 Email = x.Email,
                 Phone = x.Phone,
                 IsAdmin = x.IsAdmin,
-                RoleIds = x.Roles.Select(x => x.RoleId).ToList()
+                RoleIds = x.Roles.Select(x => x.RoleId).ToList(),
+                RefreshToken = x.RefreshToken,
+                RefreshTokenExpiryTime = x.RefreshTokenExpiryTime,
             }).ToList();
 
             return listAccount;
