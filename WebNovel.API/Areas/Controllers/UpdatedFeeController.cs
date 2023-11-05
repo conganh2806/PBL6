@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Net;
 using System.Threading.Tasks;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using WebNovel.API.Areas.Models.UpdatedFees;
 using WebNovel.API.Areas.Models.UpdatedFees.Schemas;
@@ -14,6 +15,7 @@ namespace WebNovel.API.Areas.Controllers
 {
     [Route("api/updatedfees")]
     [ApiController]
+    [Authorize]
     public class UpdatedFeeController : BaseController
     {
         private readonly IUpdatedFeeModel _updatedFeeModel;
