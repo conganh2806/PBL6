@@ -85,6 +85,14 @@ namespace WebNovel.API.Databases
             .HasForeignKey(e => e.AccountId)
             .IsRequired();
 
+            modelBuilder
+            .Entity<Comment>()
+            .HasKey(e => new
+            {
+                e.NovelId,
+                e.AccountId
+            });
+
             modelBuilder.Entity<Chapter>()
             .HasOne(e => e.Novel)
             .WithMany(e => e.Chapters)
