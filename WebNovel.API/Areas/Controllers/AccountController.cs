@@ -39,11 +39,11 @@ namespace WebNovel.API.Areas.Controllers
 
         [HttpGet("{id}")]
         [ProducesResponseType(typeof(AccountDto), (int)HttpStatusCode.OK)]
-        public async Task<IActionResult> GetDetail([FromRoute] long id)
+        public async Task<IActionResult> GetDetail([FromRoute] string id)
         {
             try
             {
-                return Ok(_accountModel.GetAccount(id));
+                return Ok(await _accountModel.GetAccount(id));
             }
             catch (Exception e)
             {
@@ -76,7 +76,7 @@ namespace WebNovel.API.Areas.Controllers
 
         [HttpPut("{id}")]
         [ProducesResponseType(typeof(ResponseInfo), (int)HttpStatusCode.OK)]
-        public async Task<IActionResult> Update([FromRoute] long id, [FromBody] AccountCreateUpdateEntity account)
+        public async Task<IActionResult> Update([FromRoute] string id, [FromBody] AccountCreateUpdateEntity account)
         {
             try
             {

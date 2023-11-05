@@ -1,4 +1,5 @@
 using System.Runtime.CompilerServices;
+using CSharpVitamins;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Storage;
 using WebNovel.API.Areas.Models.Accounts.Schemas;
@@ -45,7 +46,7 @@ namespace WebNovel.API.Areas.Models.Novels
             string method = GetActualAsyncMethodName();
             try
             {
-                var GuID = Guid.NewGuid();
+                var GuID = (ShortGuid)Guid.NewGuid();
 
                 _logger.LogInformation($"[{_className}][{method}] Start");
                 ResponseInfo results = new ResponseInfo();

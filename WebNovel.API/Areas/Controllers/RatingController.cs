@@ -53,7 +53,7 @@ namespace WebNovel.API.Areas.Controllers
 
         [HttpGet("AccountId={AccountId}")]
         [ProducesResponseType(typeof(RatingDto), (int)HttpStatusCode.OK)]
-        public async Task<IActionResult> GetDetailByAccount([FromRoute] long AccountId)
+        public async Task<IActionResult> GetDetailByAccount([FromRoute] string AccountId)
         {
             try
             {
@@ -67,7 +67,7 @@ namespace WebNovel.API.Areas.Controllers
 
         [HttpGet("{AccountId}/{NovelId}")]
         [ProducesResponseType(typeof(RatingDto), (int)HttpStatusCode.OK)]
-        public async Task<IActionResult> GetDetail([FromRoute] long AccountId, [FromRoute] string NovelId)
+        public async Task<IActionResult> GetDetail([FromRoute] string AccountId, [FromRoute] string NovelId)
         {
             try
             {
@@ -104,7 +104,7 @@ namespace WebNovel.API.Areas.Controllers
 
         [HttpPut("{AccountId}/{NovelId}")]
         [ProducesResponseType(typeof(ResponseInfo), (int)HttpStatusCode.OK)]
-        public async Task<IActionResult> Update([FromRoute] long AccountId, [FromRoute] string NovelId, [FromBody] RatingCreateUpdateEntity rating)
+        public async Task<IActionResult> Update([FromRoute] string AccountId, [FromRoute] string NovelId, [FromBody] RatingCreateUpdateEntity rating)
         {
             try
             {

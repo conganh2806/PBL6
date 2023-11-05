@@ -3,12 +3,14 @@ using Webnovel.API.Databases;
 using WebNovel.API.Areas.Models.Accounts;
 using WebNovel.API.Areas.Models.Chapter;
 using WebNovel.API.Areas.Models.Genres;
+using WebNovel.API.Areas.Models.Login;
 using WebNovel.API.Areas.Models.Novels;
 using WebNovel.API.Areas.Models.Preferences;
 using WebNovel.API.Areas.Models.Rating;
 using WebNovel.API.Areas.Models.Roles;
 using WebNovel.API.Areas.Models.UpdatedFees;
 using WebNovel.API.Core.Services;
+using WebNovel.API.Core.Services.Schemas;
 
 var builder = WebApplication.CreateBuilder(args);
 var connectionString = builder.Configuration.GetConnectionString("AzureMySQL");
@@ -37,7 +39,13 @@ services.AddScoped<IRatingModel, RatingModel>();
 services.AddScoped<IUpdatedFeeModel, UpdatedFeeModel>();
 services.AddScoped<ILogService, LogService>();
 services.AddScoped<IAwsS3Service, AwsS3Service>();
+services.AddScoped<ITokenService, TokenService>();
+services.AddScoped<ILoginModel, LoginModel>();
 
+services.AddOptions<JwtSettings>()
+    .BindConfiguration($"{nameof(JwtSettings)}")
+    .ValidateDataAnnotations()
+    .ValidateOnStart();
 
 
 var app = builder.Build();

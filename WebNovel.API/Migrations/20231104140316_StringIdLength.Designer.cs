@@ -2,6 +2,7 @@
 using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Webnovel.API.Databases;
 
@@ -10,9 +11,11 @@ using Webnovel.API.Databases;
 namespace Webnovel.API.Migrations
 {
     [DbContext(typeof(DataContext))]
-    partial class DataContextModelSnapshot : ModelSnapshot
+    [Migration("20231104140316_StringIdLength")]
+    partial class StringIdLength
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -366,8 +369,8 @@ namespace Webnovel.API.Migrations
             modelBuilder.Entity("WebNovel.API.Databases.Entities.RolesOfUser", b =>
                 {
                     b.Property<string>("AccountId")
-                        .HasMaxLength(36)
-                        .HasColumnType("varchar(36)")
+                        .HasMaxLength(21)
+                        .HasColumnType("varchar(21)")
                         .HasColumnOrder(1);
 
                     b.Property<string>("RoleId")

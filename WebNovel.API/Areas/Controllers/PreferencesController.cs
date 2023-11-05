@@ -53,7 +53,7 @@ namespace WebNovel.API.Areas.Controllers
 
         [HttpGet("AccountId={AccountId}")]
         [ProducesResponseType(typeof(PreferencesDto), (int)HttpStatusCode.OK)]
-        public async Task<IActionResult> GetDetailByAccount([FromRoute] long AccountId)
+        public async Task<IActionResult> GetDetailByAccount([FromRoute] string AccountId)
         {
             try
             {
@@ -67,7 +67,7 @@ namespace WebNovel.API.Areas.Controllers
 
         [HttpGet("{AccountId}/{NovelId}")]
         [ProducesResponseType(typeof(PreferencesDto), (int)HttpStatusCode.OK)]
-        public async Task<IActionResult> GetDetail([FromRoute] long AccountId, [FromRoute] string NovelId)
+        public async Task<IActionResult> GetDetail([FromRoute] string AccountId, [FromRoute] string NovelId)
         {
             try
             {
