@@ -41,6 +41,7 @@ namespace WebNovel.API.Areas.Controllers
 
         [HttpGet("{id}")]
         [ProducesResponseType(typeof(AccountDto), (int)HttpStatusCode.OK)]
+        [Authorize]
         public async Task<IActionResult> GetDetail([FromRoute] string id)
         {
             try
@@ -55,7 +56,6 @@ namespace WebNovel.API.Areas.Controllers
 
         [HttpPost]
         [ProducesResponseType(typeof(ResponseInfo), (int)HttpStatusCode.OK)]
-        [Authorize]
         public async Task<IActionResult> Create([FromBody] AccountCreateUpdateEntity account)
         {
             try

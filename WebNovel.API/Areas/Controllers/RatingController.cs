@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Net;
 using System.Threading.Tasks;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using WebNovel.API.Areas.Models.Rating;
 using WebNovel.API.Areas.Models.Rating.Schemas;
@@ -14,6 +15,7 @@ namespace WebNovel.API.Areas.Controllers
 {
     [Route("api/ratings")]
     [ApiController]
+    [Authorize]
     public class RatingController : BaseController
     {
         private readonly IRatingModel _ratingModel;
