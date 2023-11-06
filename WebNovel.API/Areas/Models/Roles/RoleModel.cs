@@ -23,7 +23,7 @@ namespace WebNovel.API.Areas.Models.Roles
         Task<List<RoleDto>> GetListRole();
         Task<ResponseInfo> AddRole(RoleCreateUpdateEntity account);
         Task<ResponseInfo> UpdateRole(string id, RoleCreateUpdateEntity account);
-        RoleDto GetRole(string id);
+        Task<RoleDto> GetRole(string id);
     }
     public class RoleModel : BaseModel, IRoleModel
     {
@@ -88,9 +88,9 @@ namespace WebNovel.API.Areas.Models.Roles
             }
         }
 
-        public RoleDto GetRole(string id)
+        public async Task<RoleDto> GetRole(string id)
         {
-            var role = _context.Roles.Where(x => x.Id == id).FirstOrDefault();
+            var role = await _context.Roles.Where(x => x.Id == id).FirstOrDefaultAsync();
             var roleDto = new RoleDto()
             {
                 Id = role.Id,

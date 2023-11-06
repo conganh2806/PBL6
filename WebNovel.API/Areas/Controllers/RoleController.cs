@@ -44,7 +44,7 @@ namespace WebNovel.API.Areas.Controllers
         {
             try
             {
-                return Ok(_roleModel.GetRole(id));
+                return Ok(await _roleModel.GetRole(id));
             }
             catch (Exception e)
             {
