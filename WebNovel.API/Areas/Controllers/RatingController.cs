@@ -15,7 +15,6 @@ namespace WebNovel.API.Areas.Controllers
 {
     [Route("api/ratings")]
     [ApiController]
-    [Authorize]
     public class RatingController : BaseController
     {
         private readonly IRatingModel _ratingModel;
@@ -83,6 +82,7 @@ namespace WebNovel.API.Areas.Controllers
 
         [HttpPost]
         [ProducesResponseType(typeof(ResponseInfo), (int)HttpStatusCode.OK)]
+        [Authorize]
         public async Task<IActionResult> Create([FromBody] RatingCreateUpdateEntity rating)
         {
             try
@@ -106,6 +106,7 @@ namespace WebNovel.API.Areas.Controllers
 
         [HttpPut("{AccountId}/{NovelId}")]
         [ProducesResponseType(typeof(ResponseInfo), (int)HttpStatusCode.OK)]
+        [Authorize]
         public async Task<IActionResult> Update([FromRoute] string AccountId, [FromRoute] string NovelId, [FromBody] RatingCreateUpdateEntity rating)
         {
             try

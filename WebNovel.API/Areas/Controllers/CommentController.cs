@@ -15,7 +15,6 @@ namespace WebNovel.API.Areas.Controllers
 {
     [Route("api/comments")]
     [ApiController]
-    [Authorize]
     public class CommentController : BaseController
     {
         private readonly ICommentModel _commentModel;
@@ -83,6 +82,7 @@ namespace WebNovel.API.Areas.Controllers
 
         [HttpPost]
         [ProducesResponseType(typeof(ResponseInfo), (int)HttpStatusCode.OK)]
+        [Authorize]
         public async Task<IActionResult> Create([FromBody] CommentCreateUpdateEntity Comment)
         {
             try
@@ -106,6 +106,7 @@ namespace WebNovel.API.Areas.Controllers
 
         [HttpPut("{AccountId}/{NovelId}")]
         [ProducesResponseType(typeof(ResponseInfo), (int)HttpStatusCode.OK)]
+        [Authorize]
         public async Task<IActionResult> Update([FromRoute] string AccountId, [FromRoute] string NovelId, [FromBody] CommentCreateUpdateEntity Comment)
         {
             try
