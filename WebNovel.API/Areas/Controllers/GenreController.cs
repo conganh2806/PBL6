@@ -44,7 +44,7 @@ namespace WebNovel.API.Areas.Controllers
         {
             try
             {
-                return Ok(_genreModel.GetGenre(id));
+                return Ok(await _genreModel.GetGenre(id));
             }
             catch (Exception e)
             {
