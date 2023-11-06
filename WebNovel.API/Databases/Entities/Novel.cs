@@ -12,6 +12,7 @@ namespace WebNovel.API.Databases.Entitites
             this.Chapters = new HashSet<Chapter>();
             this.Preferences = new HashSet<Preferences>();
             this.Ratings = new HashSet<Rating>();
+            this.Bookmarkeds = new HashSet<Bookmarked>();
         }
 
 
@@ -33,6 +34,7 @@ namespace WebNovel.API.Databases.Entitites
         public virtual ICollection<NovelGenre> Genres { get; set; } = null!;
         public virtual ICollection<Comment>? Comments { get; set; }
         public virtual ICollection<Chapter>? Chapters { get; set; }
+        public virtual ICollection<Bookmarked>? Bookmarkeds { get; set; }
         public virtual ICollection<Preferences>? Preferences { get; set; }
         public virtual ICollection<Rating> Ratings { get; set; }
     }

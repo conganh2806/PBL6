@@ -1,54 +1,36 @@
 using System;
 using System.Collections.Generic;
-using System.Diagnostics;
 using System.Linq;
 using System.Net;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.Extensions.Logging;
-using WebNovel.API.Areas.Models.Chapter;
-using WebNovel.API.Areas.Models.Chapter.Schemas;
-using WebNovel.API.Commons.Enums;
+using WebNovel.API.Areas.Models.Bookmarked;
+using WebNovel.API.Areas.Models.Bookmarked.Schemas;
 using WebNovel.API.Commons.Schemas;
 using WebNovel.API.Controllers;
-using WebNovel.API.Databases.Entities;
 using static WebNovel.API.Commons.Enums.CodeResonse;
 
 namespace WebNovel.API.Areas.Controllers
 {
-    [Route("api/chapter")]
+    [Route("api/bookmarkeds")]
     [ApiController]
-    public class ChapterController : BaseController
+    public class BookMarkedController : BaseController
     {
-        private readonly IChapterModel _chapterModel;
+        private readonly IBookmarkedModel _bookMarkedModel;
         private readonly IServiceProvider _provider;
-        public ChapterController(IChapterModel chapterModel, IServiceProvider provider) : base(provider)
+        public BookMarkedController(IBookmarkedModel bookMarkedModel, IServiceProvider provider) : base(provider)
         {
-            _chapterModel = chapterModel;
+            _bookMarkedModel = bookMarkedModel;
         }
 
         [HttpGet]
-        [ProducesResponseType(typeof(ChapterDto), (int)HttpStatusCode.OK)]
+        [ProducesResponseType(typeof(BookmarkedDto), (int)HttpStatusCode.OK)]
         public async Task<IActionResult> Search()
         {
             try
             {
-                return Ok(await _chapterModel.GetListChapter());
-            }
-            catch (Exception e)
-            {
-                return StatusCode(500, new { Error = e.Message });
-            }
-        }
-
-        [HttpGet("{id}")]
-        [ProducesResponseType(typeof(ChapterDto), (int)HttpStatusCode.OK)]
-        public async Task<IActionResult> GetDetail([FromRoute] string id)
-        {
-            try
-            {
-                return Ok(await _chapterModel.GetChapterAsync(id));
+                return Ok(await _bookMarkedModel.GetListBookmarked());
             }
             catch (Exception e)
             {
@@ -57,12 +39,42 @@ namespace WebNovel.API.Areas.Controllers
         }
 
         [HttpGet("NovelId={NovelId}")]
-        [ProducesResponseType(typeof(ChapterDto), (int)HttpStatusCode.OK)]
+        [ProducesResponseType(typeof(BookmarkedDto), (int)HttpStatusCode.OK)]
         public async Task<IActionResult> GetDetailByNovel([FromRoute] string NovelId)
         {
             try
             {
-                return Ok(await _chapterModel.GetChapterByNovel(NovelId));
+                return Ok(await _bookMarkedModel.GetBookmarkedByNovel(NovelId));
+            }
+            catch (Exception e)
+            {
+                return StatusCode(500, new { Error = e.Message });
+            }
+        }
+
+        [HttpGet("AccountId={AccountId}")]
+        [ProducesResponseType(typeof(BookmarkedDto), (int)HttpStatusCode.OK)]
+        [Authorize]
+        public async Task<IActionResult> GetDetailByAccount([FromRoute] string AccountId)
+        {
+            try
+            {
+                return Ok(await _bookMarkedModel.GetBookmarkedByAccount(AccountId));
+            }
+            catch (Exception e)
+            {
+                return StatusCode(500, new { Error = e.Message });
+            }
+        }
+
+        [HttpGet("{AccountId}/{NovelId}")]
+        [ProducesResponseType(typeof(BookmarkedDto), (int)HttpStatusCode.OK)]
+        [Authorize]
+        public async Task<IActionResult> GetDetail([FromRoute] string AccountId, [FromRoute] string NovelId)
+        {
+            try
+            {
+                return Ok(await _bookMarkedModel.GetBookmarked(AccountId, NovelId));
             }
             catch (Exception e)
             {
@@ -73,14 +85,14 @@ namespace WebNovel.API.Areas.Controllers
         [HttpPost]
         [ProducesResponseType(typeof(ResponseInfo), (int)HttpStatusCode.OK)]
         [Authorize]
-        public async Task<IActionResult> Create([FromForm] ChapterCreateUpdateEntity chapter)
+        public async Task<IActionResult> Create([FromBody] BookmarkedCreateUpdateEntity BookMarked)
         {
             try
             {
                 ResponseInfo response = new ResponseInfo();
                 if (ModelState.IsValid)
                 {
-                    response = await _chapterModel.AddChapter(chapter.File, chapter);
+                    response = await _bookMarkedModel.AddBookmarked(BookMarked);
                 }
                 else
                 {
@@ -94,17 +106,17 @@ namespace WebNovel.API.Areas.Controllers
             }
         }
 
-        [HttpPut("{id}")]
+        [HttpPut("{AccountId}/{NovelId}")]
         [ProducesResponseType(typeof(ResponseInfo), (int)HttpStatusCode.OK)]
         [Authorize]
-        public async Task<IActionResult> Update([FromRoute] string id, [FromForm] ChapterCreateUpdateEntity chapter)
+        public async Task<IActionResult> Update([FromRoute] string AccountId, [FromRoute] string NovelId, [FromBody] BookmarkedCreateUpdateEntity BookMarked)
         {
             try
             {
                 ResponseInfo response = new ResponseInfo();
                 if (ModelState.IsValid)
                 {
-                    response = await _chapterModel.UpdateChapter(id, chapter, chapter.File);
+                    response = await _bookMarkedModel.UpdateBookmarked(AccountId, NovelId, BookMarked);
                 }
                 else
                 {
@@ -117,6 +129,5 @@ namespace WebNovel.API.Areas.Controllers
                 return StatusCode(500, new { Error = e.Message });
             }
         }
-
     }
 }

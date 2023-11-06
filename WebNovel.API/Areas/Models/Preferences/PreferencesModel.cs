@@ -22,9 +22,9 @@ namespace WebNovel.API.Areas.Models.Preferences
     {
         Task<List<PreferencesDto>> GetListPreference();
         Task<ResponseInfo> AddPreference(PreferencesCreateUpdateEntity account);
-        PreferencesDto GetPreferenceByAccount(string AccountId);
-        PreferencesDto GetPreferenceByNovel(string NovelId);
-        PreferencesDto GetPreference(string AccountId, string NovelId);
+        Task<List<PreferencesDto>> GetPreferenceByAccount(string AccountId);
+        Task<List<PreferencesDto>> GetPreferenceByNovel(string NovelId);
+        Task<PreferencesDto> GetPreference(string AccountId, string NovelId);
     }
     public class PreferencesModel : BaseModel, IPreferencesModel
     {
@@ -85,33 +85,31 @@ namespace WebNovel.API.Areas.Models.Preferences
             }
         }
 
-        public PreferencesDto GetPreferenceByAccount(string AccountId)
+        public async Task<List<PreferencesDto>> GetPreferenceByAccount(string AccountId)
         {
-            var preference = _context.Preferences.Where(x => x.AccountId == AccountId).FirstOrDefault();
-            var preferenceDto = new PreferencesDto()
+            var listPreference = await _context.Preferences.Where(e => e.AccountId == AccountId).Select(x => new PreferencesDto()
             {
-                NovelId = preference.NovelId,
-                AccountId = preference.AccountId,
-            };
+                NovelId = x.NovelId,
+                AccountId = x.AccountId,
+            }).ToListAsync();
 
-            return preferenceDto;
+            return listPreference;
         }
 
-        public PreferencesDto GetPreferenceByNovel(string NovelId)
+        public async Task<List<PreferencesDto>> GetPreferenceByNovel(string NovelId)
         {
-            var preference = _context.Preferences.Where(x => x.NovelId == NovelId).FirstOrDefault();
-            var preferenceDto = new PreferencesDto()
+            var listPreference = await _context.Preferences.Where(e => e.NovelId == NovelId).Select(x => new PreferencesDto()
             {
-                NovelId = preference.NovelId,
-                AccountId = preference.AccountId,
-            };
+                NovelId = x.NovelId,
+                AccountId = x.AccountId,
+            }).ToListAsync();
 
-            return preferenceDto;
+            return listPreference;
         }
 
-        public PreferencesDto GetPreference(string AccountId, string NovelId)
+        public async Task<PreferencesDto> GetPreference(string AccountId, string NovelId)
         {
-            var preference = _context.Preferences.Where(x => x.NovelId == NovelId && x.AccountId == AccountId).FirstOrDefault();
+            var preference = await _context.Preferences.Where(x => x.NovelId == NovelId && x.AccountId == AccountId).FirstOrDefaultAsync();
             var preferenceDto = new PreferencesDto()
             {
                 NovelId = preference.NovelId,

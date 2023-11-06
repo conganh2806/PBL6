@@ -21,14 +21,10 @@ namespace Webnovel.API.Migrations
 
             modelBuilder.Entity("WebNovel.API.Databases.Entities.Bookmarked", b =>
                 {
-                    b.Property<long>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("bigint")
-                        .HasColumnOrder(1)
-                        .HasComment("Id định danh (khóa chính)");
-
                     b.Property<string>("AccountId")
-                        .IsRequired()
+                        .HasColumnType("varchar(36)");
+
+                    b.Property<string>("NovelId")
                         .HasColumnType("varchar(36)");
 
                     b.Property<string>("ChapterId")
@@ -51,12 +47,11 @@ namespace Webnovel.API.Migrations
                         .HasColumnType("datetime(6)")
                         .HasComment("Ngày cập nhật dữ liệu");
 
-                    b.HasKey("Id");
+                    b.HasKey("AccountId", "NovelId");
 
-                    b.HasIndex("AccountId");
+                    b.HasIndex("ChapterId");
 
-                    b.HasIndex("ChapterId")
-                        .IsUnique();
+                    b.HasIndex("NovelId");
 
                     b.ToTable("BookMarked");
                 });
@@ -128,10 +123,14 @@ namespace Webnovel.API.Migrations
 
             modelBuilder.Entity("WebNovel.API.Databases.Entities.Comment", b =>
                 {
-                    b.Property<string>("NovelId")
-                        .HasColumnType("varchar(36)");
+                    b.Property<long>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bigint")
+                        .HasColumnOrder(1)
+                        .HasComment("Id định danh (khóa chính)");
 
                     b.Property<string>("AccountId")
+                        .IsRequired()
                         .HasColumnType("varchar(36)");
 
                     b.Property<DateTime?>("CreateOn")
@@ -149,10 +148,9 @@ namespace Webnovel.API.Migrations
                         .HasColumnType("datetime(6)")
                         .HasComment("Ngày xoá dữ liệu");
 
-                    b.Property<long>("Id")
-                        .HasColumnType("bigint")
-                        .HasColumnOrder(1)
-                        .HasComment("Id định danh (khóa chính)");
+                    b.Property<string>("NovelId")
+                        .IsRequired()
+                        .HasColumnType("varchar(36)");
 
                     b.Property<string>("Text")
                         .IsRequired()
@@ -162,9 +160,11 @@ namespace Webnovel.API.Migrations
                         .HasColumnType("datetime(6)")
                         .HasComment("Ngày cập nhật dữ liệu");
 
-                    b.HasKey("NovelId", "AccountId");
+                    b.HasKey("Id");
 
                     b.HasIndex("AccountId");
+
+                    b.HasIndex("NovelId");
 
                     b.ToTable("Comment");
                 });
@@ -618,14 +618,22 @@ namespace Webnovel.API.Migrations
                         .IsRequired();
 
                     b.HasOne("WebNovel.API.Databases.Entities.Chapter", "Chapter")
-                        .WithOne("Bookmarked")
-                        .HasForeignKey("WebNovel.API.Databases.Entities.Bookmarked", "ChapterId")
+                        .WithMany("Bookmarked")
+                        .HasForeignKey("ChapterId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("WebNovel.API.Databases.Entitites.Novel", "Novel")
+                        .WithMany("Bookmarkeds")
+                        .HasForeignKey("NovelId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
                     b.Navigation("Account");
 
                     b.Navigation("Chapter");
+
+                    b.Navigation("Novel");
                 });
 
             modelBuilder.Entity("WebNovel.API.Databases.Entities.Chapter", b =>
@@ -788,6 +796,8 @@ namespace Webnovel.API.Migrations
 
             modelBuilder.Entity("WebNovel.API.Databases.Entitites.Novel", b =>
                 {
+                    b.Navigation("Bookmarkeds");
+
                     b.Navigation("Chapters");
 
                     b.Navigation("Comments");

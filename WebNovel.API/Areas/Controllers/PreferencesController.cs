@@ -45,7 +45,7 @@ namespace WebNovel.API.Areas.Controllers
         {
             try
             {
-                return Ok(_preferencesModel.GetPreferenceByNovel(NovelId));
+                return Ok(await _preferencesModel.GetPreferenceByNovel(NovelId));
             }
             catch (Exception e)
             {
@@ -59,7 +59,7 @@ namespace WebNovel.API.Areas.Controllers
         {
             try
             {
-                return Ok(_preferencesModel.GetPreferenceByAccount(AccountId));
+                return Ok(await _preferencesModel.GetPreferenceByAccount(AccountId));
             }
             catch (Exception e)
             {
@@ -73,7 +73,7 @@ namespace WebNovel.API.Areas.Controllers
         {
             try
             {
-                return Ok(_preferencesModel.GetPreference(AccountId, NovelId));
+                return Ok(await _preferencesModel.GetPreference(AccountId, NovelId));
             }
             catch (Exception e)
             {

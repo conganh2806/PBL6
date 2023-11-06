@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Storage;
 using Microsoft.OpenApi.Models;
-using WebNovel.API.Areas.Models.Roles.Schemas;
+using WebNovel.API.Areas.Models.Bookmarked.Schemas;
 using WebNovel.API.Commons;
 using WebNovel.API.Commons.CodeMaster;
 using WebNovel.API.Commons.Enums;
@@ -16,20 +16,22 @@ using WebNovel.API.Databases.Entities;
 using static WebNovel.API.Commons.Enums.CodeResonse;
 
 
-namespace WebNovel.API.Areas.Models.Roles
+namespace WebNovel.API.Areas.Models.Bookmarked
 {
-    public interface IRoleModel
+    public interface IBookmarkedModel
     {
-        Task<List<RoleDto>> GetListRole();
-        Task<ResponseInfo> AddRole(RoleCreateUpdateEntity account);
-        Task<ResponseInfo> UpdateRole(string id, RoleCreateUpdateEntity account);
-        Task<RoleDto> GetRole(string id);
+        Task<List<BookmarkedDto>> GetListBookmarked();
+        Task<ResponseInfo> AddBookmarked(BookmarkedCreateUpdateEntity Bookmarked);
+        Task<ResponseInfo> UpdateBookmarked(string AccountId, string NovelId, BookmarkedCreateUpdateEntity Bookmarked);
+        Task<List<BookmarkedDto>> GetBookmarkedByAccount(string AccountId);
+        Task<List<BookmarkedDto>> GetBookmarkedByNovel(string NovelId);
+        Task<BookmarkedDto> GetBookmarked(string AccountId, string NovelId);
     }
-    public class RoleModel : BaseModel, IRoleModel
+    public class BookmarkedModel : BaseModel, IBookmarkedModel
     {
-        private readonly ILogger<IRoleModel> _logger;
+        private readonly ILogger<IBookmarkedModel> _logger;
         private string _className = "";
-        public RoleModel(IServiceProvider provider, ILogger<IRoleModel> logger) : base(provider)
+        public BookmarkedModel(IServiceProvider provider, ILogger<IBookmarkedModel> logger) : base(provider)
         {
             _logger = logger ?? throw new ArgumentNullException(nameof(logger));
             _className = GetType().Name;
@@ -37,7 +39,7 @@ namespace WebNovel.API.Areas.Models.Roles
 
         static string GetActualAsyncMethodName([CallerMemberName] string name = null) => name;
 
-        public async Task<ResponseInfo> AddRole(RoleCreateUpdateEntity role)
+        public async Task<ResponseInfo> AddBookmarked(BookmarkedCreateUpdateEntity Bookmarked)
         {
             IDbContextTransaction transaction = null;
             string method = GetActualAsyncMethodName();
@@ -50,10 +52,11 @@ namespace WebNovel.API.Areas.Models.Roles
                     return result;
                 }
 
-                var newRole = new Role()
+                var newBookmarked = new Databases.Entities.Bookmarked()
                 {
-                    Id = role.Id,
-                    Name = role.Name,
+                    NovelId = Bookmarked.NovelId,
+                    AccountId = Bookmarked.AccountId,
+                    ChapterId = Bookmarked.ChapterId,
                 };
 
                 var strategy = _context.Database.CreateExecutionStrategy();
@@ -62,17 +65,13 @@ namespace WebNovel.API.Areas.Models.Roles
                     {
                         using (var trn = await _context.Database.BeginTransactionAsync())
                         {
-                            await _context.Roles.AddAsync(newRole);
+                            await _context.BookMarked.AddAsync(newBookmarked);
                             await _context.SaveChangesAsync();
                             await trn.CommitAsync();
                         }
                     }
                 );
 
-                // await _context.Roles.AddAsync(newRole);
-                // transaction = await _context.Database.BeginTransactionAsync();
-                // await _context.SaveChangesAsync();
-                // await transaction.CommitAsync();
                 _logger.LogInformation($"[{_className}][{method}] End");
                 return result;
             }
@@ -88,30 +87,56 @@ namespace WebNovel.API.Areas.Models.Roles
             }
         }
 
-        public async Task<RoleDto> GetRole(string id)
+        public async Task<List<BookmarkedDto>> GetBookmarkedByAccount(string AccountId)
         {
-            var role = await _context.Roles.Where(x => x.Id == id).FirstOrDefaultAsync();
-            var roleDto = new RoleDto()
+            var listBookmarked = await _context.BookMarked.Where(e => e.AccountId == AccountId).Select(x => new BookmarkedDto()
             {
-                Id = role.Id,
-                Name = role.Name,
+                NovelId = x.NovelId,
+                AccountId = x.AccountId,
+                ChapterId = x.ChapterId,
+            }).ToListAsync();
+
+            return listBookmarked;
+        }
+
+        public async Task<List<BookmarkedDto>> GetBookmarkedByNovel(string NovelId)
+        {
+            var listBookmarked = await _context.BookMarked.Where(e => e.NovelId == NovelId).Select(x => new BookmarkedDto()
+            {
+                NovelId = x.NovelId,
+                AccountId = x.AccountId,
+                ChapterId = x.ChapterId,
+            }).ToListAsync();
+
+            return listBookmarked;
+        }
+
+        public async Task<BookmarkedDto> GetBookmarked(string AccountId, string NovelId)
+        {
+            var Bookmarked = await _context.BookMarked.Where(x => x.NovelId == NovelId && x.AccountId == AccountId).FirstOrDefaultAsync();
+            var BookmarkedDto = new BookmarkedDto()
+            {
+                NovelId = Bookmarked.NovelId,
+                AccountId = Bookmarked.AccountId,
+                ChapterId = Bookmarked.ChapterId,
             };
 
-            return roleDto;
+            return BookmarkedDto;
         }
 
-        public async Task<List<RoleDto>> GetListRole()
+        public async Task<List<BookmarkedDto>> GetListBookmarked()
         {
-            var listRole = _context.Roles.Select(x => new RoleDto()
+            var listBookmarked = await _context.BookMarked.Select(x => new BookmarkedDto()
             {
-                Id = x.Id,
-                Name = x.Name,
-            }).ToList();
+                NovelId = x.NovelId,
+                AccountId = x.AccountId,
+                ChapterId = x.ChapterId,
+            }).ToListAsync();
 
-            return listRole;
+            return listBookmarked;
         }
 
-        public async Task<ResponseInfo> UpdateRole(string id, RoleCreateUpdateEntity role)
+        public async Task<ResponseInfo> UpdateBookmarked(string AccountId, string NovelId, BookmarkedCreateUpdateEntity Bookmarked)
         {
             IDbContextTransaction transaction = null;
             string method = GetActualAsyncMethodName();
@@ -126,15 +151,15 @@ namespace WebNovel.API.Areas.Models.Roles
                     return result;
                 }
 
-                var existRole = _context.Roles.Where(x => x.Id == id).FirstOrDefault();
-                if (existRole is null)
+                var existBookmarked = _context.BookMarked.Where(x => x.NovelId == NovelId && x.AccountId == AccountId).FirstOrDefault();
+                if (existBookmarked is null)
                 {
                     response.Code = CodeResponse.HAVE_ERROR;
                     response.MsgNo = MSG_NO.NOT_FOUND;
                     return response;
                 }
 
-                existRole.Name = role.Name;
+                existBookmarked.ChapterId = Bookmarked.ChapterId;
 
                 var strategy = _context.Database.CreateExecutionStrategy();
                 await strategy.ExecuteAsync(
@@ -147,10 +172,6 @@ namespace WebNovel.API.Areas.Models.Roles
                         }
                     }
                 );
-
-                // transaction = await _context.Database.BeginTransactionAsync();
-                // await _context.SaveChangesAsync();
-                // await transaction.CommitAsync();
 
                 _logger.LogInformation($"[{_className}][{method}] End");
 
@@ -166,7 +187,5 @@ namespace WebNovel.API.Areas.Models.Roles
                 throw;
             }
         }
-
-
     }
 }

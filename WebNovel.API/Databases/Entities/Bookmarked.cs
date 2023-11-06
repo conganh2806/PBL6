@@ -8,12 +8,13 @@ using WebNovel.API.Databases.Entitites;
 
 namespace WebNovel.API.Databases.Entities
 {
-    public class Bookmarked : TableHaveIdInt
+    public class Bookmarked : Table
     {
-        public string AccountId { get; set; }
+        public string AccountId { get; set; } = null!;
         public virtual Account Account { get; set; } = null!;
-        public string ChapterId { get; set; }
+        public string NovelId { get; set; } = null!;
+        public virtual Novel Novel { get; set; } = null!;
+        public string ChapterId { get; set; } = null!;
         public virtual Chapter Chapter { get; set; } = null!;
-
     }
 }

@@ -56,7 +56,6 @@ namespace WebNovel.API.Areas.Controllers
 
         [HttpPost]
         [ProducesResponseType(typeof(ResponseInfo), (int)HttpStatusCode.OK)]
-        [Authorize]
         public async Task<IActionResult> Create([FromBody] AccountCreateUpdateEntity account)
         {
             try

@@ -22,7 +22,7 @@ namespace WebNovel.API.Areas.Models.Genres
         Task<List<GenreDto>> GetListGenre();
         Task<ResponseInfo> AddGenre(GenreCreateUpdateEntity genre);
         Task<ResponseInfo> UpdateGenre(long id, GenreCreateUpdateEntity genre);
-        GenreDto GetGenre(long id);
+        Task<GenreDto> GetGenre(long id);
     }
 
     public class GenreModel : BaseModel, IGenreModel
@@ -84,9 +84,9 @@ namespace WebNovel.API.Areas.Models.Genres
             }
         }
 
-        public GenreDto GetGenre(long id)
+        public async Task<GenreDto> GetGenre(long id)
         {
-            var genre = _context.Genre.Where(x => x.Id == id).FirstOrDefault();
+            var genre = await _context.Genre.Where(x => x.Id == id).FirstOrDefaultAsync();
             var genreDto = new GenreDto()
             {
                 Id = genre.Id,

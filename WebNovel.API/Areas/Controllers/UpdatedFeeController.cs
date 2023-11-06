@@ -15,7 +15,6 @@ namespace WebNovel.API.Areas.Controllers
 {
     [Route("api/updatedfees")]
     [ApiController]
-    [Authorize]
     public class UpdatedFeeController : BaseController
     {
         private readonly IUpdatedFeeModel _updatedFeeModel;
@@ -55,6 +54,7 @@ namespace WebNovel.API.Areas.Controllers
 
         [HttpPost]
         [ProducesResponseType(typeof(ResponseInfo), (int)HttpStatusCode.OK)]
+        [Authorize]
         public async Task<IActionResult> Create([FromBody] UpdatedFeeCreateUpdateEntity updatedFee)
         {
             try
@@ -78,6 +78,7 @@ namespace WebNovel.API.Areas.Controllers
 
         [HttpPut("{id}")]
         [ProducesResponseType(typeof(ResponseInfo), (int)HttpStatusCode.OK)]
+        [Authorize]
         public async Task<IActionResult> Update([FromRoute] long id, [FromBody] UpdatedFeeCreateUpdateEntity updatedFee)
         {
             try

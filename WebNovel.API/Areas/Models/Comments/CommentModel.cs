@@ -1,46 +1,37 @@
-using System;
-using System.Collections.Generic;
-using System.Linq;
 using System.Runtime.CompilerServices;
-using System.Threading.Tasks;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Storage;
-using Microsoft.OpenApi.Models;
-using WebNovel.API.Areas.Models.Rating.Schemas;
-using WebNovel.API.Commons;
-using WebNovel.API.Commons.CodeMaster;
+using WebNovel.API.Areas.Models.Comment.Schemas;
 using WebNovel.API.Commons.Enums;
 using WebNovel.API.Commons.Schemas;
 using WebNovel.API.Core.Models;
-using WebNovel.API.Databases.Entities;
-using WebNovel.API.Databases.Entitites;
 using static WebNovel.API.Commons.Enums.CodeResonse;
 
-
-namespace WebNovel.API.Areas.Models.Rating
+namespace WebNovel.API.Areas.Models.Comment
 {
-    public interface IRatingModel
+    public interface ICommentModel
     {
-        Task<List<RatingDto>> GetListRating();
-        Task<ResponseInfo> AddRating(RatingCreateUpdateEntity rating);
-        Task<List<RatingDto>> GetRatingByAccount(string AccountId);
-        Task<List<RatingDto>> GetRatingByNovel(string NovelId);
-        Task<RatingDto> GetRating(string AccountId, string NovelId);
-        Task<ResponseInfo> UpdateRating(string AccountId, string NovelId, RatingCreateUpdateEntity rating);
+        Task<List<CommentDto>> GetListComment();
+        Task<ResponseInfo> AddComment(CommentCreateUpdateEntity comment);
+        Task<List<CommentDto>> GetCommentByAccount(string accountId);
+        Task<List<CommentDto>> GetCommentByNovel(string NovelId);
+        Task<List<CommentDto>> GetCommentByAccountNovel(string accountId, string novelId);
+        Task<CommentDto> GetComment(long Id);
+        Task<ResponseInfo> UpdateComment(long Id, CommentCreateUpdateEntity comment);
     }
-    public class RatingModel : BaseModel, IRatingModel
+    public class CommentModel : BaseModel, ICommentModel
     {
-        private readonly ILogger<IRatingModel> _logger;
+        private readonly ILogger<ICommentModel> _logger;
         private string _className = "";
-        public RatingModel(IServiceProvider provider, ILogger<IRatingModel> logger) : base(provider)
+        public CommentModel(IServiceProvider provider, ILogger<ICommentModel> logger) : base(provider)
         {
             _logger = logger ?? throw new ArgumentNullException(nameof(logger));
             _className = GetType().Name;
         }
 
-        static string GetActualAsyncMethodName([CallerMemberName] string name = null) => name;
+        static string GetActualAsyncMethodName([CallerMemberName] string name = "") => name;
 
-        public async Task<ResponseInfo> AddRating(RatingCreateUpdateEntity Rating)
+        public async Task<ResponseInfo> AddComment(CommentCreateUpdateEntity comment)
         {
             IDbContextTransaction transaction = null;
             string method = GetActualAsyncMethodName();
@@ -53,11 +44,12 @@ namespace WebNovel.API.Areas.Models.Rating
                     return result;
                 }
 
-                var newRating = new Databases.Entitites.Rating()
+                var newComment = new Databases.Entities.Comment()
                 {
-                    NovelId = Rating.NovelId,
-                    AccountId = Rating.AccountId,
-                    RateScore = Rating.RateScore
+                    NovelId = comment.NovelId,
+                    AccountId = comment.AccountId,
+                    Text = comment.Text,
+                    CreateOn = DateTime.Now,
                 };
 
                 var strategy = _context.Database.CreateExecutionStrategy();
@@ -66,7 +58,7 @@ namespace WebNovel.API.Areas.Models.Rating
                     {
                         using (var trn = await _context.Database.BeginTransactionAsync())
                         {
-                            await _context.Ratings.AddAsync(newRating);
+                            await _context.Comment.AddAsync(newComment);
                             await _context.SaveChangesAsync();
                             await trn.CommitAsync();
                         }
@@ -88,58 +80,81 @@ namespace WebNovel.API.Areas.Models.Rating
             }
         }
 
-        public async Task<List<RatingDto>> GetRatingByAccount(string AccountId)
+        public async Task<List<CommentDto>> GetCommentByAccount(string accountId)
         {
-            var listRating = await _context.Ratings.Where(e => e.AccountId == AccountId).Select(x => new RatingDto()
+            var listComment = await _context.Comment.Where(e => e.AccountId == accountId).Select(x => new CommentDto()
+            {
+                Id = x.Id,
+                NovelId = x.NovelId,
+                AccountId = x.AccountId,
+                Text = x.Text,
+                CreateOn = x.CreateOn,
+            }).ToListAsync();
+
+            return listComment;
+        }
+
+        public async Task<List<CommentDto>> GetCommentByNovel(string novelId)
+        {
+            var listComment = await _context.Comment.Where(e => e.NovelId == novelId).Select(x => new CommentDto()
+            {
+                Id = x.Id,
+                NovelId = x.NovelId,
+                AccountId = x.AccountId,
+                Text = x.Text,
+                CreateOn = x.CreateOn,
+            }).ToListAsync();
+
+            return listComment;
+        }
+
+        public async Task<List<CommentDto>> GetCommentByAccountNovel(string accountId, string novelId)
+        {
+            var listComment = await _context.Comment.Where(e => e.NovelId == novelId && e.AccountId == accountId).Select(x => new CommentDto()
+            {
+                Id = x.Id,
+                NovelId = x.NovelId,
+                AccountId = x.AccountId,
+                Text = x.Text,
+                CreateOn = x.CreateOn,
+            }).ToListAsync();
+
+            return listComment;
+        }
+
+        public async Task<CommentDto> GetComment(long Id)
+        {
+            var Comment = await _context.Comment.Where(x => x.Id == Id).FirstOrDefaultAsync();
+            if (Comment is not null)
+            {
+                var CommentDto = new CommentDto()
+                {
+                    NovelId = Comment.NovelId,
+                    AccountId = Comment.AccountId,
+                    Text = Comment.Text,
+                    CreateOn = Comment.CreateOn,
+                };
+                return CommentDto;
+            }
+            return new CommentDto();
+        }
+
+        public async Task<List<CommentDto>> GetListComment()
+        {
+            var listComment = await _context.Comment.Select(x => new CommentDto()
             {
                 NovelId = x.NovelId,
                 AccountId = x.AccountId,
-                RateScore = x.RateScore
+                Text = x.Text,
+                CreateOn = x.CreateOn,
             }).ToListAsync();
 
-            return listRating;
+            return listComment;
         }
 
-        public async Task<List<RatingDto>> GetRatingByNovel(string NovelId)
+        public async Task<ResponseInfo> UpdateComment(long Id, CommentCreateUpdateEntity comment)
         {
-            var listRating = await _context.Ratings.Where(e => e.NovelId == NovelId).Select(x => new RatingDto()
-            {
-                NovelId = x.NovelId,
-                AccountId = x.AccountId,
-                RateScore = x.RateScore
-            }).ToListAsync();
-
-            return listRating;
-        }
-
-        public async Task<RatingDto> GetRating(string AccountId, string NovelId)
-        {
-            var Rating = await _context.Ratings.Where(x => x.NovelId == NovelId && x.AccountId == AccountId).FirstOrDefaultAsync();
-            var RatingDto = new RatingDto()
-            {
-                NovelId = Rating.NovelId,
-                AccountId = Rating.AccountId,
-                RateScore = Rating.RateScore
-            };
-
-            return RatingDto;
-        }
-
-        public async Task<List<RatingDto>> GetListRating()
-        {
-            var listRating = await _context.Ratings.Select(x => new RatingDto()
-            {
-                NovelId = x.NovelId,
-                AccountId = x.AccountId,
-                RateScore = x.RateScore
-            }).ToListAsync();
-
-            return listRating;
-        }
-
-        public async Task<ResponseInfo> UpdateRating(string AccountId, string NovelId, RatingCreateUpdateEntity rating)
-        {
-            IDbContextTransaction transaction = null;
+            IDbContextTransaction? transaction = null;
             string method = GetActualAsyncMethodName();
 
             try
@@ -152,15 +167,15 @@ namespace WebNovel.API.Areas.Models.Rating
                     return result;
                 }
 
-                var existRating = _context.Ratings.Where(x => x.NovelId == NovelId && x.AccountId == AccountId).FirstOrDefault();
-                if (existRating is null)
+                var existComment = _context.Comment.Where(x => x.Id == Id).FirstOrDefault();
+                if (existComment is null)
                 {
                     response.Code = CodeResponse.HAVE_ERROR;
                     response.MsgNo = MSG_NO.NOT_FOUND;
                     return response;
                 }
 
-                existRating.RateScore = rating.RateScore;
+                existComment.Text = comment.Text;
 
                 var strategy = _context.Database.CreateExecutionStrategy();
                 await strategy.ExecuteAsync(
