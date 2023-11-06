@@ -13,10 +13,11 @@ namespace WebNovel.API.Areas.Models.Comment
     {
         Task<List<CommentDto>> GetListComment();
         Task<ResponseInfo> AddComment(CommentCreateUpdateEntity comment);
-        CommentDto GetCommentByAccount(string accountId);
-        CommentDto GetCommentByNovel(string NovelId);
-        CommentDto GetComment(string accountId, string novelId);
-        Task<ResponseInfo> UpdateComment(string accountId, string novelId, CommentCreateUpdateEntity comment);
+        Task<List<CommentDto>> GetCommentByAccount(string accountId);
+        Task<List<CommentDto>> GetCommentByNovel(string NovelId);
+        Task<List<CommentDto>> GetCommentByAccountNovel(string accountId, string novelId);
+        Task<CommentDto> GetComment(long Id);
+        Task<ResponseInfo> UpdateComment(long Id, CommentCreateUpdateEntity comment);
     }
     public class CommentModel : BaseModel, ICommentModel
     {
@@ -28,7 +29,7 @@ namespace WebNovel.API.Areas.Models.Comment
             _className = GetType().Name;
         }
 
-        static string GetActualAsyncMethodName([CallerMemberName] string name = null) => name;
+        static string GetActualAsyncMethodName([CallerMemberName] string name = "") => name;
 
         public async Task<ResponseInfo> AddComment(CommentCreateUpdateEntity comment)
         {
@@ -79,64 +80,81 @@ namespace WebNovel.API.Areas.Models.Comment
             }
         }
 
-        public CommentDto GetCommentByAccount(string accountId)
+        public async Task<List<CommentDto>> GetCommentByAccount(string accountId)
         {
-            var Comment = _context.Comment.Where(x => x.AccountId == accountId).FirstOrDefault();
-            var CommentDto = new CommentDto()
+            var listComment = await _context.Comment.Where(e => e.AccountId == accountId).Select(x => new CommentDto()
             {
-                NovelId = Comment.NovelId,
-                AccountId = Comment.AccountId,
-                Text = Comment.Text,
-                CreateOn = Comment.CreateOn,
-            };
+                Id = x.Id,
+                NovelId = x.NovelId,
+                AccountId = x.AccountId,
+                Text = x.Text,
+                CreateOn = x.CreateOn,
+            }).ToListAsync();
 
-            return CommentDto;
+            return listComment;
         }
 
-        public CommentDto GetCommentByNovel(string novelId)
+        public async Task<List<CommentDto>> GetCommentByNovel(string novelId)
         {
-            var Comment = _context.Comment.Where(x => x.NovelId == novelId).FirstOrDefault();
-            var CommentDto = new CommentDto()
+            var listComment = await _context.Comment.Where(e => e.NovelId == novelId).Select(x => new CommentDto()
             {
-                NovelId = Comment.NovelId,
-                AccountId = Comment.AccountId,
-                Text = Comment.Text,
-                CreateOn = Comment.CreateOn,
-            };
+                Id = x.Id,
+                NovelId = x.NovelId,
+                AccountId = x.AccountId,
+                Text = x.Text,
+                CreateOn = x.CreateOn,
+            }).ToListAsync();
 
-            return CommentDto;
+            return listComment;
         }
 
-        public CommentDto GetComment(string accountId, string novelId)
+        public async Task<List<CommentDto>> GetCommentByAccountNovel(string accountId, string novelId)
         {
-            var Comment = _context.Comment.Where(x => x.NovelId == novelId && x.AccountId == accountId).FirstOrDefault();
-            var CommentDto = new CommentDto()
+            var listComment = await _context.Comment.Where(e => e.NovelId == novelId && e.AccountId == accountId).Select(x => new CommentDto()
             {
-                NovelId = Comment.NovelId,
-                AccountId = Comment.AccountId,
-                Text = Comment.Text,
-                CreateOn = Comment.CreateOn,
-            };
+                Id = x.Id,
+                NovelId = x.NovelId,
+                AccountId = x.AccountId,
+                Text = x.Text,
+                CreateOn = x.CreateOn,
+            }).ToListAsync();
 
-            return CommentDto;
+            return listComment;
+        }
+
+        public async Task<CommentDto> GetComment(long Id)
+        {
+            var Comment = await _context.Comment.Where(x => x.Id == Id).FirstOrDefaultAsync();
+            if (Comment is not null)
+            {
+                var CommentDto = new CommentDto()
+                {
+                    NovelId = Comment.NovelId,
+                    AccountId = Comment.AccountId,
+                    Text = Comment.Text,
+                    CreateOn = Comment.CreateOn,
+                };
+                return CommentDto;
+            }
+            return new CommentDto();
         }
 
         public async Task<List<CommentDto>> GetListComment()
         {
-            var listComment = _context.Comment.Select(x => new CommentDto()
+            var listComment = await _context.Comment.Select(x => new CommentDto()
             {
                 NovelId = x.NovelId,
                 AccountId = x.AccountId,
                 Text = x.Text,
                 CreateOn = x.CreateOn,
-            }).ToList();
+            }).ToListAsync();
 
             return listComment;
         }
 
-        public async Task<ResponseInfo> UpdateComment(string accountId, string novelId, CommentCreateUpdateEntity comment)
+        public async Task<ResponseInfo> UpdateComment(long Id, CommentCreateUpdateEntity comment)
         {
-            IDbContextTransaction transaction = null;
+            IDbContextTransaction? transaction = null;
             string method = GetActualAsyncMethodName();
 
             try
@@ -149,7 +167,7 @@ namespace WebNovel.API.Areas.Models.Comment
                     return result;
                 }
 
-                var existComment = _context.Comment.Where(x => x.NovelId == novelId && x.AccountId == accountId).FirstOrDefault();
+                var existComment = _context.Comment.Where(x => x.Id == Id).FirstOrDefault();
                 if (existComment is null)
                 {
                     response.Code = CodeResponse.HAVE_ERROR;

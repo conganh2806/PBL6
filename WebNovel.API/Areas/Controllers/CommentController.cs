@@ -44,7 +44,7 @@ namespace WebNovel.API.Areas.Controllers
         {
             try
             {
-                return Ok(_commentModel.GetCommentByNovel(NovelId));
+                return Ok(await _commentModel.GetCommentByNovel(NovelId));
             }
             catch (Exception e)
             {
@@ -54,11 +54,12 @@ namespace WebNovel.API.Areas.Controllers
 
         [HttpGet("AccountId={AccountId}")]
         [ProducesResponseType(typeof(CommentDto), (int)HttpStatusCode.OK)]
+        [Authorize]
         public async Task<IActionResult> GetDetailByAccount([FromRoute] string AccountId)
         {
             try
             {
-                return Ok(_commentModel.GetCommentByAccount(AccountId));
+                return Ok(await _commentModel.GetCommentByAccount(AccountId));
             }
             catch (Exception e)
             {
@@ -68,11 +69,12 @@ namespace WebNovel.API.Areas.Controllers
 
         [HttpGet("{AccountId}/{NovelId}")]
         [ProducesResponseType(typeof(CommentDto), (int)HttpStatusCode.OK)]
-        public async Task<IActionResult> GetDetail([FromRoute] string AccountId, [FromRoute] string NovelId)
+        [Authorize]
+        public async Task<IActionResult> GetDetailByAccountNovel([FromRoute] string AccountId, [FromRoute] string NovelId)
         {
             try
             {
-                return Ok(_commentModel.GetComment(AccountId, NovelId));
+                return Ok(await _commentModel.GetCommentByAccountNovel(AccountId, NovelId));
             }
             catch (Exception e)
             {
@@ -80,6 +82,20 @@ namespace WebNovel.API.Areas.Controllers
             }
         }
 
+        [HttpGet("{Id}")]
+        [ProducesResponseType(typeof(CommentDto), (int)HttpStatusCode.OK)]
+        [Authorize]
+        public async Task<IActionResult> GetDetail([FromRoute] long Id)
+        {
+            try
+            {
+                return Ok(await _commentModel.GetComment(Id));
+            }
+            catch (Exception e)
+            {
+                return StatusCode(500, new { Error = e.Message });
+            }
+        }
         [HttpPost]
         [ProducesResponseType(typeof(ResponseInfo), (int)HttpStatusCode.OK)]
         [Authorize]
@@ -104,17 +120,17 @@ namespace WebNovel.API.Areas.Controllers
             }
         }
 
-        [HttpPut("{AccountId}/{NovelId}")]
+        [HttpPut("{Id}")]
         [ProducesResponseType(typeof(ResponseInfo), (int)HttpStatusCode.OK)]
         [Authorize]
-        public async Task<IActionResult> Update([FromRoute] string AccountId, [FromRoute] string NovelId, [FromBody] CommentCreateUpdateEntity Comment)
+        public async Task<IActionResult> Update([FromRoute] long Id, [FromBody] CommentCreateUpdateEntity Comment)
         {
             try
             {
                 ResponseInfo response = new ResponseInfo();
                 if (ModelState.IsValid)
                 {
-                    response = await _commentModel.UpdateComment(AccountId, NovelId, Comment);
+                    response = await _commentModel.UpdateComment(Id, Comment);
                 }
                 else
                 {
