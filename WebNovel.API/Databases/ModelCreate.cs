@@ -103,10 +103,10 @@ namespace WebNovel.API.Databases
             .WithOne(e => e.UpdatedFee)
             .HasForeignKey(e => e.FeeId);
 
-            modelBuilder.Entity<Chapter>()
-            .HasOne(e => e.Bookmarked)
-            .WithOne(e => e.Chapter)
-            .HasForeignKey<Bookmarked>(e => e.ChapterId)
+            modelBuilder.Entity<Novel>()
+            .HasMany(e => e.Bookmarkeds)
+            .WithOne(e => e.Novel)
+            .HasForeignKey(e => e.NovelId)
             .IsRequired();
 
             modelBuilder.Entity<Account>()
@@ -114,6 +114,19 @@ namespace WebNovel.API.Databases
             .WithOne(e => e.Account)
             .HasForeignKey(e => e.AccountId)
             .IsRequired();
+
+            modelBuilder.Entity<Chapter>()
+            .HasMany(e => e.Bookmarked)
+            .WithOne(e => e.Chapter)
+            .HasForeignKey(e => e.ChapterId)
+            .IsRequired();
+
+            modelBuilder.Entity<Bookmarked>()
+            .HasKey(e => new
+            {
+                e.AccountId,
+                e.NovelId,
+            });
 
             modelBuilder.Entity<Account>()
             .HasMany(e => e.Preferences)

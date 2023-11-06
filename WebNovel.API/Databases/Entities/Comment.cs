@@ -9,7 +9,7 @@ using WebNovel.API.Databases.Entitites;
 
 namespace WebNovel.API.Databases.Entities
 {
-        public class Comment : TableHaveIdInt
+        public class Comment : Table
         {
                 public string AccountId { get; set; }
                 public virtual Account Account { get; set; } = null!;
