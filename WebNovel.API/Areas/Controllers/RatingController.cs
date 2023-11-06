@@ -44,7 +44,7 @@ namespace WebNovel.API.Areas.Controllers
         {
             try
             {
-                return Ok(_ratingModel.GetRatingByNovel(NovelId));
+                return Ok(await _ratingModel.GetRatingByNovel(NovelId));
             }
             catch (Exception e)
             {
@@ -58,7 +58,7 @@ namespace WebNovel.API.Areas.Controllers
         {
             try
             {
-                return Ok(_ratingModel.GetRatingByAccount(AccountId));
+                return Ok(await _ratingModel.GetRatingByAccount(AccountId));
             }
             catch (Exception e)
             {
@@ -72,7 +72,7 @@ namespace WebNovel.API.Areas.Controllers
         {
             try
             {
-                return Ok(_ratingModel.GetRating(AccountId, NovelId));
+                return Ok(await _ratingModel.GetRating(AccountId, NovelId));
             }
             catch (Exception e)
             {

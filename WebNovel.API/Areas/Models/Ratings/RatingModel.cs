@@ -23,9 +23,9 @@ namespace WebNovel.API.Areas.Models.Rating
     {
         Task<List<RatingDto>> GetListRating();
         Task<ResponseInfo> AddRating(RatingCreateUpdateEntity rating);
-        RatingDto GetRatingByAccount(string AccountId);
-        RatingDto GetRatingByNovel(string NovelId);
-        RatingDto GetRating(string AccountId, string NovelId);
+        Task<List<RatingDto>> GetRatingByAccount(string AccountId);
+        Task<List<RatingDto>> GetRatingByNovel(string NovelId);
+        Task<RatingDto> GetRating(string AccountId, string NovelId);
         Task<ResponseInfo> UpdateRating(string AccountId, string NovelId, RatingCreateUpdateEntity rating);
     }
     public class RatingModel : BaseModel, IRatingModel
@@ -88,35 +88,33 @@ namespace WebNovel.API.Areas.Models.Rating
             }
         }
 
-        public RatingDto GetRatingByAccount(string AccountId)
+        public async Task<List<RatingDto>> GetRatingByAccount(string AccountId)
         {
-            var Rating = _context.Ratings.Where(x => x.AccountId == AccountId).FirstOrDefault();
-            var RatingDto = new RatingDto()
+            var listRating = await _context.Ratings.Where(e => e.AccountId == AccountId).Select(x => new RatingDto()
             {
-                NovelId = Rating.NovelId,
-                AccountId = Rating.AccountId,
-                RateScore = Rating.RateScore
-            };
+                NovelId = x.NovelId,
+                AccountId = x.AccountId,
+                RateScore = x.RateScore
+            }).ToListAsync();
 
-            return RatingDto;
+            return listRating;
         }
 
-        public RatingDto GetRatingByNovel(string NovelId)
+        public async Task<List<RatingDto>> GetRatingByNovel(string NovelId)
         {
-            var Rating = _context.Ratings.Where(x => x.NovelId == NovelId).FirstOrDefault();
-            var RatingDto = new RatingDto()
+            var listRating = await _context.Ratings.Where(e => e.NovelId == NovelId).Select(x => new RatingDto()
             {
-                NovelId = Rating.NovelId,
-                AccountId = Rating.AccountId,
-                RateScore = Rating.RateScore
-            };
+                NovelId = x.NovelId,
+                AccountId = x.AccountId,
+                RateScore = x.RateScore
+            }).ToListAsync();
 
-            return RatingDto;
+            return listRating;
         }
 
-        public RatingDto GetRating(string AccountId, string NovelId)
+        public async Task<RatingDto> GetRating(string AccountId, string NovelId)
         {
-            var Rating = _context.Ratings.Where(x => x.NovelId == NovelId && x.AccountId == AccountId).FirstOrDefault();
+            var Rating = await _context.Ratings.Where(x => x.NovelId == NovelId && x.AccountId == AccountId).FirstOrDefaultAsync();
             var RatingDto = new RatingDto()
             {
                 NovelId = Rating.NovelId,
@@ -129,12 +127,12 @@ namespace WebNovel.API.Areas.Models.Rating
 
         public async Task<List<RatingDto>> GetListRating()
         {
-            var listRating = _context.Ratings.Select(x => new RatingDto()
+            var listRating = await _context.Ratings.Select(x => new RatingDto()
             {
                 NovelId = x.NovelId,
                 AccountId = x.AccountId,
                 RateScore = x.RateScore
-            }).ToList();
+            }).ToListAsync();
 
             return listRating;
         }
