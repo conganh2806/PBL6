@@ -7,7 +7,7 @@ using Microsoft.EntityFrameworkCore.Migrations;
 namespace Webnovel.API.Migrations
 {
     /// <inheritdoc />
-    public partial class Bookmarked : Migration
+    public partial class CommentHaveID : Migration
     {
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
@@ -254,6 +254,8 @@ namespace Webnovel.API.Migrations
                 name: "Comment",
                 columns: table => new
                 {
+                    Id = table.Column<long>(type: "bigint", nullable: false, comment: "Id định danh (khóa chính)")
+                        .Annotation("MySql:ValueGenerationStrategy", MySqlValueGenerationStrategy.IdentityColumn),
                     AccountId = table.Column<string>(type: "varchar(36)", nullable: false)
                         .Annotation("MySql:CharSet", "utf8mb4"),
                     NovelId = table.Column<string>(type: "varchar(36)", nullable: false)
@@ -268,7 +270,7 @@ namespace Webnovel.API.Migrations
                 },
                 constraints: table =>
                 {
-                    table.PrimaryKey("PK_Comment", x => new { x.NovelId, x.AccountId });
+                    table.PrimaryKey("PK_Comment", x => x.Id);
                     table.ForeignKey(
                         name: "FK_Comment_Accounts_AccountId",
                         column: x => x.AccountId,
@@ -434,6 +436,11 @@ namespace Webnovel.API.Migrations
                 name: "IX_Comment_AccountId",
                 table: "Comment",
                 column: "AccountId");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_Comment_NovelId",
+                table: "Comment",
+                column: "NovelId");
 
             migrationBuilder.CreateIndex(
                 name: "IX_GenreOfNovels_NovelId",

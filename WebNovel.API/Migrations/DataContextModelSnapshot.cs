@@ -123,10 +123,14 @@ namespace Webnovel.API.Migrations
 
             modelBuilder.Entity("WebNovel.API.Databases.Entities.Comment", b =>
                 {
-                    b.Property<string>("NovelId")
-                        .HasColumnType("varchar(36)");
+                    b.Property<long>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bigint")
+                        .HasColumnOrder(1)
+                        .HasComment("Id định danh (khóa chính)");
 
                     b.Property<string>("AccountId")
+                        .IsRequired()
                         .HasColumnType("varchar(36)");
 
                     b.Property<DateTime?>("CreateOn")
@@ -144,6 +148,10 @@ namespace Webnovel.API.Migrations
                         .HasColumnType("datetime(6)")
                         .HasComment("Ngày xoá dữ liệu");
 
+                    b.Property<string>("NovelId")
+                        .IsRequired()
+                        .HasColumnType("varchar(36)");
+
                     b.Property<string>("Text")
                         .IsRequired()
                         .HasColumnType("longtext");
@@ -152,9 +160,11 @@ namespace Webnovel.API.Migrations
                         .HasColumnType("datetime(6)")
                         .HasComment("Ngày cập nhật dữ liệu");
 
-                    b.HasKey("NovelId", "AccountId");
+                    b.HasKey("Id");
 
                     b.HasIndex("AccountId");
+
+                    b.HasIndex("NovelId");
 
                     b.ToTable("Comment");
                 });
