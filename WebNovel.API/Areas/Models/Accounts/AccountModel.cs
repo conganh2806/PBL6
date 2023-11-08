@@ -283,7 +283,7 @@ namespace WebNovel.API.Areas.Models.Accounts
         {
             ResponseInfo result = new ResponseInfo();
 
-            if (await base.ValidatePhone(userId, account.Phone))
+            if (await base.ValidateEmail(userId, account.Email))
             {
                 result.MsgNo = MSG_NO.USERNAME_HAD_USED;
                 result.Code = CodeResponse.HAVE_ERROR;
