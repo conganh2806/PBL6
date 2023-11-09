@@ -6,6 +6,7 @@ using System.Threading.Tasks;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Storage;
 using Microsoft.OpenApi.Models;
+using WebNovel.API.Areas.Models.Novels;
 using WebNovel.API.Areas.Models.Preferences.Schemas;
 using WebNovel.API.Commons;
 using WebNovel.API.Commons.CodeMaster;
@@ -29,11 +30,13 @@ namespace WebNovel.API.Areas.Models.Preferences
     public class PreferencesModel : BaseModel, IPreferencesModel
     {
         private readonly ILogger<IPreferencesModel> _logger;
+        private readonly INovelModel _novelModel;
         private string _className = "";
-        public PreferencesModel(IServiceProvider provider, ILogger<IPreferencesModel> logger) : base(provider)
+        public PreferencesModel(IServiceProvider provider, ILogger<IPreferencesModel> logger, INovelModel novelModel) : base(provider)
         {
             _logger = logger ?? throw new ArgumentNullException(nameof(logger));
             _className = GetType().Name;
+            _novelModel = novelModel;
         }
 
         static string GetActualAsyncMethodName([CallerMemberName] string name = null) => name;
@@ -93,6 +96,11 @@ namespace WebNovel.API.Areas.Models.Preferences
                 AccountId = x.AccountId,
             }).ToListAsync();
 
+            foreach (var preference in listPreference)
+            {
+                preference.Novel = await _novelModel.GetNovelAsync(preference.NovelId);
+            }
+
             return listPreference;
         }
 
@@ -110,10 +118,11 @@ namespace WebNovel.API.Areas.Models.Preferences
         public async Task<PreferencesDto> GetPreference(string AccountId, string NovelId)
         {
             var preference = await _context.Preferences.Where(x => x.NovelId == NovelId && x.AccountId == AccountId).FirstOrDefaultAsync();
-            var preferenceDto = new PreferencesDto()
+            var preferenceDto = new PreferencesDto
             {
                 NovelId = preference.NovelId,
-                AccountId = preference.AccountId
+                AccountId = preference.AccountId,
+                Novel = await _novelModel.GetNovelAsync(preference.NovelId),
             };
 
             return preferenceDto;
@@ -126,6 +135,11 @@ namespace WebNovel.API.Areas.Models.Preferences
                 NovelId = x.NovelId,
                 AccountId = x.AccountId,
             }).ToList();
+
+            foreach (var preference in listPreference)
+            {
+                preference.Novel = await _novelModel.GetNovelAsync(preference.NovelId);
+            }
 
             return listPreference;
         }
