@@ -7,6 +7,7 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Storage;
 using Microsoft.OpenApi.Models;
 using WebNovel.API.Areas.Models.Bookmarked.Schemas;
+using WebNovel.API.Areas.Models.Novels;
 using WebNovel.API.Commons;
 using WebNovel.API.Commons.CodeMaster;
 using WebNovel.API.Commons.Enums;
@@ -30,11 +31,13 @@ namespace WebNovel.API.Areas.Models.Bookmarked
     public class BookmarkedModel : BaseModel, IBookmarkedModel
     {
         private readonly ILogger<IBookmarkedModel> _logger;
+        private readonly INovelModel _novelModel;
         private string _className = "";
-        public BookmarkedModel(IServiceProvider provider, ILogger<IBookmarkedModel> logger) : base(provider)
+        public BookmarkedModel(IServiceProvider provider, ILogger<IBookmarkedModel> logger, INovelModel novelModel) : base(provider)
         {
             _logger = logger ?? throw new ArgumentNullException(nameof(logger));
             _className = GetType().Name;
+            _novelModel = novelModel;
         }
 
         static string GetActualAsyncMethodName([CallerMemberName] string name = null) => name;
@@ -96,6 +99,11 @@ namespace WebNovel.API.Areas.Models.Bookmarked
                 ChapterId = x.ChapterId,
             }).ToListAsync();
 
+            foreach (var bookmarked in listBookmarked)
+            {
+                bookmarked.Novel = await _novelModel.GetNovelAsync(bookmarked.NovelId);
+            }
+
             return listBookmarked;
         }
 
@@ -119,6 +127,7 @@ namespace WebNovel.API.Areas.Models.Bookmarked
                 NovelId = Bookmarked.NovelId,
                 AccountId = Bookmarked.AccountId,
                 ChapterId = Bookmarked.ChapterId,
+                Novel = await _novelModel.GetNovelAsync(Bookmarked.NovelId),
             };
 
             return BookmarkedDto;
@@ -132,6 +141,11 @@ namespace WebNovel.API.Areas.Models.Bookmarked
                 AccountId = x.AccountId,
                 ChapterId = x.ChapterId,
             }).ToListAsync();
+
+            foreach (var bookmarked in listBookmarked)
+            {
+                bookmarked.Novel = await _novelModel.GetNovelAsync(bookmarked.NovelId);
+            }
 
             return listBookmarked;
         }
