@@ -20,5 +20,6 @@ namespace WebNovel.API.Areas.Models.Chapter.Schemas
         public int? Discount { get; set; }
         public bool ApprovalStatus { get; set; }
         public string NovelId { get; set; }
+        public int ChapIndex { get; set; }
     }
 }

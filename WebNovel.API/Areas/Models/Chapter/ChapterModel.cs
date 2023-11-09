@@ -97,7 +97,7 @@ namespace WebNovel.API.Areas.Models.Chapter
         public async Task<ChapterDto> GetChapterAsync(string id)
         {
             var chapter = await _context.Chapter.Where(x => x.Id == id).FirstOrDefaultAsync();
-            var novelDto = new ChapterDto()
+            var chapterDto = new ChapterDto()
             {
                 Id = chapter.Id,
                 Name = chapter.Name,
@@ -110,17 +110,19 @@ namespace WebNovel.API.Areas.Models.Chapter
                 Discount = chapter.Discount,
                 ApprovalStatus = chapter.ApprovalStatus,
                 NovelId = chapter.NovelId
-
             };
 
-            return novelDto;
+            var listChapter = await _context.Chapter.Where(x => x.NovelId == chapter.NovelId).OrderBy(e => e.PublishDate).ToListAsync();
+            chapterDto.ChapIndex = listChapter.FindIndex(a => a.Id == chapter.Id) + 1;
+
+            return chapterDto;
         }
 
         public async Task<List<ChapterDto>> GetChapterByNovel(string NovelId)
         {
             List<ChapterDto> listChapter = new List<ChapterDto>();
 
-            listChapter = await _context.Chapter.Select(x => new ChapterDto()
+            listChapter = await _context.Chapter.Where(x => x.NovelId == NovelId).OrderBy(e => e.PublishDate).Select(x => new ChapterDto()
             {
                 Id = x.Id,
                 Name = x.Name,
@@ -132,9 +134,13 @@ namespace WebNovel.API.Areas.Models.Chapter
                 FileContent = _awsS3Service.GetFileImg(x.NovelId.ToString() + "/" + x.Id.ToString(), $"{x.FileContent}"),
                 Discount = x.Discount,
                 ApprovalStatus = x.ApprovalStatus,
-                NovelId = x.NovelId
+                NovelId = x.NovelId,
+            }).ToListAsync();
 
-            }).Where(x => x.NovelId == NovelId).ToListAsync();
+            for (int i = 0; i < listChapter.Count; i++)
+            {
+                listChapter[i].ChapIndex = i + 1;
+            }
 
             return listChapter;
         }
