@@ -40,5 +40,36 @@ namespace WebNovel.API.Commons
             return Encoding.UTF8.GetString(hashBytes);
         }
 
+        public static string Base64Encode(string plainText)
+        {
+            try
+            {
+                if (String.IsNullOrEmpty(plainText))
+                {
+                    return "";
+                }
+                var plainTextBytes = System.Text.Encoding.UTF8.GetBytes(plainText);
+                string base64Str = Convert.ToBase64String(plainTextBytes);
+                int endPos = 0;
+                for (endPos = base64Str.Length; endPos > 0; endPos--)
+                {
+                    if (base64Str[endPos - 1] != '=')
+                    {
+                        break;
+                    }
+                }
+                int numberPaddingChars = base64Str.Length - endPos;
+                base64Str = base64Str.Replace("+", "-");
+                base64Str = base64Str.Replace("/", "_");
+                base64Str = base64Str.Substring(0, endPos);
+                base64Str = $"{base64Str}{numberPaddingChars}";
+                return base64Str;
+            }
+            catch
+            {
+                return plainText;
+            }
+        }
+
     }
 }
