@@ -146,6 +146,41 @@ namespace WebNovel.API.Areas.Models.Novels
             return listNovel;
         }
 
+        //below function is used for display the novel that followed by genre id when user hover in browse
+        //and click in one genre
+        public async Task<List<NovelDto>> GetListNovelByGenreId(int genreId)
+        {
+            List<NovelDto> listNovel = new List<NovelDto>();
+            //List<NovelGenre> listOfNovelGenre = new List<NovelGenre>();
+
+            var novels = await _context.Novel.Where(novel => novel.Genres.Any(ng => ng.GenreId == genreId)).ToListAsync();
+            var novelDtoTasks = novels.Select(x => new NovelDto()
+            {
+                Id = x.Id,
+                Name = x.Name,
+                Title = x.Title,
+                Author = x.Account.Username,
+                Year = x.Year,
+                Views = x.Views,
+                ImagesURL = _awsS3Service.GetFileImg(x.Id.ToString(), $"{x.ImageURL}"),
+                Rating = x.Rating,
+                Description = x.Description,
+                Status = x.Status,
+                ApprovalStatus = x.ApprovalStatus,
+            }).ToList();
+
+            foreach (var novel in novelDtoTasks)
+            {
+                novel.GenreName = await _context.GenreOfNovels.Include(x => x.Genre).Where(x => x.NovelId == novel.Id).Select(x => x.Genre.Name).ToListAsync();
+                novel.NumChapter = (await _context.Chapter.Where(e => e.NovelId == novel.Id).ToListAsync()).Count;
+            }
+
+            listNovel = novelDtoTasks;
+
+            return listNovel;
+
+        }
+
         public async Task<NovelDto> GetNovelAsync(string id)
         {
             var novel = await _context.Novel.Include(x => x.Genres).Include(x => x.Account).Where(x => x.Id == id).FirstOrDefaultAsync();
