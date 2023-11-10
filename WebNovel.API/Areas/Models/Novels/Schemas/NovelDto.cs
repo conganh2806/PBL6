@@ -16,7 +16,7 @@ namespace WebNovel.API.Areas.Models.Novels.Schemas
         [MaxLength()]
         public string ImagesURL { get; set; } = null!;
         public List<string> GenreName { get; set; } = null!;
-        [StringLength(500)]
+        [StringLength(10000)]
         public string? Description { get; set; }
         public bool Status { get; set; }
         public bool ApprovalStatus { get; set; }

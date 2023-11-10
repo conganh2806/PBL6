@@ -18,7 +18,7 @@ namespace WebNovel.API.Areas.Models.Novels.Schemas
                 public int Rating { get; set; }
                 [MaxLength()]
                 public string? ImagesURL { get; set; }
-                [StringLength(255, ErrorMessage = "E005")]
+                [StringLength(10000, ErrorMessage = "E005, Description is too long")]
                 public string? Description { get; set; }
                 public bool Status { get; set; }
                 public bool ApprovalStatus { get; set; }
