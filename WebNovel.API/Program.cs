@@ -10,6 +10,7 @@ using WebNovel.API.Areas.Models.Chapter;
 using WebNovel.API.Areas.Models.Comment;
 using WebNovel.API.Areas.Models.Genres;
 using WebNovel.API.Areas.Models.Login;
+using WebNovel.API.Areas.Models.Login.Schemas;
 using WebNovel.API.Areas.Models.Novels;
 using WebNovel.API.Areas.Models.Preferences;
 using WebNovel.API.Areas.Models.Rating;
@@ -59,6 +60,9 @@ internal class Program
             .ValidateDataAnnotations()
             .ValidateOnStart();
 
+        services.AddOptions<GoogleOAuthSettings>()
+            .BindConfiguration($"Authentication:{nameof(GoogleOAuthSettings)}");
+
         services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
             .AddJwtBearer(options =>
             {
@@ -105,13 +109,6 @@ internal class Program
                 }
             });
         });
-        services.AddAuthentication().AddGoogle(options =>
-        {
-            options.ClientId = builder.Configuration["Authentication:Google:ClientId"];
-            options.ClientSecret = builder.Configuration["Authentication:Google:ClientSecret"];
-            options.SaveTokens = true;
-        });
-
 
         var app = builder.Build();
 
