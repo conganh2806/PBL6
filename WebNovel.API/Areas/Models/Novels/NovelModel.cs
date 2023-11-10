@@ -21,6 +21,7 @@ namespace WebNovel.API.Areas.Models.Novels
         Task<ResponseInfo> AddNovel(IFormFile formFile, NovelCreateUpdateEntity novel);
         Task<ResponseInfo> UpdateNovel(string id, NovelCreateUpdateEntity novel, IFormFile formFile);
         Task<NovelDto> GetNovelAsync(string id);
+        Task<List<NovelDto>> GetListNovelByGenreId(long genreId);
 
     }
 
@@ -148,12 +149,15 @@ namespace WebNovel.API.Areas.Models.Novels
 
         //below function is used for display the novel that followed by genre id when user hover in browse
         //and click in one genre
-        public async Task<List<NovelDto>> GetListNovelByGenreId(int genreId)
+        public async Task<List<NovelDto>> GetListNovelByGenreId(long genreId)
         {
             List<NovelDto> listNovel = new List<NovelDto>();
             //List<NovelGenre> listOfNovelGenre = new List<NovelGenre>();
 
-            var novels = await _context.Novel.Where(novel => novel.Genres.Any(ng => ng.GenreId == genreId)).ToListAsync();
+
+            var novels = await _context.Novel.Include(x => x.Genres).Include(x => x.Account).
+                                Where(novel => novel.Genres != null && novel.Genres.Any(ng => ng.GenreId == genreId)).
+                                ToListAsync();
             var novelDtoTasks = novels.Select(x => new NovelDto()
             {
                 Id = x.Id,

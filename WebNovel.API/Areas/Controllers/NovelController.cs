@@ -56,6 +56,21 @@ namespace WebNovel.API.Areas.Controllers
             }
         }
 
+        [HttpGet("GenreId={GenreId}")]
+        [ProducesResponseType(typeof(NovelDto), (int)HttpStatusCode.OK)]
+        public async Task<IActionResult> GetListNovelByGenreId([FromRoute] long GenreId)
+        {
+            try
+            {
+                return Ok(await _novelModel.GetListNovelByGenreId(GenreId));
+            }
+            catch (Exception e)
+            {
+                return StatusCode(500, new { Error = e.Message });
+            }
+        }
+
+
         [HttpPost]
         [Authorize]
         public async Task<IActionResult> Create([FromForm] NovelCreateUpdateEntity novel)
