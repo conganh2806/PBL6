@@ -23,7 +23,7 @@ namespace WebNovel.API.Areas.Models.Bookmarked
     {
         Task<List<BookmarkedDto>> GetListBookmarked();
         Task<ResponseInfo> AddBookmarked(BookmarkedCreateUpdateEntity Bookmarked);
-        Task<ResponseInfo> UpdateBookmarked(string AccountId, string NovelId, BookmarkedCreateUpdateEntity Bookmarked);
+        Task<ResponseInfo> UpdateBookmarked(BookmarkedCreateUpdateEntity Bookmarked);
         Task<List<BookmarkedDto>> GetBookmarkedByAccount(string AccountId);
         Task<List<BookmarkedDto>> GetBookmarkedByNovel(string NovelId);
         Task<BookmarkedDto> GetBookmarked(string AccountId, string NovelId);
@@ -150,7 +150,7 @@ namespace WebNovel.API.Areas.Models.Bookmarked
             return listBookmarked;
         }
 
-        public async Task<ResponseInfo> UpdateBookmarked(string AccountId, string NovelId, BookmarkedCreateUpdateEntity Bookmarked)
+        public async Task<ResponseInfo> UpdateBookmarked(BookmarkedCreateUpdateEntity Bookmarked)
         {
             IDbContextTransaction transaction = null;
             string method = GetActualAsyncMethodName();
@@ -165,7 +165,7 @@ namespace WebNovel.API.Areas.Models.Bookmarked
                     return result;
                 }
 
-                var existBookmarked = _context.BookMarked.Where(x => x.NovelId == NovelId && x.AccountId == AccountId).FirstOrDefault();
+                var existBookmarked = _context.BookMarked.Where(x => x.NovelId == Bookmarked.NovelId && x.AccountId == Bookmarked.AccountId).FirstOrDefault();
                 if (existBookmarked is null)
                 {
                     response.Code = CodeResponse.HAVE_ERROR;

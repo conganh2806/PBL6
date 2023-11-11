@@ -24,34 +24,6 @@ namespace WebNovel.API.Areas.Controllers
             _bookMarkedModel = bookMarkedModel;
         }
 
-        [HttpGet]
-        [ProducesResponseType(typeof(BookmarkedDto), (int)HttpStatusCode.OK)]
-        public async Task<IActionResult> Search()
-        {
-            try
-            {
-                return Ok(await _bookMarkedModel.GetListBookmarked());
-            }
-            catch (Exception e)
-            {
-                return StatusCode(500, new { Error = e.Message });
-            }
-        }
-
-        [HttpGet("NovelId={NovelId}")]
-        [ProducesResponseType(typeof(BookmarkedDto), (int)HttpStatusCode.OK)]
-        public async Task<IActionResult> GetDetailByNovel([FromRoute] string NovelId)
-        {
-            try
-            {
-                return Ok(await _bookMarkedModel.GetBookmarkedByNovel(NovelId));
-            }
-            catch (Exception e)
-            {
-                return StatusCode(500, new { Error = e.Message });
-            }
-        }
-
         [HttpGet("AccountId={AccountId}")]
         [ProducesResponseType(typeof(BookmarkedDto), (int)HttpStatusCode.OK)]
         [Authorize]
@@ -60,21 +32,6 @@ namespace WebNovel.API.Areas.Controllers
             try
             {
                 return Ok(await _bookMarkedModel.GetBookmarkedByAccount(AccountId));
-            }
-            catch (Exception e)
-            {
-                return StatusCode(500, new { Error = e.Message });
-            }
-        }
-
-        [HttpGet("{AccountId}/{NovelId}")]
-        [ProducesResponseType(typeof(BookmarkedDto), (int)HttpStatusCode.OK)]
-        [Authorize]
-        public async Task<IActionResult> GetDetail([FromRoute] string AccountId, [FromRoute] string NovelId)
-        {
-            try
-            {
-                return Ok(await _bookMarkedModel.GetBookmarked(AccountId, NovelId));
             }
             catch (Exception e)
             {
@@ -106,17 +63,17 @@ namespace WebNovel.API.Areas.Controllers
             }
         }
 
-        [HttpPut("{AccountId}/{NovelId}")]
+        [HttpPut]
         [ProducesResponseType(typeof(ResponseInfo), (int)HttpStatusCode.OK)]
         [Authorize]
-        public async Task<IActionResult> Update([FromRoute] string AccountId, [FromRoute] string NovelId, [FromBody] BookmarkedCreateUpdateEntity BookMarked)
+        public async Task<IActionResult> Update([FromBody] BookmarkedCreateUpdateEntity BookMarked)
         {
             try
             {
                 ResponseInfo response = new ResponseInfo();
                 if (ModelState.IsValid)
                 {
-                    response = await _bookMarkedModel.UpdateBookmarked(AccountId, NovelId, BookMarked);
+                    response = await _bookMarkedModel.UpdateBookmarked(BookMarked);
                 }
                 else
                 {
