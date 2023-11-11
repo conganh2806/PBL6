@@ -15,9 +15,9 @@ namespace WebNovel.API.Areas.Models.Chapter
     public interface IChapterModel
     {
         Task<List<ChapterDto>> GetListChapter();
-        Task<ResponseInfo> AddChapter(IFormFile formFile, ChapterCreateUpdateEntity chapter);
-        Task<ResponseInfo> UpdateChapter(string id, ChapterCreateUpdateEntity chapter, IFormFile formFile);
-        Task<ChapterDto> GetChapterAsync(string id);
+        Task<ResponseInfo> AddChapter(ChapterCreateEntity chapter);
+        Task<ResponseInfo> UpdateChapter(ChapterUpdateEntity chapter);
+        Task<ChapterDto?> GetChapterAsync(string id);
         Task<List<ChapterDto>> GetChapterByNovel(string NovelId);
     }
 
@@ -34,7 +34,7 @@ namespace WebNovel.API.Areas.Models.Chapter
             _awsS3Service = awsS3Service;
         }
         static string GetActualAsyncMethodName([CallerMemberName] string name = null) => name;
-        public async Task<ResponseInfo> AddChapter(IFormFile formFile, ChapterCreateUpdateEntity chapter)
+        public async Task<ResponseInfo> AddChapter(ChapterCreateEntity chapter)
         {
             IDbContextTransaction transaction = null;
             string method = GetActualAsyncMethodName();
@@ -45,22 +45,21 @@ namespace WebNovel.API.Areas.Models.Chapter
 
                 _logger.LogInformation($"[{_className}][{method}] Start");
                 ResponseInfo result = new ResponseInfo();
-                var fileType = System.IO.Path.GetExtension(formFile.FileName);
-                await _awsS3Service.UploadToS3(formFile, $"text{fileType}", chapter.NovelId.ToString() + "/" + GuID.ToString());
+                var fileType = System.IO.Path.GetExtension(chapter.File.FileName);
+                await _awsS3Service.UploadToS3(chapter.File, $"text{fileType}", chapter.NovelId.ToString() + "/" + GuID.ToString());
                 var fileName = $"text{fileType}";
 
                 var newChapter = new Databases.Entities.Chapter()
                 {
                     Id = GuID.ToString(),
                     Name = chapter.Name,
-                    IsLocked = chapter.IsLocked,
+                    IsLocked = false,
                     PublishDate = DateTime.Now,
-                    Views = chapter.Views,
-                    Rating = chapter.Rating,
-                    FeeId = chapter.FeeId,
+                    IsPublished = false,
+                    Views = 0,
+                    Rating = 0,
                     FileContent = fileName,
-                    Discount = chapter.Discount,
-                    ApprovalStatus = chapter.ApprovalStatus,
+                    ApprovalStatus = false,
                     NovelId = chapter.NovelId
                 };
 
@@ -94,15 +93,20 @@ namespace WebNovel.API.Areas.Models.Chapter
 
         }
 
-        public async Task<ChapterDto> GetChapterAsync(string id)
+        public async Task<ChapterDto?> GetChapterAsync(string id)
         {
             var chapter = await _context.Chapter.Where(x => x.Id == id).FirstOrDefaultAsync();
+            if (chapter is null)
+            {
+                return null;
+            }
             var chapterDto = new ChapterDto()
             {
                 Id = chapter.Id,
                 Name = chapter.Name,
                 IsLocked = chapter.IsLocked,
                 PublishDate = chapter.PublishDate,
+                IsPublished = chapter.IsPublished,
                 Views = chapter.Views,
                 Rating = chapter.Rating,
                 FeeId = chapter.FeeId,
@@ -128,6 +132,7 @@ namespace WebNovel.API.Areas.Models.Chapter
                 Name = x.Name,
                 IsLocked = x.IsLocked,
                 PublishDate = x.PublishDate,
+                IsPublished = x.IsPublished,
                 Views = x.Views,
                 Rating = x.Rating,
                 FeeId = x.FeeId,
@@ -169,7 +174,7 @@ namespace WebNovel.API.Areas.Models.Chapter
             return listChapter;
         }
 
-        public async Task<ResponseInfo> UpdateChapter(string id, ChapterCreateUpdateEntity chapter, IFormFile formFile)
+        public async Task<ResponseInfo> UpdateChapter(ChapterUpdateEntity chapter)
         {
             IDbContextTransaction transaction = null;
             string method = GetActualAsyncMethodName();
@@ -179,7 +184,7 @@ namespace WebNovel.API.Areas.Models.Chapter
                 ResponseInfo result = new ResponseInfo();
                 ResponseInfo response = new ResponseInfo();
 
-                var existChapter = _context.Chapter.Where(n => n.Id == id).FirstOrDefault();
+                var existChapter = _context.Chapter.Where(n => n.Id == chapter.Id).FirstOrDefault();
                 if (existChapter is null)
                 {
                     response.Code = CodeResponse.HAVE_ERROR;
@@ -187,21 +192,32 @@ namespace WebNovel.API.Areas.Models.Chapter
                     return response;
                 }
 
-                var fileNames = new List<string>
+                if (existChapter.IsPublished)
                 {
-                    existChapter.FileContent
-                };
-                var fileName = formFile.FileName;
-                await _awsS3Service.DeleteFromS3(existChapter.NovelId.ToString() + "/" + existChapter.Id.ToString(), fileNames);
-                await _awsS3Service.UploadToS3(formFile, existChapter.FileContent, existChapter.NovelId.ToString() + "/" + existChapter.Id.ToString());
+                    response.Code = CodeResponse.BAD_REQUEST;
+                    response.MsgNo = "Chapter is published";
+                    return response;
+                }
 
-                existChapter.Name = chapter.Name;
-                existChapter.IsLocked = chapter.IsLocked;
-                existChapter.Views = chapter.Views;
-                existChapter.Rating = chapter.Rating;
-                existChapter.FeeId = chapter.FeeId;
-                existChapter.Discount = chapter.Discount;
-                existChapter.ApprovalStatus = chapter.ApprovalStatus;
+                if (chapter.File is not null)
+                {
+                    var fileNames = new List<string>
+                    {
+                        existChapter.FileContent
+                    };
+                    var fileName = chapter.File.FileName;
+                    await _awsS3Service.DeleteFromS3(existChapter.NovelId.ToString() + "/" + existChapter.Id.ToString(), fileNames);
+                    await _awsS3Service.UploadToS3(chapter.File, existChapter.FileContent, existChapter.NovelId.ToString() + "/" + existChapter.Id.ToString());
+                }
+
+                if (chapter.Name is not null) existChapter.Name = chapter.Name;
+                if (chapter.IsLocked is not null) existChapter.IsLocked = (bool)chapter.IsLocked;
+                if (chapter.Views is not null) existChapter.Views = (int)chapter.Views;
+                if (chapter.Rating is not null) existChapter.Rating = (int)chapter.Rating;
+                if (chapter.FeeId is not null) existChapter.FeeId = chapter.FeeId;
+                if (chapter.Discount is not null) existChapter.Discount = chapter.Discount;
+                if (chapter.ApprovalStatus is not null) existChapter.ApprovalStatus = (bool)chapter.ApprovalStatus;
+                if (chapter.IsPublished is not null) existChapter.IsPublished = (bool)chapter.IsPublished;
 
                 var strategy = _context.Database.CreateExecutionStrategy();
                 await strategy.ExecuteAsync(

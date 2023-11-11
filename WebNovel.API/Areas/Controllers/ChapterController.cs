@@ -28,20 +28,6 @@ namespace WebNovel.API.Areas.Controllers
             _chapterModel = chapterModel;
         }
 
-        [HttpGet]
-        [ProducesResponseType(typeof(ChapterDto), (int)HttpStatusCode.OK)]
-        public async Task<IActionResult> Search()
-        {
-            try
-            {
-                return Ok(await _chapterModel.GetListChapter());
-            }
-            catch (Exception e)
-            {
-                return StatusCode(500, new { Error = e.Message });
-            }
-        }
-
         [HttpGet("{id}")]
         [ProducesResponseType(typeof(ChapterDto), (int)HttpStatusCode.OK)]
         public async Task<IActionResult> GetDetail([FromRoute] string id)
@@ -73,14 +59,14 @@ namespace WebNovel.API.Areas.Controllers
         [HttpPost]
         [ProducesResponseType(typeof(ResponseInfo), (int)HttpStatusCode.OK)]
         [Authorize]
-        public async Task<IActionResult> Create([FromForm] ChapterCreateUpdateEntity chapter)
+        public async Task<IActionResult> Create([FromForm] ChapterCreateEntity chapter)
         {
             try
             {
                 ResponseInfo response = new ResponseInfo();
                 if (ModelState.IsValid)
                 {
-                    response = await _chapterModel.AddChapter(chapter.File, chapter);
+                    response = await _chapterModel.AddChapter(chapter);
                 }
                 else
                 {
@@ -94,17 +80,17 @@ namespace WebNovel.API.Areas.Controllers
             }
         }
 
-        [HttpPut("{id}")]
+        [HttpPut]
         [ProducesResponseType(typeof(ResponseInfo), (int)HttpStatusCode.OK)]
         [Authorize]
-        public async Task<IActionResult> Update([FromRoute] string id, [FromForm] ChapterCreateUpdateEntity chapter)
+        public async Task<IActionResult> Update([FromForm] ChapterUpdateEntity chapter)
         {
             try
             {
                 ResponseInfo response = new ResponseInfo();
                 if (ModelState.IsValid)
                 {
-                    response = await _chapterModel.UpdateChapter(id, chapter, chapter.File);
+                    response = await _chapterModel.UpdateChapter(chapter);
                 }
                 else
                 {
