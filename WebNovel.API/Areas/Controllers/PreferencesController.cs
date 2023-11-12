@@ -25,34 +25,6 @@ namespace WebNovel.API.Areas.Controllers
             _preferencesModel = preferencesModel;
         }
 
-        [HttpGet]
-        [ProducesResponseType(typeof(PreferencesDto), (int)HttpStatusCode.OK)]
-        public async Task<IActionResult> Search()
-        {
-            try
-            {
-                return Ok(await _preferencesModel.GetListPreference());
-            }
-            catch (Exception e)
-            {
-                return StatusCode(500, new { Error = e.Message });
-            }
-        }
-
-        [HttpGet("NovelId={NovelId}")]
-        [ProducesResponseType(typeof(PreferencesDto), (int)HttpStatusCode.OK)]
-        public async Task<IActionResult> GetDetailByNovel([FromRoute] string NovelId)
-        {
-            try
-            {
-                return Ok(await _preferencesModel.GetPreferenceByNovel(NovelId));
-            }
-            catch (Exception e)
-            {
-                return StatusCode(500, new { Error = e.Message });
-            }
-        }
-
         [HttpGet("AccountId={AccountId}")]
         [ProducesResponseType(typeof(PreferencesDto), (int)HttpStatusCode.OK)]
         public async Task<IActionResult> GetDetailByAccount([FromRoute] string AccountId)
@@ -60,20 +32,6 @@ namespace WebNovel.API.Areas.Controllers
             try
             {
                 return Ok(await _preferencesModel.GetPreferenceByAccount(AccountId));
-            }
-            catch (Exception e)
-            {
-                return StatusCode(500, new { Error = e.Message });
-            }
-        }
-
-        [HttpGet("{AccountId}/{NovelId}")]
-        [ProducesResponseType(typeof(PreferencesDto), (int)HttpStatusCode.OK)]
-        public async Task<IActionResult> GetDetail([FromRoute] string AccountId, [FromRoute] string NovelId)
-        {
-            try
-            {
-                return Ok(await _preferencesModel.GetPreference(AccountId, NovelId));
             }
             catch (Exception e)
             {
