@@ -54,7 +54,7 @@ namespace WebNovel.API.Areas.Models.Accounts
                 _logger.LogInformation($"[{_className}][{method}] Start");
                 var accountValidate = new AccountCreateUpdateEntity()
                 {
-                    Password = Security.Sha256(account.Password),
+                    Password = account.Password,
                     ConfirmPassword = account.ConfirmPassword,
                     Email = account.Email,
                 };
@@ -200,11 +200,12 @@ namespace WebNovel.API.Areas.Models.Accounts
                     IsChangeEmailPassword = true;
                     var accountValidate = new AccountCreateUpdateEntity()
                     {
-                        Password = Security.Sha256(account.Password),
+                        Id = account.Id,
+                        Password = account.Password,
                         ConfirmPassword = account.ConfirmPassword,
                         Email = account.Email,
                     };
-                    result = await ValidateUser(null, accountValidate);
+                    result = await ValidateUser(accountValidate.Id, accountValidate);
 
                     if (result.Code != CodeResponse.OK)
                     {
@@ -237,15 +238,19 @@ namespace WebNovel.API.Areas.Models.Accounts
                 if (account.IsAdmin is not null) existAccount.IsAdmin = (bool)account.IsAdmin;
                 if (account.IsActive is not null) existAccount.IsActive = (bool)account.IsActive;
 
-                _context.RolesOfUsers.RemoveRange(_context.RolesOfUsers.Where(x => x.AccountId == existAccount.Id));
-                foreach (var roleId in account.RoleIds)
-                {
-                    existAccount.Roles.Add(new RolesOfUser()
+                if (account.RoleIds is not null)
+                    if (account.RoleIds.Any())
                     {
-                        AccountId = existAccount.Id,
-                        RoleId = roleId,
-                    });
-                }
+                        _context.RolesOfUsers.RemoveRange(_context.RolesOfUsers.Where(x => x.AccountId == existAccount.Id));
+                        foreach (var roleId in account.RoleIds)
+                        {
+                            existAccount.Roles.Add(new RolesOfUser()
+                            {
+                                AccountId = existAccount.Id,
+                                RoleId = roleId,
+                            });
+                        }
+                    }
 
                 var strategy = _context.Database.CreateExecutionStrategy();
                 await strategy.ExecuteAsync(

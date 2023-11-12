@@ -39,7 +39,7 @@ namespace WebNovel.API.Areas.Models.Accounts.Schemas
         public List<string> RoleIds { set; get; } = null!;
         public string? Phone { get; set; }
         public float? WalletAmmount { get; set; }
-        public bool? IsActive { get; internal set; }
+        public bool? IsActive { get; set; }
     }
 
     public class AccountCreateUpdateEntity
