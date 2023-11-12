@@ -6,6 +6,7 @@ using System.Threading.Tasks;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Storage;
 using Microsoft.OpenApi.Models;
+using WebNovel.API.Areas.Models.Accounts;
 using WebNovel.API.Areas.Models.Rating.Schemas;
 using WebNovel.API.Commons;
 using WebNovel.API.Commons.CodeMaster;
@@ -25,17 +26,19 @@ namespace WebNovel.API.Areas.Models.Rating
         Task<ResponseInfo> AddRating(RatingCreateUpdateEntity rating);
         Task<List<RatingDto>> GetRatingByAccount(string AccountId);
         Task<List<RatingDto>> GetRatingByNovel(string NovelId);
-        Task<RatingDto> GetRating(string AccountId, string NovelId);
-        Task<ResponseInfo> UpdateRating(string AccountId, string NovelId, RatingCreateUpdateEntity rating);
+        Task<RatingDto?> GetRating(string AccountId, string NovelId);
+        Task<ResponseInfo> UpdateRating(RatingCreateUpdateEntity rating);
     }
     public class RatingModel : BaseModel, IRatingModel
     {
         private readonly ILogger<IRatingModel> _logger;
+        private readonly IAccountModel _accountModel;
         private string _className = "";
-        public RatingModel(IServiceProvider provider, ILogger<IRatingModel> logger) : base(provider)
+        public RatingModel(IServiceProvider provider, ILogger<IRatingModel> logger, IAccountModel accountModel) : base(provider)
         {
             _logger = logger ?? throw new ArgumentNullException(nameof(logger));
             _className = GetType().Name;
+            _accountModel = accountModel;
         }
 
         static string GetActualAsyncMethodName([CallerMemberName] string name = null) => name;
@@ -97,6 +100,15 @@ namespace WebNovel.API.Areas.Models.Rating
                 RateScore = x.RateScore
             }).ToListAsync();
 
+            foreach (var rating in listRating)
+            {
+                var Account = await _accountModel.GetAccount(rating.AccountId);
+                rating.Username = Account.Username;
+                rating.Email = Account.Email;
+                rating.NickName = Account.NickName;
+                rating.RoleIds = Account.RoleIds;
+            }
+
             return listRating;
         }
 
@@ -109,17 +121,35 @@ namespace WebNovel.API.Areas.Models.Rating
                 RateScore = x.RateScore
             }).ToListAsync();
 
+            foreach (var rating in listRating)
+            {
+                var Account = await _accountModel.GetAccount(rating.AccountId);
+                rating.Username = Account.Username;
+                rating.Email = Account.Email;
+                rating.NickName = Account.NickName;
+                rating.RoleIds = Account.RoleIds;
+            }
+
             return listRating;
         }
 
-        public async Task<RatingDto> GetRating(string AccountId, string NovelId)
+        public async Task<RatingDto?> GetRating(string AccountId, string NovelId)
         {
             var Rating = await _context.Ratings.Where(x => x.NovelId == NovelId && x.AccountId == AccountId).FirstOrDefaultAsync();
+            if (Rating is null)
+            {
+                return null;
+            }
+            var Account = await _accountModel.GetAccount(Rating.AccountId);
             var RatingDto = new RatingDto()
             {
                 NovelId = Rating.NovelId,
                 AccountId = Rating.AccountId,
-                RateScore = Rating.RateScore
+                RateScore = Rating.RateScore,
+                Username = Account.Username,
+                Email = Account.Email,
+                NickName = Account.NickName,
+                RoleIds = Account.RoleIds,
             };
 
             return RatingDto;
@@ -137,7 +167,7 @@ namespace WebNovel.API.Areas.Models.Rating
             return listRating;
         }
 
-        public async Task<ResponseInfo> UpdateRating(string AccountId, string NovelId, RatingCreateUpdateEntity rating)
+        public async Task<ResponseInfo> UpdateRating(RatingCreateUpdateEntity rating)
         {
             IDbContextTransaction transaction = null;
             string method = GetActualAsyncMethodName();
@@ -152,7 +182,7 @@ namespace WebNovel.API.Areas.Models.Rating
                     return result;
                 }
 
-                var existRating = _context.Ratings.Where(x => x.NovelId == NovelId && x.AccountId == AccountId).FirstOrDefault();
+                var existRating = _context.Ratings.Where(x => x.NovelId == rating.NovelId && x.AccountId == rating.AccountId).FirstOrDefault();
                 if (existRating is null)
                 {
                     response.Code = CodeResponse.HAVE_ERROR;
