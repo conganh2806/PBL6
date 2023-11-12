@@ -24,20 +24,6 @@ namespace WebNovel.API.Areas.Controllers
             _commentModel = commentModel;
         }
 
-        [HttpGet]
-        [ProducesResponseType(typeof(CommentDto), (int)HttpStatusCode.OK)]
-        public async Task<IActionResult> Search()
-        {
-            try
-            {
-                return Ok(await _commentModel.GetListComment());
-            }
-            catch (Exception e)
-            {
-                return StatusCode(500, new { Error = e.Message });
-            }
-        }
-
         [HttpGet("NovelId={NovelId}")]
         [ProducesResponseType(typeof(CommentDto), (int)HttpStatusCode.OK)]
         public async Task<IActionResult> GetDetailByNovel([FromRoute] string NovelId)
@@ -67,21 +53,6 @@ namespace WebNovel.API.Areas.Controllers
             }
         }
 
-        [HttpGet("{AccountId}/{NovelId}")]
-        [ProducesResponseType(typeof(CommentDto), (int)HttpStatusCode.OK)]
-        [Authorize]
-        public async Task<IActionResult> GetDetailByAccountNovel([FromRoute] string AccountId, [FromRoute] string NovelId)
-        {
-            try
-            {
-                return Ok(await _commentModel.GetCommentByAccountNovel(AccountId, NovelId));
-            }
-            catch (Exception e)
-            {
-                return StatusCode(500, new { Error = e.Message });
-            }
-        }
-
         [HttpGet("{Id}")]
         [ProducesResponseType(typeof(CommentDto), (int)HttpStatusCode.OK)]
         [Authorize]
@@ -99,7 +70,7 @@ namespace WebNovel.API.Areas.Controllers
         [HttpPost]
         [ProducesResponseType(typeof(ResponseInfo), (int)HttpStatusCode.OK)]
         [Authorize]
-        public async Task<IActionResult> Create([FromBody] CommentCreateUpdateEntity Comment)
+        public async Task<IActionResult> Create([FromBody] CommentCreateEntity Comment)
         {
             try
             {
@@ -120,17 +91,17 @@ namespace WebNovel.API.Areas.Controllers
             }
         }
 
-        [HttpPut("{Id}")]
+        [HttpPut]
         [ProducesResponseType(typeof(ResponseInfo), (int)HttpStatusCode.OK)]
         [Authorize]
-        public async Task<IActionResult> Update([FromRoute] long Id, [FromBody] CommentCreateUpdateEntity Comment)
+        public async Task<IActionResult> Update([FromBody] CommentUpdateEntity Comment)
         {
             try
             {
                 ResponseInfo response = new ResponseInfo();
                 if (ModelState.IsValid)
                 {
-                    response = await _commentModel.UpdateComment(Id, Comment);
+                    response = await _commentModel.UpdateComment(Comment);
                 }
                 else
                 {

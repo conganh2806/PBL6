@@ -12,12 +12,12 @@ namespace WebNovel.API.Areas.Models.Comment
     public interface ICommentModel
     {
         Task<List<CommentDto>> GetListComment();
-        Task<ResponseInfo> AddComment(CommentCreateUpdateEntity comment);
+        Task<ResponseInfo> AddComment(CommentCreateEntity comment);
         Task<List<CommentDto>> GetCommentByAccount(string accountId);
         Task<List<CommentDto>> GetCommentByNovel(string NovelId);
         Task<List<CommentDto>> GetCommentByAccountNovel(string accountId, string novelId);
         Task<CommentDto> GetComment(long Id);
-        Task<ResponseInfo> UpdateComment(long Id, CommentCreateUpdateEntity comment);
+        Task<ResponseInfo> UpdateComment(CommentUpdateEntity comment);
     }
     public class CommentModel : BaseModel, ICommentModel
     {
@@ -31,7 +31,7 @@ namespace WebNovel.API.Areas.Models.Comment
 
         static string GetActualAsyncMethodName([CallerMemberName] string name = "") => name;
 
-        public async Task<ResponseInfo> AddComment(CommentCreateUpdateEntity comment)
+        public async Task<ResponseInfo> AddComment(CommentCreateEntity comment)
         {
             IDbContextTransaction transaction = null;
             string method = GetActualAsyncMethodName();
@@ -129,6 +129,7 @@ namespace WebNovel.API.Areas.Models.Comment
             {
                 var CommentDto = new CommentDto()
                 {
+                    Id = Comment.Id,
                     NovelId = Comment.NovelId,
                     AccountId = Comment.AccountId,
                     Text = Comment.Text,
@@ -152,7 +153,7 @@ namespace WebNovel.API.Areas.Models.Comment
             return listComment;
         }
 
-        public async Task<ResponseInfo> UpdateComment(long Id, CommentCreateUpdateEntity comment)
+        public async Task<ResponseInfo> UpdateComment(CommentUpdateEntity comment)
         {
             IDbContextTransaction? transaction = null;
             string method = GetActualAsyncMethodName();
@@ -167,7 +168,7 @@ namespace WebNovel.API.Areas.Models.Comment
                     return result;
                 }
 
-                var existComment = _context.Comment.Where(x => x.Id == Id).FirstOrDefault();
+                var existComment = _context.Comment.Where(x => x.Id == comment.Id).FirstOrDefault();
                 if (existComment is null)
                 {
                     response.Code = CodeResponse.HAVE_ERROR;
