@@ -21,7 +21,7 @@ namespace WebNovel.API.Areas.Models.Genres
     {
         Task<List<GenreDto>> GetListGenre();
         Task<ResponseInfo> AddGenre(GenreCreateUpdateEntity genre);
-        Task<ResponseInfo> UpdateGenre(long id, GenreCreateUpdateEntity genre);
+        Task<ResponseInfo> UpdateGenre(GenreCreateUpdateEntity genre);
         Task<GenreDto> GetGenre(long id);
     }
 
@@ -107,7 +107,7 @@ namespace WebNovel.API.Areas.Models.Genres
             return listGenre;
         }
 
-        public async Task<ResponseInfo> UpdateGenre(long id, GenreCreateUpdateEntity genre)
+        public async Task<ResponseInfo> UpdateGenre(GenreCreateUpdateEntity genre)
         {
             IDbContextTransaction transaction = null;
             string method = GetActualAsyncMethodName();
@@ -122,7 +122,7 @@ namespace WebNovel.API.Areas.Models.Genres
                     return result;
                 }
 
-                var existGenre = _context.Genre.Where(x => x.Id == id).FirstOrDefault();
+                var existGenre = _context.Genre.Where(x => x.Id == genre.Id).FirstOrDefault();
                 if (existGenre is null)
                 {
                     response.Code = CodeResponse.HAVE_ERROR;
