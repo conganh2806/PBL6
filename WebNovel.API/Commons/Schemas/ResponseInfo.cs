@@ -26,6 +26,8 @@ namespace WebNovel.API.Commons.Schemas
         {
             Code = CodeResponse.OK;
             MsgNo = "";
+            Data = new Dictionary<string, string>();
         }
+        public Dictionary<string, string> Data { set; get; }
     }
 }
