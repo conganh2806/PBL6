@@ -38,20 +38,6 @@ namespace WebNovel.API.Areas.Controllers
             }
         }
 
-        [HttpGet("{id}")]
-        [ProducesResponseType(typeof(GenreDto), (int)HttpStatusCode.OK)]
-        public async Task<IActionResult> GetDetail([FromRoute] long id)
-        {
-            try
-            {
-                return Ok(await _genreModel.GetGenre(id));
-            }
-            catch (Exception e)
-            {
-                return StatusCode(500, new { Error = e.Message });
-            }
-        }
-
         [HttpPost]
         [ProducesResponseType(typeof(ResponseInfo), (int)HttpStatusCode.OK)]
         [Authorize]
@@ -76,17 +62,17 @@ namespace WebNovel.API.Areas.Controllers
             }
         }
 
-        [HttpPut("{id}")]
+        [HttpPut]
         [ProducesResponseType(typeof(ResponseInfo), (int)HttpStatusCode.OK)]
         [Authorize]
-        public async Task<IActionResult> Update([FromRoute] long id, [FromBody] GenreCreateUpdateEntity Genre)
+        public async Task<IActionResult> Update([FromBody] GenreCreateUpdateEntity Genre)
         {
             try
             {
                 ResponseInfo response = new ResponseInfo();
                 if (ModelState.IsValid)
                 {
-                    response = await _genreModel.UpdateGenre(id, Genre);
+                    response = await _genreModel.UpdateGenre(Genre);
                 }
                 else
                 {

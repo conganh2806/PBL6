@@ -73,14 +73,14 @@ namespace WebNovel.API.Areas.Controllers
 
         [HttpPost]
         [Authorize]
-        public async Task<IActionResult> Create([FromForm] NovelCreateUpdateEntity novel)
+        public async Task<IActionResult> Create([FromForm] NovelCreateEntity novel)
         {
             try
             {
                 ResponseInfo response = new ResponseInfo();
                 if (ModelState.IsValid)
                 {
-                    response = await _novelModel.AddNovel(novel.File, novel);
+                    response = await _novelModel.AddNovel(novel);
                 }
                 else
                 {
@@ -94,17 +94,17 @@ namespace WebNovel.API.Areas.Controllers
             }
         }
 
-        [HttpPut("{id}")]
+        [HttpPut]
         [ProducesResponseType(typeof(ResponseInfo), (int)HttpStatusCode.OK)]
         [Authorize]
-        public async Task<IActionResult> Update([FromRoute] string id, [FromForm] NovelCreateUpdateEntity novel)
+        public async Task<IActionResult> Update([FromForm] NovelUpdateEntity novel)
         {
             try
             {
                 ResponseInfo response = new ResponseInfo();
                 if (ModelState.IsValid)
                 {
-                    response = await _novelModel.UpdateNovel(id, novel, novel.File);
+                    response = await _novelModel.UpdateNovel(novel);
                 }
                 else
                 {

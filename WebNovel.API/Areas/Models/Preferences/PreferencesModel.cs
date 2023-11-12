@@ -25,7 +25,7 @@ namespace WebNovel.API.Areas.Models.Preferences
         Task<ResponseInfo> AddPreference(PreferencesCreateUpdateEntity account);
         Task<List<PreferencesDto>> GetPreferenceByAccount(string AccountId);
         Task<List<PreferencesDto>> GetPreferenceByNovel(string NovelId);
-        Task<PreferencesDto> GetPreference(string AccountId, string NovelId);
+        Task<PreferencesDto?> GetPreference(string AccountId, string NovelId);
     }
     public class PreferencesModel : BaseModel, IPreferencesModel
     {
@@ -98,7 +98,20 @@ namespace WebNovel.API.Areas.Models.Preferences
 
             foreach (var preference in listPreference)
             {
-                preference.Novel = await _novelModel.GetNovelAsync(preference.NovelId);
+                var Novel = await _novelModel.GetNovelAsync(preference.NovelId);
+                preference.Name = Novel.Name;
+                preference.Title = Novel.Title;
+                preference.Author = Novel.Author;
+                preference.Year = Novel.Year;
+                preference.Views = Novel.Views;
+                preference.Rating = Novel.Rating;
+                preference.ImagesURL = Novel.ImagesURL;
+                preference.GenreName = Novel.GenreName;
+                preference.GenreIds = Novel.GenreIds;
+                preference.Description = Novel.Description;
+                preference.Status = Novel.Status;
+                preference.ApprovalStatus = Novel.ApprovalStatus;
+                preference.NumChapter = Novel.NumChapter;
             }
 
             return listPreference;
@@ -112,17 +125,52 @@ namespace WebNovel.API.Areas.Models.Preferences
                 AccountId = x.AccountId,
             }).ToListAsync();
 
+            foreach (var preference in listPreference)
+            {
+                var Novel = await _novelModel.GetNovelAsync(preference.NovelId);
+                preference.Name = Novel.Name;
+                preference.Title = Novel.Title;
+                preference.Author = Novel.Author;
+                preference.Year = Novel.Year;
+                preference.Views = Novel.Views;
+                preference.Rating = Novel.Rating;
+                preference.ImagesURL = Novel.ImagesURL;
+                preference.GenreName = Novel.GenreName;
+                preference.GenreIds = Novel.GenreIds;
+                preference.Description = Novel.Description;
+                preference.Status = Novel.Status;
+                preference.ApprovalStatus = Novel.ApprovalStatus;
+                preference.NumChapter = Novel.NumChapter;
+            }
+
             return listPreference;
         }
 
-        public async Task<PreferencesDto> GetPreference(string AccountId, string NovelId)
+        public async Task<PreferencesDto?> GetPreference(string AccountId, string NovelId)
         {
             var preference = await _context.Preferences.Where(x => x.NovelId == NovelId && x.AccountId == AccountId).FirstOrDefaultAsync();
+            if (preference is null)
+            {
+                return null;
+            }
+            var Novel = await _novelModel.GetNovelAsync(preference.NovelId);
             var preferenceDto = new PreferencesDto
             {
                 NovelId = preference.NovelId,
                 AccountId = preference.AccountId,
-                Novel = await _novelModel.GetNovelAsync(preference.NovelId),
+                Name = Novel.Name,
+                Title = Novel.Title,
+                Author = Novel.Author,
+                Year = Novel.Year,
+                Views = Novel.Views,
+                Rating = Novel.Rating,
+                ImagesURL = Novel.ImagesURL,
+                GenreName = Novel.GenreName,
+                GenreIds = Novel.GenreIds,
+                Description = Novel.Description,
+                Status = Novel.Status,
+                ApprovalStatus = Novel.ApprovalStatus,
+                NumChapter = Novel.NumChapter,
             };
 
             return preferenceDto;
@@ -138,7 +186,20 @@ namespace WebNovel.API.Areas.Models.Preferences
 
             foreach (var preference in listPreference)
             {
-                preference.Novel = await _novelModel.GetNovelAsync(preference.NovelId);
+                var Novel = await _novelModel.GetNovelAsync(preference.NovelId);
+                preference.Name = Novel.Name;
+                preference.Title = Novel.Title;
+                preference.Author = Novel.Author;
+                preference.Year = Novel.Year;
+                preference.Views = Novel.Views;
+                preference.Rating = Novel.Rating;
+                preference.ImagesURL = Novel.ImagesURL;
+                preference.GenreName = Novel.GenreName;
+                preference.GenreIds = Novel.GenreIds;
+                preference.Description = Novel.Description;
+                preference.Status = Novel.Status;
+                preference.ApprovalStatus = Novel.ApprovalStatus;
+                preference.NumChapter = Novel.NumChapter;
             }
 
             return listPreference;

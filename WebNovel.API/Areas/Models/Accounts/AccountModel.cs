@@ -24,9 +24,9 @@ namespace WebNovel.API.Areas.Models.Accounts
     public interface IAccountModel
     {
         Task<List<AccountDto>> GetListAccount(SearchCondition searchCondition);
-        Task<ResponseInfo> AddAccount(AccountCreateUpdateEntity account);
-        Task<ResponseInfo> UpdateAccount(string id, AccountCreateUpdateEntity account);
-        Task<AccountDto> GetAccount(string id);
+        Task<ResponseInfo> AddAccount(AccountCreateEntity account);
+        Task<ResponseInfo> UpdateAccount(AccountUpdateEntity account);
+        Task<AccountDto?> GetAccount(string id);
         Task<AccountDto> FindByEmailAsync(string email);
         Task<ResponseInfo> UpdateToken(AccountCreateUpdateEntity account);
         Task<string> LoginWithPasswordAsync(string email, string password);
@@ -43,7 +43,7 @@ namespace WebNovel.API.Areas.Models.Accounts
 
         static string GetActualAsyncMethodName([CallerMemberName] string name = null) => name;
 
-        public async Task<ResponseInfo> AddAccount(AccountCreateUpdateEntity account)
+        public async Task<ResponseInfo> AddAccount(AccountCreateEntity account)
         {
             IDbContextTransaction transaction = null;
             string method = GetActualAsyncMethodName();
@@ -52,7 +52,13 @@ namespace WebNovel.API.Areas.Models.Accounts
                 var GuID = (ShortGuid)Guid.NewGuid();
 
                 _logger.LogInformation($"[{_className}][{method}] Start");
-                ResponseInfo result = await ValidateUser(null, account);
+                var accountValidate = new AccountCreateUpdateEntity()
+                {
+                    Password = account.Password,
+                    ConfirmPassword = account.ConfirmPassword,
+                    Email = account.Email,
+                };
+                ResponseInfo result = await ValidateUser(null, accountValidate);
                 if (result.Code != CodeResponse.OK)
                 {
                     return result;
@@ -66,9 +72,8 @@ namespace WebNovel.API.Areas.Models.Accounts
                     Password = Security.Sha256(account.Password),
                     Status = A001.NORMAL.CODE,
                     Email = account.Email,
-                    Phone = account.Phone,
                     IsAdmin = account.IsAdmin,
-                    IsActive = account.IsActive,
+                    IsActive = true,
                 };
                 if (account.RoleIds.Any())
                 {
@@ -77,7 +82,7 @@ namespace WebNovel.API.Areas.Models.Accounts
                         newAccount.Roles.Add(new RolesOfUser()
                         {
                             RoleId = roleId,
-                            AccountId = account.Id,
+                            AccountId = newAccount.Id,
                         });
                     }
                 }
@@ -159,7 +164,7 @@ namespace WebNovel.API.Areas.Models.Accounts
 
         public async Task<List<AccountDto>> GetListAccount(SearchCondition searchCondition)
         {
-            var listAccount = _context.Accounts.Include(x => x.Roles).ThenInclude(x => x.Role).Select(x => new AccountDto()
+            var listAccount = await _context.Accounts.Include(x => x.Roles).ThenInclude(x => x.Role).Select(x => new AccountDto()
             {
                 Id = x.Id,
                 NickName = x.NickName,
@@ -171,12 +176,12 @@ namespace WebNovel.API.Areas.Models.Accounts
                 RoleIds = x.Roles.Select(x => x.RoleId).ToList(),
                 RefreshToken = x.RefreshToken,
                 RefreshTokenExpiryTime = x.RefreshTokenExpiryTime,
-            }).ToList();
+            }).ToListAsync();
 
             return listAccount;
         }
 
-        public async Task<ResponseInfo> UpdateAccount(string id, AccountCreateUpdateEntity account)
+        public async Task<ResponseInfo> UpdateAccount(AccountUpdateEntity account)
         {
             IDbContextTransaction transaction = null;
             string method = GetActualAsyncMethodName();
@@ -184,14 +189,31 @@ namespace WebNovel.API.Areas.Models.Accounts
             try
             {
                 _logger.LogInformation($"[{_className}][{method}] Start");
-                ResponseInfo result = await ValidateUser(null, account);
-                ResponseInfo response = await ValidateUser(null, account);
-                if (result.Code != CodeResponse.OK)
+                ResponseInfo result = new ResponseInfo();
+                ResponseInfo response = new ResponseInfo();
+                bool IsChangeEmailPassword = false;
+
+                if (account.Email is not null
+                && account.Password is not null
+                && account.ConfirmPassword is not null)
                 {
-                    return result;
+                    IsChangeEmailPassword = true;
+                    var accountValidate = new AccountCreateUpdateEntity()
+                    {
+                        Id = account.Id,
+                        Password = account.Password,
+                        ConfirmPassword = account.ConfirmPassword,
+                        Email = account.Email,
+                    };
+                    result = await ValidateUser(accountValidate.Id, accountValidate);
+
+                    if (result.Code != CodeResponse.OK)
+                    {
+                        return result;
+                    }
                 }
 
-                var existAccount = await _context.Accounts.Include(x => x.Roles).ThenInclude(x => x.Role).Where(x => x.Id == id).FirstOrDefaultAsync();
+                var existAccount = await _context.Accounts.Include(x => x.Roles).ThenInclude(x => x.Role).Where(x => x.Id == account.Id).FirstOrDefaultAsync();
                 if (existAccount is null)
                 {
                     response.Code = CodeResponse.HAVE_ERROR;
@@ -199,23 +221,36 @@ namespace WebNovel.API.Areas.Models.Accounts
                     return response;
                 }
 
-                existAccount.NickName = account.NickName;
-                existAccount.Username = account.Username;
-                existAccount.Password = Security.Sha256(account.Password);
-                existAccount.Phone = account.Phone;
-                existAccount.Email = account.Email;
-                existAccount.WalletAmmount = account.WalletAmmount;
-                existAccount.IsAdmin = account.IsAdmin;
-                _context.RolesOfUsers.RemoveRange(_context.RolesOfUsers.Where(x => x.AccountId == existAccount.Id));
-                foreach (var roleId in account.RoleIds)
+                if (account.NickName is not null) existAccount.NickName = account.NickName;
+                if (account.Username is not null) existAccount.Username = account.Username;
+
+                if (IsChangeEmailPassword
+                && account.Email is not null
+                && account.Password is not null)
                 {
-                    existAccount.Roles.Add(new RolesOfUser()
-                    {
-                        AccountId = existAccount.Id,
-                        RoleId = roleId,
-                    });
+                    existAccount.Password = Security.Sha256(account.Password);
+                    existAccount.Email = account.Email;
                 }
-                existAccount.IsActive = account.IsActive;
+
+                existAccount.Phone = account.Phone;
+
+                if (account.WalletAmmount is not null) existAccount.WalletAmmount = (float)account.WalletAmmount;
+                if (account.IsAdmin is not null) existAccount.IsAdmin = (bool)account.IsAdmin;
+                if (account.IsActive is not null) existAccount.IsActive = (bool)account.IsActive;
+
+                if (account.RoleIds is not null)
+                    if (account.RoleIds.Any())
+                    {
+                        _context.RolesOfUsers.RemoveRange(_context.RolesOfUsers.Where(x => x.AccountId == existAccount.Id));
+                        foreach (var roleId in account.RoleIds)
+                        {
+                            existAccount.Roles.Add(new RolesOfUser()
+                            {
+                                AccountId = existAccount.Id,
+                                RoleId = roleId,
+                            });
+                        }
+                    }
 
                 var strategy = _context.Database.CreateExecutionStrategy();
                 await strategy.ExecuteAsync(

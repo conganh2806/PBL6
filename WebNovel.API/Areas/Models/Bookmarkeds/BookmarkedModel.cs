@@ -23,10 +23,10 @@ namespace WebNovel.API.Areas.Models.Bookmarked
     {
         Task<List<BookmarkedDto>> GetListBookmarked();
         Task<ResponseInfo> AddBookmarked(BookmarkedCreateUpdateEntity Bookmarked);
-        Task<ResponseInfo> UpdateBookmarked(string AccountId, string NovelId, BookmarkedCreateUpdateEntity Bookmarked);
+        Task<ResponseInfo> UpdateBookmarked(BookmarkedCreateUpdateEntity Bookmarked);
         Task<List<BookmarkedDto>> GetBookmarkedByAccount(string AccountId);
         Task<List<BookmarkedDto>> GetBookmarkedByNovel(string NovelId);
-        Task<BookmarkedDto> GetBookmarked(string AccountId, string NovelId);
+        Task<BookmarkedDto?> GetBookmarked(string AccountId, string NovelId);
     }
     public class BookmarkedModel : BaseModel, IBookmarkedModel
     {
@@ -101,7 +101,20 @@ namespace WebNovel.API.Areas.Models.Bookmarked
 
             foreach (var bookmarked in listBookmarked)
             {
-                bookmarked.Novel = await _novelModel.GetNovelAsync(bookmarked.NovelId);
+                var Novel = await _novelModel.GetNovelAsync(bookmarked.NovelId);
+                bookmarked.Name = Novel.Name;
+                bookmarked.Title = Novel.Title;
+                bookmarked.Author = Novel.Author;
+                bookmarked.Year = Novel.Year;
+                bookmarked.Views = Novel.Views;
+                bookmarked.Rating = Novel.Rating;
+                bookmarked.ImagesURL = Novel.ImagesURL;
+                bookmarked.GenreName = Novel.GenreName;
+                bookmarked.GenreIds = Novel.GenreIds;
+                bookmarked.Description = Novel.Description;
+                bookmarked.Status = Novel.Status;
+                bookmarked.ApprovalStatus = Novel.ApprovalStatus;
+                bookmarked.NumChapter = Novel.NumChapter;
             }
 
             return listBookmarked;
@@ -119,15 +132,32 @@ namespace WebNovel.API.Areas.Models.Bookmarked
             return listBookmarked;
         }
 
-        public async Task<BookmarkedDto> GetBookmarked(string AccountId, string NovelId)
+        public async Task<BookmarkedDto?> GetBookmarked(string AccountId, string NovelId)
         {
             var Bookmarked = await _context.BookMarked.Where(x => x.NovelId == NovelId && x.AccountId == AccountId).FirstOrDefaultAsync();
+            if (Bookmarked is null)
+            {
+                return null;
+            }
+            var Novel = await _novelModel.GetNovelAsync(Bookmarked.NovelId);
             var BookmarkedDto = new BookmarkedDto()
             {
                 NovelId = Bookmarked.NovelId,
                 AccountId = Bookmarked.AccountId,
                 ChapterId = Bookmarked.ChapterId,
-                Novel = await _novelModel.GetNovelAsync(Bookmarked.NovelId),
+                Name = Novel.Name,
+                Title = Novel.Title,
+                Author = Novel.Author,
+                Year = Novel.Year,
+                Views = Novel.Views,
+                Rating = Novel.Rating,
+                ImagesURL = Novel.ImagesURL,
+                GenreName = Novel.GenreName,
+                GenreIds = Novel.GenreIds,
+                Description = Novel.Description,
+                Status = Novel.Status,
+                ApprovalStatus = Novel.ApprovalStatus,
+                NumChapter = Novel.NumChapter,
             };
 
             return BookmarkedDto;
@@ -144,13 +174,26 @@ namespace WebNovel.API.Areas.Models.Bookmarked
 
             foreach (var bookmarked in listBookmarked)
             {
-                bookmarked.Novel = await _novelModel.GetNovelAsync(bookmarked.NovelId);
+                var Novel = await _novelModel.GetNovelAsync(bookmarked.NovelId);
+                bookmarked.Name = Novel.Name;
+                bookmarked.Title = Novel.Title;
+                bookmarked.Author = Novel.Author;
+                bookmarked.Year = Novel.Year;
+                bookmarked.Views = Novel.Views;
+                bookmarked.Rating = Novel.Rating;
+                bookmarked.ImagesURL = Novel.ImagesURL;
+                bookmarked.GenreName = Novel.GenreName;
+                bookmarked.GenreIds = Novel.GenreIds;
+                bookmarked.Description = Novel.Description;
+                bookmarked.Status = Novel.Status;
+                bookmarked.ApprovalStatus = Novel.ApprovalStatus;
+                bookmarked.NumChapter = Novel.NumChapter;
             }
 
             return listBookmarked;
         }
 
-        public async Task<ResponseInfo> UpdateBookmarked(string AccountId, string NovelId, BookmarkedCreateUpdateEntity Bookmarked)
+        public async Task<ResponseInfo> UpdateBookmarked(BookmarkedCreateUpdateEntity Bookmarked)
         {
             IDbContextTransaction transaction = null;
             string method = GetActualAsyncMethodName();
@@ -165,7 +208,7 @@ namespace WebNovel.API.Areas.Models.Bookmarked
                     return result;
                 }
 
-                var existBookmarked = _context.BookMarked.Where(x => x.NovelId == NovelId && x.AccountId == AccountId).FirstOrDefault();
+                var existBookmarked = _context.BookMarked.Where(x => x.NovelId == Bookmarked.NovelId && x.AccountId == Bookmarked.AccountId).FirstOrDefault();
                 if (existBookmarked is null)
                 {
                     response.Code = CodeResponse.HAVE_ERROR;

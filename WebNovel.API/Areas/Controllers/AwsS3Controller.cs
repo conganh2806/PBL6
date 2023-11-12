@@ -36,35 +36,5 @@ namespace WebNovel.API.Areas.Controllers
                 return StatusCode(404, ex.Message);
             }
         }
-
-        [HttpPost]
-        public async Task<IActionResult> UploadFile([FromForm] FileInput input)
-        {
-            try
-            {
-                var file = await _aws3Services.UploadToS3(input.file, input.fileName, input.folder);
-
-                return Ok(file);
-            }
-            catch (Exception ex)
-            {
-                return StatusCode(404, ex.Message);
-            }
-        }
-
-        [HttpDelete]
-        public IActionResult DeleteFiles([FromBody] FileNamesList fileList)
-        {
-            try
-            {
-                var document = _aws3Services.DeleteFromS3(fileList.Folder, fileList.FileName);
-
-                return Ok(document);
-            }
-            catch (Exception ex)
-            {
-                return StatusCode(404, ex.Message);
-            }
-        }
     }
 }

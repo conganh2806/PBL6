@@ -24,20 +24,6 @@ namespace WebNovel.API.Areas.Controllers
             _ratingModel = ratingModel;
         }
 
-        [HttpGet]
-        [ProducesResponseType(typeof(RatingDto), (int)HttpStatusCode.OK)]
-        public async Task<IActionResult> Search()
-        {
-            try
-            {
-                return Ok(await _ratingModel.GetListRating());
-            }
-            catch (Exception e)
-            {
-                return StatusCode(500, new { Error = e.Message });
-            }
-        }
-
         [HttpGet("NovelId={NovelId}")]
         [ProducesResponseType(typeof(RatingDto), (int)HttpStatusCode.OK)]
         public async Task<IActionResult> GetDetailByNovel([FromRoute] string NovelId)
@@ -104,17 +90,17 @@ namespace WebNovel.API.Areas.Controllers
             }
         }
 
-        [HttpPut("{AccountId}/{NovelId}")]
+        [HttpPut]
         [ProducesResponseType(typeof(ResponseInfo), (int)HttpStatusCode.OK)]
         [Authorize]
-        public async Task<IActionResult> Update([FromRoute] string AccountId, [FromRoute] string NovelId, [FromBody] RatingCreateUpdateEntity rating)
+        public async Task<IActionResult> Update([FromBody] RatingCreateUpdateEntity rating)
         {
             try
             {
                 ResponseInfo response = new ResponseInfo();
                 if (ModelState.IsValid)
                 {
-                    response = await _ratingModel.UpdateRating(AccountId, NovelId, rating);
+                    response = await _ratingModel.UpdateRating(rating);
                 }
                 else
                 {

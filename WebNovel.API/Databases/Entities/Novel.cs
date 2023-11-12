@@ -21,7 +21,7 @@ namespace WebNovel.API.Databases.Entitites
         [StringLength(255)]
         public string Title { get; set; } = null!;
         public string AccountId { get; set; }
-        public Account? Account { get; set; }
+        public virtual Account Account { get; set; }
         public int Year { get; set; }
         public int Views { get; set; }
         public int Rating { get; set; }

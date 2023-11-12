@@ -9,6 +9,7 @@ namespace WebNovel.API.Areas.Models.Novels.Schemas
         public string Name { get; set; } = null!;
         [StringLength(255)]
         public string Title { get; set; } = null!;
+        public string AuthorId { get; set; } = null!;
         public string Author { get; set; } = null!;
         public int Year { get; set; }
         public int Views { get; set; }

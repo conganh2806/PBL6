@@ -6,6 +6,26 @@ using System.Threading.Tasks;
 
 namespace WebNovel.API.Areas.Models.Chapter.Schemas
 {
+    public class ChapterCreateEntity
+    {
+        public string Name { get; set; } = null!;
+        public string NovelId { get; set; } = null!;
+        public IFormFile File { get; set; } = null!;
+    }
+
+    public class ChapterUpdateEntity
+    {
+        public string Id { get; set; } = null!;
+        public string? Name { get; set; } = null!;
+        public IFormFile? File { get; set; } = null!;
+        public bool? IsLocked { get; set; }
+        public int? Views { get; set; }
+        public long? FeeId { get; set; }
+        public int? Discount { get; set; }
+        public bool? ApprovalStatus { get; set; }
+        public bool? IsPublished { get; set; }
+    }
+
     public class ChapterCreateUpdateEntity
     {
         public string? Id { get; set; }

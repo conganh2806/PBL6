@@ -56,7 +56,7 @@ namespace WebNovel.API.Areas.Controllers
 
         [HttpPost]
         [ProducesResponseType(typeof(ResponseInfo), (int)HttpStatusCode.OK)]
-        public async Task<IActionResult> Create([FromBody] AccountCreateUpdateEntity account)
+        public async Task<IActionResult> Create([FromBody] AccountCreateEntity account)
         {
             try
             {
@@ -77,17 +77,17 @@ namespace WebNovel.API.Areas.Controllers
             }
         }
 
-        [HttpPut("{id}")]
+        [HttpPut]
         [ProducesResponseType(typeof(ResponseInfo), (int)HttpStatusCode.OK)]
         [Authorize]
-        public async Task<IActionResult> Update([FromRoute] string id, [FromBody] AccountCreateUpdateEntity account)
+        public async Task<IActionResult> Update([FromBody] AccountUpdateEntity account)
         {
             try
             {
                 ResponseInfo response = new ResponseInfo();
                 if (ModelState.IsValid)
                 {
-                    response = await _accountModel.UpdateAccount(id, account);
+                    response = await _accountModel.UpdateAccount(account);
                 }
                 else
                 {
