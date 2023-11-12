@@ -108,7 +108,6 @@ namespace WebNovel.API.Areas.Models.Chapter
                 PublishDate = chapter.PublishDate,
                 IsPublished = chapter.IsPublished,
                 Views = chapter.Views,
-                Rating = chapter.Rating,
                 FeeId = chapter.FeeId,
                 FileContent = _awsS3Service.GetFileImg(chapter.NovelId.ToString() + "/" + chapter.Id.ToString(), $"{chapter.FileContent}"),
                 Discount = chapter.Discount,
@@ -134,7 +133,6 @@ namespace WebNovel.API.Areas.Models.Chapter
                 PublishDate = x.PublishDate,
                 IsPublished = x.IsPublished,
                 Views = x.Views,
-                Rating = x.Rating,
                 FeeId = x.FeeId,
                 FileContent = _awsS3Service.GetFileImg(x.NovelId.ToString() + "/" + x.Id.ToString(), $"{x.FileContent}"),
                 Discount = x.Discount,
@@ -162,7 +160,6 @@ namespace WebNovel.API.Areas.Models.Chapter
                 IsLocked = x.IsLocked,
                 PublishDate = x.PublishDate,
                 Views = x.Views,
-                Rating = x.Rating,
                 FeeId = x.FeeId,
                 FileContent = _awsS3Service.GetFileImg(x.NovelId.ToString() + "/" + x.Id.ToString(), $"{x.FileContent}"),
                 Discount = x.Discount,
@@ -192,12 +189,12 @@ namespace WebNovel.API.Areas.Models.Chapter
                     return response;
                 }
 
-                if (existChapter.IsPublished)
-                {
-                    response.Code = CodeResponse.BAD_REQUEST;
-                    response.MsgNo = "Chapter is published";
-                    return response;
-                }
+                // if (existChapter.IsPublished)
+                // {
+                //     response.Code = CodeResponse.BAD_REQUEST;
+                //     response.MsgNo = "Chapter is published";
+                //     return response;
+                // }
 
                 if (chapter.File is not null)
                 {
@@ -213,7 +210,6 @@ namespace WebNovel.API.Areas.Models.Chapter
                 if (chapter.Name is not null) existChapter.Name = chapter.Name;
                 if (chapter.IsLocked is not null) existChapter.IsLocked = (bool)chapter.IsLocked;
                 if (chapter.Views is not null) existChapter.Views = (int)chapter.Views;
-                if (chapter.Rating is not null) existChapter.Rating = (int)chapter.Rating;
                 if (chapter.FeeId is not null) existChapter.FeeId = chapter.FeeId;
                 if (chapter.Discount is not null) existChapter.Discount = chapter.Discount;
                 if (chapter.ApprovalStatus is not null) existChapter.ApprovalStatus = (bool)chapter.ApprovalStatus;

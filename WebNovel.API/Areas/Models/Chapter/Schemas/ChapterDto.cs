@@ -14,7 +14,6 @@ namespace WebNovel.API.Areas.Models.Chapter.Schemas
         public DateTime PublishDate { get; set; }
         public bool IsPublished { get; set; }
         public int Views { get; set; }
-        public int Rating { get; set; }
         public long? FeeId { get; set; }
         [MaxLength]
         public string? FileContent { get; set; }

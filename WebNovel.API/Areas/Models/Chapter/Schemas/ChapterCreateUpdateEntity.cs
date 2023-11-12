@@ -20,7 +20,6 @@ namespace WebNovel.API.Areas.Models.Chapter.Schemas
         public IFormFile? File { get; set; } = null!;
         public bool? IsLocked { get; set; }
         public int? Views { get; set; }
-        public int? Rating { get; set; }
         public long? FeeId { get; set; }
         public int? Discount { get; set; }
         public bool? ApprovalStatus { get; set; }
