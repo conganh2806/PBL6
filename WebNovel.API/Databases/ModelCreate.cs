@@ -146,7 +146,47 @@ namespace WebNovel.API.Databases
                 e.NovelId
             });
 
+            modelBuilder
+            .Entity<Merchant>()
+            .HasMany(e => e.PaymentNotifications)
+            .WithOne(e => e.Merchant)
+            .HasForeignKey(e => e.NotiMerchantId)
+            .IsRequired();
 
+            modelBuilder
+            .Entity<Merchant>()
+            .HasMany(e => e.Payments)
+            .WithOne(e => e.Merchant)
+            .HasForeignKey(e => e.MerchantId)
+            .IsRequired();
+
+            modelBuilder
+            .Entity<Payment>()
+            .HasMany(e => e.PaymentNotifications)
+            .WithOne(e => e.Payment)
+            .HasForeignKey(e => e.NotiPaymentId)
+            .IsRequired();
+
+            modelBuilder
+            .Entity<Payment>()
+            .HasOne(e => e.PaymentDestination)
+            .WithMany(e => e.Payments)
+            .HasForeignKey(e => e.PaymentDestinationId)
+            .IsRequired();
+
+            modelBuilder
+            .Entity<Payment>()
+            .HasMany(e => e.PaymentSignatures)
+            .WithOne(e => e.Payment)
+            .HasForeignKey(e => e.PaymentId)
+            .IsRequired();
+
+            modelBuilder
+            .Entity<Payment>()
+            .HasMany(e => e.PaymentTransactions)
+            .WithOne(e => e.Payment)
+            .HasForeignKey(e => e.PaymentId)
+            .IsRequired();
 
             return modelBuilder;
         }

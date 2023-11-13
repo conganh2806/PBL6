@@ -28,6 +28,16 @@ namespace Webnovel.API.Databases
         public virtual DbSet<Preferences> Preferences { get; set; } = null!;
         public virtual DbSet<Rating> Ratings { get; set; } = null!;
 
+        /// <summary>
+        /// Payment Database
+        /// </summary>
+        /// <value></value>
+        public virtual DbSet<Merchant> Merchants { get; set; } = null!;
+        public virtual DbSet<Payment> Payments { get; set; } = null!;
+        public virtual DbSet<PaymentDestination> PaymentDestinations { get; set; } = null!;
+        public virtual DbSet<PaymentNotification> PaymentNotifications { get; set; } = null!;
+        public virtual DbSet<PaymentSignature> PaymentSignatures { get; set; } = null!;
+        public virtual DbSet<PaymentTransaction> PaymentTransactions { get; set; } = null!;
 
         /// <summary>
         /// Quy định định dạng dữ liệu và liên kết của các bảng.
