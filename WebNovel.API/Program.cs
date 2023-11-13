@@ -35,10 +35,9 @@ internal class Program
             options.AddPolicy(name: "WebNovel",
                 builder =>
                 {
-                    builder.WithOrigins("*")
+                    builder.AllowAnyOrigin()
                     .AllowAnyHeader()
-                    .AllowAnyMethod()
-                    .AllowCredentials();
+                    .AllowAnyMethod();
                 });
         });
 
