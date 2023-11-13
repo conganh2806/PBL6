@@ -1,6 +1,6 @@
 using System;
 
-namespace WebNovel.API.Core.Services.Payment.Schemas
+namespace WebNovel.API.Core.Services.VnPay.Schemas
 {
     public class VnpayConfig
     {
