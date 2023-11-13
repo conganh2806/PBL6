@@ -70,6 +70,20 @@ namespace WebNovel.API.Areas.Controllers
             }
         }
 
+        [HttpGet("AccountId={AccountId}")]
+        [ProducesResponseType(typeof(NovelDto), (int)HttpStatusCode.OK)]
+        public async Task<IActionResult> GetListNovelByAccountId([FromRoute] string AccountId)
+        {
+            try
+            {
+                return Ok(await _novelModel.GetListNovelByAccountId(AccountId));
+            }
+            catch (Exception e)
+            {
+                return StatusCode(500, new { Error = e.Message });
+            }
+        }
+
 
         [HttpPost]
         [Authorize]

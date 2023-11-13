@@ -22,7 +22,7 @@ namespace WebNovel.API.Areas.Models.Novels
         Task<ResponseInfo> UpdateNovel(NovelUpdateEntity novel);
         Task<NovelDto?> GetNovelAsync(string id);
         Task<List<NovelDto>> GetListNovelByGenreId(long genreId);
-
+        Task<List<NovelDto>> GetListNovelByAccountId(string accountId);
     }
 
     public class NovelModel : BaseModel, INovelModel
@@ -193,6 +193,42 @@ namespace WebNovel.API.Areas.Models.Novels
 
             return listNovel;
 
+        }
+
+        public async Task<List<NovelDto>> GetListNovelByAccountId(string accountId)
+        {
+            List<NovelDto> listNovel = new List<NovelDto>();
+            var novels = await _context.Novel.Include(x => x.Genres).Include(x => x.Account).
+                                Where(e => e.AccountId == accountId).ToListAsync();
+            var novelDtoTasks = novels.Select(x => new NovelDto()
+            {
+                Id = x.Id,
+                Name = x.Name,
+                Title = x.Title,
+                AuthorId = x.Account.Id,
+                Author = x.Account.Username,
+                Year = x.Year,
+                Views = x.Views,
+                ImagesURL = _awsS3Service.GetFileImg(x.Id.ToString(), $"{x.ImageURL}"),
+                Description = x.Description,
+                Status = x.Status,
+                ApprovalStatus = x.ApprovalStatus,
+            }).ToList();
+
+            foreach (var novel in novelDtoTasks)
+            {
+                var ratings = await _context.Ratings.Where(x => x.NovelId == novel.Id).Select(x => x.RateScore).ToListAsync();
+                var numRating = ratings.Count;
+                if (numRating > 0) novel.Rating = (int)(ratings.Sum() / numRating);
+                else novel.Rating = 0;
+                novel.GenreName = await _context.GenreOfNovels.Include(x => x.Genre).Where(x => x.NovelId == novel.Id).Select(x => x.Genre.Name).ToListAsync();
+                novel.GenreIds = await _context.GenreOfNovels.Include(x => x.Genre).Where(x => x.NovelId == novel.Id).Select(x => x.Genre.Id).ToListAsync();
+                novel.NumChapter = (await _context.Chapter.Where(e => e.NovelId == novel.Id).ToListAsync()).Count;
+            }
+
+            listNovel = novelDtoTasks;
+
+            return listNovel;
         }
 
         public async Task<NovelDto?> GetNovelAsync(string id)
