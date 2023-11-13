@@ -30,7 +30,17 @@ internal class Program
         services.AddControllers();
         // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
         services.AddEndpointsApiExplorer();
-        services.AddSwaggerGen();
+        services.AddCors(options =>
+        {
+            options.AddPolicy(name: "WebNovel",
+                builder =>
+                {
+                    builder.WithOrigins("*")
+                    .AllowAnyHeader()
+                    .AllowAnyMethod()
+                    .AllowCredentials();
+                });
+        });
 
         var serverVersion = ServerVersion.AutoDetect(connectionString);
         services.AddDbContext<DataContext>(
@@ -123,6 +133,10 @@ internal class Program
         }
 
         app.UseHttpsRedirection();
+
+        app.UseCors("WebNovel");
+
+        app.UseAuthentication();
 
         app.UseAuthorization();
 
