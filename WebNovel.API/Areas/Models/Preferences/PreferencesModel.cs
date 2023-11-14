@@ -23,6 +23,7 @@ namespace WebNovel.API.Areas.Models.Preferences
     {
         Task<List<PreferencesDto>> GetListPreference();
         Task<ResponseInfo> AddPreference(PreferencesCreateUpdateEntity account);
+        Task<ResponseInfo> RemovePreference(PreferencesDeleteEntity account);
         Task<List<PreferencesDto>> GetPreferenceByAccount(string AccountId);
         Task<List<PreferencesDto>> GetPreferenceByNovel(string NovelId);
         Task<PreferencesDto?> GetPreference(string AccountId, string NovelId);
@@ -43,7 +44,7 @@ namespace WebNovel.API.Areas.Models.Preferences
 
         public async Task<ResponseInfo> AddPreference(PreferencesCreateUpdateEntity preference)
         {
-            IDbContextTransaction transaction = null;
+            IDbContextTransaction? transaction = null;
             string method = GetActualAsyncMethodName();
             try
             {
@@ -64,11 +65,11 @@ namespace WebNovel.API.Areas.Models.Preferences
                 await strategy.ExecuteAsync(
                     async () =>
                     {
-                        using (var trn = await _context.Database.BeginTransactionAsync())
+                        using (transaction = await _context.Database.BeginTransactionAsync())
                         {
                             await _context.Preferences.AddAsync(newPreference);
                             await _context.SaveChangesAsync();
-                            await trn.CommitAsync();
+                            await transaction.CommitAsync();
                         }
                     }
                 );
@@ -90,7 +91,7 @@ namespace WebNovel.API.Areas.Models.Preferences
 
         public async Task<List<PreferencesDto>> GetPreferenceByAccount(string AccountId)
         {
-            var listPreference = await _context.Preferences.Where(e => e.AccountId == AccountId).Select(x => new PreferencesDto()
+            var listPreference = await _context.Preferences.Where(e => e.DelFlag == false).Where(e => e.AccountId == AccountId).Select(x => new PreferencesDto()
             {
                 NovelId = x.NovelId,
                 AccountId = x.AccountId,
@@ -119,7 +120,7 @@ namespace WebNovel.API.Areas.Models.Preferences
 
         public async Task<List<PreferencesDto>> GetPreferenceByNovel(string NovelId)
         {
-            var listPreference = await _context.Preferences.Where(e => e.NovelId == NovelId).Select(x => new PreferencesDto()
+            var listPreference = await _context.Preferences.Where(e => e.DelFlag == false).Where(e => e.NovelId == NovelId).Select(x => new PreferencesDto()
             {
                 NovelId = x.NovelId,
                 AccountId = x.AccountId,
@@ -148,7 +149,7 @@ namespace WebNovel.API.Areas.Models.Preferences
 
         public async Task<PreferencesDto?> GetPreference(string AccountId, string NovelId)
         {
-            var preference = await _context.Preferences.Where(x => x.NovelId == NovelId && x.AccountId == AccountId).FirstOrDefaultAsync();
+            var preference = await _context.Preferences.Where(e => e.DelFlag == false).Where(x => x.NovelId == NovelId && x.AccountId == AccountId).FirstOrDefaultAsync();
             if (preference is null)
             {
                 return null;
@@ -178,7 +179,7 @@ namespace WebNovel.API.Areas.Models.Preferences
 
         public async Task<List<PreferencesDto>> GetListPreference()
         {
-            var listPreference = _context.Preferences.Select(x => new PreferencesDto()
+            var listPreference = _context.Preferences.Where(e => e.DelFlag == false).Select(x => new PreferencesDto()
             {
                 NovelId = x.NovelId,
                 AccountId = x.AccountId,
@@ -203,6 +204,58 @@ namespace WebNovel.API.Areas.Models.Preferences
             }
 
             return listPreference;
+        }
+
+        public async Task<ResponseInfo> RemovePreference(PreferencesDeleteEntity preference)
+        {
+            IDbContextTransaction? transaction = null;
+            string method = GetActualAsyncMethodName();
+
+            try
+            {
+                _logger.LogInformation($"[{_className}][{method}] Start");
+                ResponseInfo result = new ResponseInfo();
+                ResponseInfo response = new ResponseInfo();
+                if (result.Code != CodeResponse.OK)
+                {
+                    return result;
+                }
+
+                var existPreference = _context.Preferences.Where(e => e.DelFlag == false).Where(x => x.NovelId == preference.NovelId && x.AccountId == preference.AccountId).FirstOrDefault();
+                if (existPreference is null)
+                {
+                    response.Code = CodeResponse.HAVE_ERROR;
+                    response.MsgNo = MSG_NO.NOT_FOUND;
+                    return response;
+                }
+
+                _context.Preferences.Remove(existPreference);
+
+                var strategy = _context.Database.CreateExecutionStrategy();
+                await strategy.ExecuteAsync(
+                    async () =>
+                    {
+                        using (transaction = await _context.Database.BeginTransactionAsync())
+                        {
+                            await _context.SaveChangesAsync();
+                            await transaction.CommitAsync();
+                        }
+                    }
+                );
+
+                _logger.LogInformation($"[{_className}][{method}] End");
+
+                return result;
+            }
+            catch (Exception e)
+            {
+                if (transaction != null)
+                {
+                    await _context.RollbackAsync(transaction);
+                }
+                _logger.LogInformation($"[{_className}][{method}] Exception: {e.Message}");
+                throw;
+            }
         }
     }
 }

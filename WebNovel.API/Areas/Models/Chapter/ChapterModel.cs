@@ -17,6 +17,7 @@ namespace WebNovel.API.Areas.Models.Chapter
         Task<List<ChapterDto>> GetListChapter();
         Task<ResponseInfo> AddChapter(ChapterCreateEntity chapter);
         Task<ResponseInfo> UpdateChapter(ChapterUpdateEntity chapter);
+        Task<ResponseInfo> RemoveChapter(ChapterDeleteEntity chapter);
         Task<ChapterDto?> GetChapterAsync(string id);
         Task<List<ChapterDto>> GetChapterByNovel(string NovelId);
     }
@@ -36,7 +37,7 @@ namespace WebNovel.API.Areas.Models.Chapter
         static string GetActualAsyncMethodName([CallerMemberName] string name = null) => name;
         public async Task<ResponseInfo> AddChapter(ChapterCreateEntity chapter)
         {
-            IDbContextTransaction transaction = null;
+            IDbContextTransaction? transaction = null;
             string method = GetActualAsyncMethodName();
             try
             {
@@ -67,11 +68,11 @@ namespace WebNovel.API.Areas.Models.Chapter
                 await strategy.ExecuteAsync(
                     async () =>
                     {
-                        using (var trn = await _context.Database.BeginTransactionAsync())
+                        using (transaction = await _context.Database.BeginTransactionAsync())
                         {
                             await _context.Chapter.AddAsync(newChapter);
                             await _context.SaveChangesAsync();
-                            await trn.CommitAsync();
+                            await transaction.CommitAsync();
                         }
                     }
                 );
@@ -95,7 +96,7 @@ namespace WebNovel.API.Areas.Models.Chapter
 
         public async Task<ChapterDto?> GetChapterAsync(string id)
         {
-            var chapter = await _context.Chapter.Where(x => x.Id == id).FirstOrDefaultAsync();
+            var chapter = await _context.Chapter.Where(e => e.DelFlag == false).Where(x => x.Id == id).FirstOrDefaultAsync();
             if (chapter is null)
             {
                 return null;
@@ -125,7 +126,7 @@ namespace WebNovel.API.Areas.Models.Chapter
         {
             List<ChapterDto> listChapter = new List<ChapterDto>();
 
-            listChapter = await _context.Chapter.Where(x => x.NovelId == NovelId).OrderBy(e => e.PublishDate).Select(x => new ChapterDto()
+            listChapter = await _context.Chapter.Where(e => e.DelFlag == false).Where(x => x.NovelId == NovelId).OrderBy(e => e.PublishDate).Select(x => new ChapterDto()
             {
                 Id = x.Id,
                 Name = x.Name,
@@ -148,12 +149,11 @@ namespace WebNovel.API.Areas.Models.Chapter
             return listChapter;
         }
 
-
         public async Task<List<ChapterDto>> GetListChapter()
         {
             List<ChapterDto> listChapter = new List<ChapterDto>();
 
-            listChapter = await _context.Chapter.Select(x => new ChapterDto()
+            listChapter = await _context.Chapter.Where(e => e.DelFlag == false).Select(x => new ChapterDto()
             {
                 Id = x.Id,
                 Name = x.Name,
@@ -171,6 +171,53 @@ namespace WebNovel.API.Areas.Models.Chapter
             return listChapter;
         }
 
+        public async Task<ResponseInfo> RemoveChapter(ChapterDeleteEntity chapter)
+        {
+            IDbContextTransaction? transaction = null;
+            string method = GetActualAsyncMethodName();
+
+            try
+            {
+                _logger.LogInformation($"[{_className}][{method}] Start");
+                ResponseInfo result = new ResponseInfo();
+                ResponseInfo response = new ResponseInfo();
+
+                var existChapter = _context.Chapter.Where(e => e.DelFlag == false).Where(n => n.Id == chapter.Id).FirstOrDefault();
+                if (existChapter is null)
+                {
+                    response.Code = CodeResponse.HAVE_ERROR;
+                    response.MsgNo = MSG_NO.NOT_FOUND;
+                    return response;
+                }
+
+                _context.Chapter.Remove(existChapter);
+
+                var strategy = _context.Database.CreateExecutionStrategy();
+                await strategy.ExecuteAsync(
+                    async () =>
+                    {
+                        using (transaction = await _context.Database.BeginTransactionAsync())
+                        {
+                            await _context.SaveChangesAsync();
+                            await transaction.CommitAsync();
+                        }
+                    }
+                );
+
+                _logger.LogInformation($"[{_className}][{method}] End");
+                return result;
+            }
+            catch (Exception e)
+            {
+                if (transaction != null)
+                {
+                    await _context.RollbackAsync(transaction);
+                }
+                _logger.LogInformation($"[{_className}][{method}] Exception: {e.Message}");
+                throw;
+            }
+        }
+
         public async Task<ResponseInfo> UpdateChapter(ChapterUpdateEntity chapter)
         {
             IDbContextTransaction transaction = null;
@@ -181,7 +228,7 @@ namespace WebNovel.API.Areas.Models.Chapter
                 ResponseInfo result = new ResponseInfo();
                 ResponseInfo response = new ResponseInfo();
 
-                var existChapter = _context.Chapter.Where(n => n.Id == chapter.Id).FirstOrDefault();
+                var existChapter = _context.Chapter.Where(e => e.DelFlag == false).Where(n => n.Id == chapter.Id).FirstOrDefault();
                 if (existChapter is null)
                 {
                     response.Code = CodeResponse.HAVE_ERROR;

@@ -22,6 +22,7 @@ namespace WebNovel.API.Areas.Models.Genres
         Task<List<GenreDto>> GetListGenre();
         Task<ResponseInfo> AddGenre(GenreCreateUpdateEntity genre);
         Task<ResponseInfo> UpdateGenre(GenreCreateUpdateEntity genre);
+        Task<ResponseInfo> RemoveGenre(GenreDeleteEntity genre);
         Task<GenreDto> GetGenre(long id);
     }
 
@@ -39,7 +40,7 @@ namespace WebNovel.API.Areas.Models.Genres
 
         public async Task<ResponseInfo> AddGenre(GenreCreateUpdateEntity genre)
         {
-            IDbContextTransaction transaction = null;
+            IDbContextTransaction? transaction = null;
             string method = GetActualAsyncMethodName();
             try
             {
@@ -60,11 +61,11 @@ namespace WebNovel.API.Areas.Models.Genres
                 await strategy.ExecuteAsync(
                     async () =>
                     {
-                        using (var trn = await _context.Database.BeginTransactionAsync())
+                        using (transaction = await _context.Database.BeginTransactionAsync())
                         {
                             await _context.Genre.AddAsync(newGenre);
                             await _context.SaveChangesAsync();
-                            await trn.CommitAsync();
+                            await transaction.CommitAsync();
                         }
                     }
                 );
@@ -86,7 +87,7 @@ namespace WebNovel.API.Areas.Models.Genres
 
         public async Task<GenreDto> GetGenre(long id)
         {
-            var genre = await _context.Genre.Where(x => x.Id == id).FirstOrDefaultAsync();
+            var genre = await _context.Genre.Where(e => e.DelFlag == false).Where(x => x.Id == id).FirstOrDefaultAsync();
             var genreDto = new GenreDto()
             {
                 Id = genre.Id,
@@ -98,18 +99,18 @@ namespace WebNovel.API.Areas.Models.Genres
 
         public async Task<List<GenreDto>> GetListGenre()
         {
-            var listGenre = _context.Genre.Select(x => new GenreDto()
+            var listGenre = await _context.Genre.Where(e => e.DelFlag == false).Select(x => new GenreDto()
             {
                 Id = x.Id,
                 Name = x.Name,
-            }).ToList();
+            }).ToListAsync();
 
             return listGenre;
         }
 
-        public async Task<ResponseInfo> UpdateGenre(GenreCreateUpdateEntity genre)
+        public async Task<ResponseInfo> RemoveGenre(GenreDeleteEntity genre)
         {
-            IDbContextTransaction transaction = null;
+            IDbContextTransaction? transaction = null;
             string method = GetActualAsyncMethodName();
 
             try
@@ -122,7 +123,59 @@ namespace WebNovel.API.Areas.Models.Genres
                     return result;
                 }
 
-                var existGenre = _context.Genre.Where(x => x.Id == genre.Id).FirstOrDefault();
+                var existGenre = _context.Genre.Where(e => e.DelFlag == false).Where(x => x.Id == genre.Id).FirstOrDefault();
+                if (existGenre is null)
+                {
+                    response.Code = CodeResponse.HAVE_ERROR;
+                    response.MsgNo = MSG_NO.NOT_FOUND;
+                    return response;
+                }
+
+                _context.Genre.Remove(existGenre);
+
+                var strategy = _context.Database.CreateExecutionStrategy();
+                await strategy.ExecuteAsync(
+                    async () =>
+                    {
+                        using (transaction = await _context.Database.BeginTransactionAsync())
+                        {
+                            await _context.SaveChangesAsync();
+                            await transaction.CommitAsync();
+                        }
+                    }
+                );
+
+                _logger.LogInformation($"[{_className}][{method}] End");
+
+                return result;
+            }
+            catch (Exception e)
+            {
+                if (transaction != null)
+                {
+                    await _context.RollbackAsync(transaction);
+                }
+                _logger.LogInformation($"[{_className}][{method}] Exception: {e.Message}");
+                throw;
+            }
+        }
+
+        public async Task<ResponseInfo> UpdateGenre(GenreCreateUpdateEntity genre)
+        {
+            IDbContextTransaction? transaction = null;
+            string method = GetActualAsyncMethodName();
+
+            try
+            {
+                _logger.LogInformation($"[{_className}][{method}] Start");
+                ResponseInfo result = new ResponseInfo();
+                ResponseInfo response = new ResponseInfo();
+                if (result.Code != CodeResponse.OK)
+                {
+                    return result;
+                }
+
+                var existGenre = _context.Genre.Where(e => e.DelFlag == false).Where(x => x.Id == genre.Id).FirstOrDefault();
                 if (existGenre is null)
                 {
                     response.Code = CodeResponse.HAVE_ERROR;
@@ -136,10 +189,10 @@ namespace WebNovel.API.Areas.Models.Genres
                 await strategy.ExecuteAsync(
                     async () =>
                     {
-                        using (var trn = await _context.Database.BeginTransactionAsync())
+                        using (transaction = await _context.Database.BeginTransactionAsync())
                         {
                             await _context.SaveChangesAsync();
-                            await trn.CommitAsync();
+                            await transaction.CommitAsync();
                         }
                     }
                 );

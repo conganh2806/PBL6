@@ -20,6 +20,7 @@ namespace WebNovel.API.Areas.Models.Novels
         Task<List<NovelDto>> GetListNovel(SearchCondition searchCondition);
         Task<ResponseInfo> AddNovel(NovelCreateEntity novel);
         Task<ResponseInfo> UpdateNovel(NovelUpdateEntity novel);
+        Task<ResponseInfo> RemoveNovel(NovelDeleteEntity novel);
         Task<NovelDto?> GetNovelAsync(string id);
         Task<List<NovelDto>> GetListNovelByGenreId(long genreId);
         Task<List<NovelDto>> GetListNovelByAccountId(string accountId);
@@ -43,7 +44,7 @@ namespace WebNovel.API.Areas.Models.Novels
 
         public async Task<ResponseInfo> AddNovel(NovelCreateEntity novel)
         {
-            IDbContextTransaction transaction = null;
+            IDbContextTransaction? transaction = null;
             string method = GetActualAsyncMethodName();
             try
             {
@@ -85,11 +86,11 @@ namespace WebNovel.API.Areas.Models.Novels
                 await strategy.ExecuteAsync(
                     async () =>
                     {
-                        using (var trn = await _context.Database.BeginTransactionAsync())
+                        using (transaction = await _context.Database.BeginTransactionAsync())
                         {
                             await _context.Novel.AddAsync(newNovel);
                             await _context.SaveChangesAsync();
-                            await trn.CommitAsync();
+                            await transaction.CommitAsync();
                         }
                     }
 
@@ -114,7 +115,7 @@ namespace WebNovel.API.Areas.Models.Novels
 
             List<NovelDto> listNovel = new List<NovelDto>();
 
-            var novels = await _context.Novel.Include(x => x.Genres).Include(x => x.Account)
+            var novels = await _context.Novel.Where(e => e.DelFlag == false).Include(x => x.Genres).Include(x => x.Account)
             .Where(x => string.IsNullOrEmpty(searchCondition.Key)
                         || x.Title.Contains(searchCondition.Key)
                         || x.Account != null && x.Account.NickName.Contains(searchCondition.Key))
@@ -160,7 +161,7 @@ namespace WebNovel.API.Areas.Models.Novels
             //List<NovelGenre> listOfNovelGenre = new List<NovelGenre>();
 
 
-            var novels = await _context.Novel.Include(x => x.Genres).Include(x => x.Account).
+            var novels = await _context.Novel.Where(e => e.DelFlag == false).Include(x => x.Genres).Include(x => x.Account).
                                 Where(novel => novel.Genres != null && novel.Genres.Any(ng => ng.GenreId == genreId)).
                                 ToListAsync();
             var novelDtoTasks = novels.Select(x => new NovelDto()
@@ -198,7 +199,7 @@ namespace WebNovel.API.Areas.Models.Novels
         public async Task<List<NovelDto>> GetListNovelByAccountId(string accountId)
         {
             List<NovelDto> listNovel = new List<NovelDto>();
-            var novels = await _context.Novel.Include(x => x.Genres).Include(x => x.Account).
+            var novels = await _context.Novel.Where(e => e.DelFlag == false).Include(x => x.Genres).Include(x => x.Account).
                                 Where(e => e.AccountId == accountId).ToListAsync();
             var novelDtoTasks = novels.Select(x => new NovelDto()
             {
@@ -233,7 +234,7 @@ namespace WebNovel.API.Areas.Models.Novels
 
         public async Task<NovelDto?> GetNovelAsync(string id)
         {
-            var novel = await _context.Novel.Include(x => x.Genres).Include(x => x.Account).Where(x => x.Id == id).FirstOrDefaultAsync();
+            var novel = await _context.Novel.Where(e => e.DelFlag == false).Include(x => x.Genres).Include(x => x.Account).Where(x => x.Id == id).FirstOrDefaultAsync();
             if (novel is null)
             {
                 return null;
@@ -266,7 +267,7 @@ namespace WebNovel.API.Areas.Models.Novels
 
         public async Task<ResponseInfo> UpdateNovel(NovelUpdateEntity novel)
         {
-            IDbContextTransaction transaction = null;
+            IDbContextTransaction? transaction = null;
             string method = GetActualAsyncMethodName();
             try
             {
@@ -274,7 +275,7 @@ namespace WebNovel.API.Areas.Models.Novels
                 ResponseInfo result = new ResponseInfo();
                 ResponseInfo response = new ResponseInfo();
 
-                var existNovel = _context.Novel.Where(n => n.Id == novel.Id).FirstOrDefault();
+                var existNovel = _context.Novel.Where(e => e.DelFlag == false).Where(n => n.Id == novel.Id).FirstOrDefault();
                 if (existNovel is null)
                 {
                     response.Code = CodeResponse.HAVE_ERROR;
@@ -321,10 +322,10 @@ namespace WebNovel.API.Areas.Models.Novels
                 await strategy.ExecuteAsync(
                     async () =>
                     {
-                        using (var trn = await _context.Database.BeginTransactionAsync())
+                        using (transaction = await _context.Database.BeginTransactionAsync())
                         {
                             await _context.SaveChangesAsync();
-                            await trn.CommitAsync();
+                            await transaction.CommitAsync();
                         }
                     }
                 );
@@ -343,6 +344,53 @@ namespace WebNovel.API.Areas.Models.Novels
                 throw;
             }
 
+        }
+
+        public async Task<ResponseInfo> RemoveNovel(NovelDeleteEntity novel)
+        {
+            IDbContextTransaction? transaction = null;
+            string method = GetActualAsyncMethodName();
+            try
+            {
+                _logger.LogInformation($"[{_className}][{method}] Start");
+                ResponseInfo result = new ResponseInfo();
+                ResponseInfo response = new ResponseInfo();
+
+                var existNovel = _context.Novel.Where(e => e.DelFlag == false).Where(n => n.Id == novel.Id).FirstOrDefault();
+                if (existNovel is null)
+                {
+                    response.Code = CodeResponse.HAVE_ERROR;
+                    response.MsgNo = MSG_NO.NOT_FOUND;
+                    return response;
+                }
+
+                _context.Novel.Remove(existNovel);
+
+                var strategy = _context.Database.CreateExecutionStrategy();
+                await strategy.ExecuteAsync(
+                    async () =>
+                    {
+                        using (transaction = await _context.Database.BeginTransactionAsync())
+                        {
+                            await _context.SaveChangesAsync();
+                            await transaction.CommitAsync();
+                        }
+                    }
+                );
+
+                _logger.LogInformation($"[{_className}][{method}] End");
+                return result;
+
+            }
+            catch (Exception e)
+            {
+                if (transaction != null)
+                {
+                    await _context.RollbackAsync(transaction);
+                }
+                _logger.LogInformation($"[{_className}][{method}] Exception: {e.Message}");
+                throw;
+            }
         }
     }
 }

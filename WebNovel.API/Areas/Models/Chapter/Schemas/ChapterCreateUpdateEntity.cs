@@ -26,6 +26,11 @@ namespace WebNovel.API.Areas.Models.Chapter.Schemas
         public bool? IsPublished { get; set; }
     }
 
+    public class ChapterDeleteEntity
+    {
+        public string Id { get; set; } = null!;
+    }
+
     public class ChapterCreateUpdateEntity
     {
         public string? Id { get; set; }
