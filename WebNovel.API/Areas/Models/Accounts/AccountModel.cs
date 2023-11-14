@@ -28,7 +28,7 @@ namespace WebNovel.API.Areas.Models.Accounts
         Task<ResponseInfo> UpdateAccount(AccountUpdateEntity account);
         Task<ResponseInfo> RemoveAccount(AccountDeleteEntity account);
         Task<AccountDto?> GetAccount(string id);
-        Task<AccountDto> FindByEmailAsync(string email);
+        Task<AccountDto?> FindByEmailAsync(string email);
         Task<ResponseInfo> UpdateToken(AccountCreateUpdateEntity account);
         Task<string> LoginWithPasswordAsync(string email, string password);
     }
@@ -75,6 +75,8 @@ namespace WebNovel.API.Areas.Models.Accounts
                     Email = account.Email,
                     IsAdmin = account.IsAdmin,
                     IsActive = true,
+                    IsVerifyEmail = false,
+                    WalletAmmount = 0.0f,
                 };
                 if (account.RoleIds.Any())
                 {
@@ -117,7 +119,7 @@ namespace WebNovel.API.Areas.Models.Accounts
             }
         }
 
-        public async Task<AccountDto> FindByEmailAsync(string email)
+        public async Task<AccountDto?> FindByEmailAsync(string email)
         {
             var account = await _context.Accounts.Where(e => e.DelFlag == false).Include(x => x.Roles).ThenInclude(x => x.Role).Where(x => x.Email == email).FirstOrDefaultAsync();
             if (account == null)
@@ -132,7 +134,10 @@ namespace WebNovel.API.Areas.Models.Accounts
                 Status = account.Status,
                 Email = account.Email,
                 Phone = account.Phone,
+                WalletAmmount = account.WalletAmmount,
                 IsAdmin = account.IsAdmin,
+                IsVerifyEmail = account.IsVerifyEmail,
+                IsActive = account.IsActive,
                 RoleIds = account.Roles.Select(x => x.RoleId).ToList()
             };
 
@@ -154,7 +159,10 @@ namespace WebNovel.API.Areas.Models.Accounts
                 Status = account.Status,
                 Email = account.Email,
                 Phone = account.Phone,
+                WalletAmmount = account.WalletAmmount,
                 IsAdmin = account.IsAdmin,
+                IsVerifyEmail = account.IsVerifyEmail,
+                IsActive = account.IsActive,
                 RoleIds = account.Roles.Select(x => x.RoleId).ToList(),
                 RefreshToken = account.RefreshToken,
                 RefreshTokenExpiryTime = account.RefreshTokenExpiryTime,
@@ -173,7 +181,10 @@ namespace WebNovel.API.Areas.Models.Accounts
                 Status = x.Status,
                 Email = x.Email,
                 Phone = x.Phone,
+                WalletAmmount = x.WalletAmmount,
                 IsAdmin = x.IsAdmin,
+                IsVerifyEmail = x.IsVerifyEmail,
+                IsActive = x.IsActive,
                 RoleIds = x.Roles.Select(x => x.RoleId).ToList(),
                 RefreshToken = x.RefreshToken,
                 RefreshTokenExpiryTime = x.RefreshTokenExpiryTime,

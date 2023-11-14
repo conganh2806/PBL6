@@ -16,8 +16,11 @@ namespace WebNovel.API.Areas.Models.Accounts.Schemas
         public string Email { get; set; } = null!;
         public string NickName { get; set; } = null!;
         public int Status { get; set; }
+        public float WalletAmmount { get; set; } = 0.0f;
         public string? Phone { get; set; }
         public List<string> RoleIds { set; get; } = null!;
+        public bool IsVerifyEmail { get; set; }
+        public bool IsActive { get; set; }
         public bool IsAdmin { get; set; }
         public string? RefreshToken { get; set; }
         public DateTime? RefreshTokenExpiryTime { get; set; }
