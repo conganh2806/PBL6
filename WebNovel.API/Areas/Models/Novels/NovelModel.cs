@@ -289,8 +289,10 @@ namespace WebNovel.API.Areas.Models.Novels
                         existNovel.ImageURL
                     };
                     var fileName = novel.File.FileName;
+                    var fileType = System.IO.Path.GetExtension(novel.File.FileName);
                     await _awsS3Service.DeleteFromS3(existNovel.Id.ToString(), fileNames);
-                    await _awsS3Service.UploadToS3(novel.File, existNovel.ImageURL, existNovel.Id.ToString());
+                    await _awsS3Service.UploadToS3(novel.File, $"thumbnail{fileType}", existNovel.Id.ToString());
+                    existNovel.ImageURL = $"thumbnail{fileType}";
                 }
 
                 if (novel.Name is not null) existNovel.Name = novel.Name;
