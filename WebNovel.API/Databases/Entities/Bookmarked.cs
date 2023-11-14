@@ -10,6 +10,10 @@ namespace WebNovel.API.Databases.Entities
 {
     public class Bookmarked : Table
     {
+        public Bookmarked()
+        {
+            ForceDel = true;
+        }
         public string AccountId { get; set; } = null!;
         public virtual Account Account { get; set; } = null!;
         public string NovelId { get; set; } = null!;

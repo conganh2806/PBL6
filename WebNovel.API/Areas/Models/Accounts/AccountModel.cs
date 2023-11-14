@@ -26,6 +26,7 @@ namespace WebNovel.API.Areas.Models.Accounts
         Task<List<AccountDto>> GetListAccount(SearchCondition searchCondition);
         Task<ResponseInfo> AddAccount(AccountCreateEntity account);
         Task<ResponseInfo> UpdateAccount(AccountUpdateEntity account);
+        Task<ResponseInfo> RemoveAccount(AccountDeleteEntity account);
         Task<AccountDto?> GetAccount(string id);
         Task<AccountDto> FindByEmailAsync(string email);
         Task<ResponseInfo> UpdateToken(AccountCreateUpdateEntity account);
@@ -45,7 +46,7 @@ namespace WebNovel.API.Areas.Models.Accounts
 
         public async Task<ResponseInfo> AddAccount(AccountCreateEntity account)
         {
-            IDbContextTransaction transaction = null;
+            IDbContextTransaction? transaction = null;
             string method = GetActualAsyncMethodName();
             try
             {
@@ -92,10 +93,10 @@ namespace WebNovel.API.Areas.Models.Accounts
                 await strategy.ExecuteAsync(
                     async () =>
                     {
-                        using (var trn = await _context.Database.BeginTransactionAsync())
+                        using (transaction = await _context.Database.BeginTransactionAsync())
                         {
                             await _context.SaveChangesAsync();
-                            await trn.CommitAsync();
+                            await transaction.CommitAsync();
                         }
                     }
                 );
@@ -118,7 +119,7 @@ namespace WebNovel.API.Areas.Models.Accounts
 
         public async Task<AccountDto> FindByEmailAsync(string email)
         {
-            var account = await _context.Accounts.Include(x => x.Roles).ThenInclude(x => x.Role).Where(x => x.Email == email).FirstOrDefaultAsync();
+            var account = await _context.Accounts.Where(e => e.DelFlag == false).Include(x => x.Roles).ThenInclude(x => x.Role).Where(x => x.Email == email).FirstOrDefaultAsync();
             if (account == null)
             {
                 return null;
@@ -140,7 +141,7 @@ namespace WebNovel.API.Areas.Models.Accounts
 
         public async Task<AccountDto?> GetAccount(string id)
         {
-            var account = await _context.Accounts.Include(x => x.Roles).ThenInclude(x => x.Role).Where(x => x.Id == id).FirstOrDefaultAsync();
+            var account = await _context.Accounts.Where(e => e.DelFlag == false).Include(x => x.Roles).ThenInclude(x => x.Role).Where(x => x.Id == id).FirstOrDefaultAsync();
             if (account == null)
             {
                 return null;
@@ -164,7 +165,7 @@ namespace WebNovel.API.Areas.Models.Accounts
 
         public async Task<List<AccountDto>> GetListAccount(SearchCondition searchCondition)
         {
-            var listAccount = await _context.Accounts.Include(x => x.Roles).ThenInclude(x => x.Role).Select(x => new AccountDto()
+            var listAccount = await _context.Accounts.Where(e => e.DelFlag == false).Include(x => x.Roles).ThenInclude(x => x.Role).Select(x => new AccountDto()
             {
                 Id = x.Id,
                 NickName = x.NickName,
@@ -183,7 +184,7 @@ namespace WebNovel.API.Areas.Models.Accounts
 
         public async Task<ResponseInfo> UpdateAccount(AccountUpdateEntity account)
         {
-            IDbContextTransaction transaction = null;
+            IDbContextTransaction? transaction = null;
             string method = GetActualAsyncMethodName();
 
             try
@@ -213,7 +214,7 @@ namespace WebNovel.API.Areas.Models.Accounts
                     }
                 }
 
-                var existAccount = await _context.Accounts.Include(x => x.Roles).ThenInclude(x => x.Role).Where(x => x.Id == account.Id).FirstOrDefaultAsync();
+                var existAccount = await _context.Accounts.Where(e => e.DelFlag == false).Include(x => x.Roles).ThenInclude(x => x.Role).Where(x => x.Id == account.Id).FirstOrDefaultAsync();
                 if (existAccount is null)
                 {
                     response.Code = CodeResponse.HAVE_ERROR;
@@ -256,10 +257,10 @@ namespace WebNovel.API.Areas.Models.Accounts
                 await strategy.ExecuteAsync(
                     async () =>
                     {
-                        using (var trn = await _context.Database.BeginTransactionAsync())
+                        using (transaction = await _context.Database.BeginTransactionAsync())
                         {
                             await _context.SaveChangesAsync();
-                            await trn.CommitAsync();
+                            await transaction.CommitAsync();
                         }
                     }
                 );
@@ -286,10 +287,11 @@ namespace WebNovel.API.Areas.Models.Accounts
         public async Task<ResponseInfo> UpdateToken(AccountCreateUpdateEntity account)
         {
             ResponseInfo result = new();
+            IDbContextTransaction? transaction = null;
             string method = GetActualAsyncMethodName();
             try
             {
-                var item = await _context.Accounts.Where(x => x.Id == account.Id).FirstOrDefaultAsync();
+                var item = await _context.Accounts.Where(e => e.DelFlag == false).Where(x => x.Id == account.Id).FirstOrDefaultAsync();
 
                 item.RefreshToken = account.RefreshToken;
                 item.RefreshTokenExpiryTime = account.RefreshTokenExpiryTime;
@@ -298,16 +300,20 @@ namespace WebNovel.API.Areas.Models.Accounts
                 await strategy.ExecuteAsync(
                     async () =>
                     {
-                        using (var trn = await _context.Database.BeginTransactionAsync())
+                        using (transaction = await _context.Database.BeginTransactionAsync())
                         {
                             await _context.SaveChangesAsync();
-                            await trn.CommitAsync();
+                            await transaction.CommitAsync();
                         }
                     }
                 );
             }
             catch (Exception e)
             {
+                if (transaction != null)
+                {
+                    await _context.RollbackAsync(transaction);
+                }
                 _logger.LogInformation($"[{_className}][{method}] Exception: {e.Message}");
                 throw;
             }
@@ -336,7 +342,7 @@ namespace WebNovel.API.Areas.Models.Accounts
 
         public async Task<string> LoginWithPasswordAsync(string email, string password)
         {
-            var user = await _context.Accounts.Where(x => x.Email == email && x.Password == Security.Sha256(password)).FirstOrDefaultAsync();
+            var user = await _context.Accounts.Where(e => e.DelFlag == false).Where(x => x.Email == email && x.Password == Security.Sha256(password)).FirstOrDefaultAsync();
             if (user == null)
             {
                 throw new UnauthorizedAccessException("Authentication Failed.");
@@ -348,6 +354,54 @@ namespace WebNovel.API.Areas.Models.Accounts
             // }
 
             return user.Id;
+        }
+
+        public async Task<ResponseInfo> RemoveAccount(AccountDeleteEntity account)
+        {
+            IDbContextTransaction? transaction = null;
+            string method = GetActualAsyncMethodName();
+
+            try
+            {
+                _logger.LogInformation($"[{_className}][{method}] Start");
+                ResponseInfo result = new ResponseInfo();
+                ResponseInfo response = new ResponseInfo();
+
+                var existAccount = await _context.Accounts.Where(e => e.DelFlag == false).Include(x => x.Roles).ThenInclude(x => x.Role).Where(x => x.Id == account.Id).FirstOrDefaultAsync();
+                if (existAccount is null)
+                {
+                    response.Code = CodeResponse.HAVE_ERROR;
+                    response.MsgNo = MSG_NO.NOT_FOUND;
+                    return response;
+                }
+
+                _context.Accounts.Remove(existAccount);
+
+                var strategy = _context.Database.CreateExecutionStrategy();
+                await strategy.ExecuteAsync(
+                    async () =>
+                    {
+                        using (transaction = await _context.Database.BeginTransactionAsync())
+                        {
+                            await _context.SaveChangesAsync();
+                            await transaction.CommitAsync();
+                        }
+                    }
+                );
+
+                _logger.LogInformation($"[{_className}][{method}] End");
+
+                return result;
+            }
+            catch (Exception e)
+            {
+                if (transaction != null)
+                {
+                    await _context.RollbackAsync(transaction);
+                }
+                _logger.LogInformation($"[{_className}][{method}] Exception: {e.Message}");
+                throw;
+            }
         }
     }
 }

@@ -28,6 +28,7 @@ namespace WebNovel.API.Areas.Models.Rating
         Task<List<RatingDto>> GetRatingByNovel(string NovelId);
         Task<RatingDto?> GetRating(string AccountId, string NovelId);
         Task<ResponseInfo> UpdateRating(RatingCreateUpdateEntity rating);
+        Task<ResponseInfo> RemoveRating(RatingDeleteEntity rating);
     }
     public class RatingModel : BaseModel, IRatingModel
     {
@@ -45,7 +46,7 @@ namespace WebNovel.API.Areas.Models.Rating
 
         public async Task<ResponseInfo> AddRating(RatingCreateUpdateEntity Rating)
         {
-            IDbContextTransaction transaction = null;
+            IDbContextTransaction? transaction = null;
             string method = GetActualAsyncMethodName();
             try
             {
@@ -67,11 +68,11 @@ namespace WebNovel.API.Areas.Models.Rating
                 await strategy.ExecuteAsync(
                     async () =>
                     {
-                        using (var trn = await _context.Database.BeginTransactionAsync())
+                        using (transaction = await _context.Database.BeginTransactionAsync())
                         {
                             await _context.Ratings.AddAsync(newRating);
                             await _context.SaveChangesAsync();
-                            await trn.CommitAsync();
+                            await transaction.CommitAsync();
                         }
                     }
                 );
@@ -93,7 +94,7 @@ namespace WebNovel.API.Areas.Models.Rating
 
         public async Task<List<RatingDto>> GetRatingByAccount(string AccountId)
         {
-            var listRating = await _context.Ratings.Where(e => e.AccountId == AccountId).Select(x => new RatingDto()
+            var listRating = await _context.Ratings.Where(e => e.DelFlag == false).Where(e => e.AccountId == AccountId).Select(x => new RatingDto()
             {
                 NovelId = x.NovelId,
                 AccountId = x.AccountId,
@@ -114,7 +115,7 @@ namespace WebNovel.API.Areas.Models.Rating
 
         public async Task<List<RatingDto>> GetRatingByNovel(string NovelId)
         {
-            var listRating = await _context.Ratings.Where(e => e.NovelId == NovelId).Select(x => new RatingDto()
+            var listRating = await _context.Ratings.Where(e => e.DelFlag == false).Where(e => e.NovelId == NovelId).Select(x => new RatingDto()
             {
                 NovelId = x.NovelId,
                 AccountId = x.AccountId,
@@ -135,7 +136,7 @@ namespace WebNovel.API.Areas.Models.Rating
 
         public async Task<RatingDto?> GetRating(string AccountId, string NovelId)
         {
-            var Rating = await _context.Ratings.Where(x => x.NovelId == NovelId && x.AccountId == AccountId).FirstOrDefaultAsync();
+            var Rating = await _context.Ratings.Where(e => e.DelFlag == false).Where(x => x.NovelId == NovelId && x.AccountId == AccountId).FirstOrDefaultAsync();
             if (Rating is null)
             {
                 return null;
@@ -157,7 +158,7 @@ namespace WebNovel.API.Areas.Models.Rating
 
         public async Task<List<RatingDto>> GetListRating()
         {
-            var listRating = await _context.Ratings.Select(x => new RatingDto()
+            var listRating = await _context.Ratings.Where(e => e.DelFlag == false).Select(x => new RatingDto()
             {
                 NovelId = x.NovelId,
                 AccountId = x.AccountId,
@@ -169,7 +170,7 @@ namespace WebNovel.API.Areas.Models.Rating
 
         public async Task<ResponseInfo> UpdateRating(RatingCreateUpdateEntity rating)
         {
-            IDbContextTransaction transaction = null;
+            IDbContextTransaction? transaction = null;
             string method = GetActualAsyncMethodName();
 
             try
@@ -182,7 +183,7 @@ namespace WebNovel.API.Areas.Models.Rating
                     return result;
                 }
 
-                var existRating = _context.Ratings.Where(x => x.NovelId == rating.NovelId && x.AccountId == rating.AccountId).FirstOrDefault();
+                var existRating = _context.Ratings.Where(e => e.DelFlag == false).Where(x => x.NovelId == rating.NovelId && x.AccountId == rating.AccountId).FirstOrDefault();
                 if (existRating is null)
                 {
                     response.Code = CodeResponse.HAVE_ERROR;
@@ -196,10 +197,62 @@ namespace WebNovel.API.Areas.Models.Rating
                 await strategy.ExecuteAsync(
                     async () =>
                     {
-                        using (var trn = await _context.Database.BeginTransactionAsync())
+                        using (transaction = await _context.Database.BeginTransactionAsync())
                         {
                             await _context.SaveChangesAsync();
-                            await trn.CommitAsync();
+                            await transaction.CommitAsync();
+                        }
+                    }
+                );
+
+                _logger.LogInformation($"[{_className}][{method}] End");
+
+                return result;
+            }
+            catch (Exception e)
+            {
+                if (transaction != null)
+                {
+                    await _context.RollbackAsync(transaction);
+                }
+                _logger.LogInformation($"[{_className}][{method}] Exception: {e.Message}");
+                throw;
+            }
+        }
+
+        public async Task<ResponseInfo> RemoveRating(RatingDeleteEntity rating)
+        {
+            IDbContextTransaction? transaction = null;
+            string method = GetActualAsyncMethodName();
+
+            try
+            {
+                _logger.LogInformation($"[{_className}][{method}] Start");
+                ResponseInfo result = new ResponseInfo();
+                ResponseInfo response = new ResponseInfo();
+                if (result.Code != CodeResponse.OK)
+                {
+                    return result;
+                }
+
+                var existRating = _context.Ratings.Where(e => e.DelFlag == false).Where(x => x.NovelId == rating.NovelId && x.AccountId == rating.AccountId).FirstOrDefault();
+                if (existRating is null)
+                {
+                    response.Code = CodeResponse.HAVE_ERROR;
+                    response.MsgNo = MSG_NO.NOT_FOUND;
+                    return response;
+                }
+
+                _context.Ratings.Remove(existRating);
+
+                var strategy = _context.Database.CreateExecutionStrategy();
+                await strategy.ExecuteAsync(
+                    async () =>
+                    {
+                        using (transaction = await _context.Database.BeginTransactionAsync())
+                        {
+                            await _context.SaveChangesAsync();
+                            await transaction.CommitAsync();
                         }
                     }
                 );

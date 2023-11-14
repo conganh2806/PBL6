@@ -8,4 +8,9 @@ namespace WebNovel.API.Areas.Models.Genres.Schemas
         [StringLength(100, ErrorMessage = "E005")]
         public string Name { get; set; } = null!;
     }
+
+    public class GenreDeleteEntity
+    {
+        public long Id { get; set; }
+    }
 }

@@ -32,6 +32,10 @@ namespace WebNovel.API.Areas.Models.Novels.Schemas
                 public List<long>? GenreIds { get; set; } = null!;
                 public IFormFile? File { get; set; } = null!;
         }
+        public class NovelDeleteEntity
+        {
+                public string Id { get; set; } = null!;
+        }
         public class NovelCreateUpdateEntity
         {
                 public string? Id { get; set; }

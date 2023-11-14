@@ -27,16 +27,16 @@ namespace WebNovel.API.Core.Models
         }
         protected async Task<bool> ValidatePhone(string userId, string phone)
         {
-            return await _context.Accounts
-                .AnyAsync(x => 
+            return await _context.Accounts.Where(e => e.DelFlag == false)
+                .AnyAsync(x =>
                     x.Phone == phone &&
                     (x.Id != userId));
         }
 
         protected async Task<bool> ValidateEmail(string? userId, string email)
         {
-            return await _context.Accounts
-                .AnyAsync(x => 
+            return await _context.Accounts.Where(e => e.DelFlag == false)
+                .AnyAsync(x =>
                     x.Email == email &&
                     (x.Id != userId));
         }

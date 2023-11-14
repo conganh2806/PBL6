@@ -100,5 +100,29 @@ namespace WebNovel.API.Areas.Controllers
                 return StatusCode(500, new { Error = e.Message });
             }
         }
+
+        [HttpDelete]
+        [ProducesResponseType(typeof(ResponseInfo), (int)HttpStatusCode.OK)]
+        [Authorize]
+        public async Task<IActionResult> Delete([FromBody] AccountDeleteEntity account)
+        {
+            try
+            {
+                ResponseInfo response = new ResponseInfo();
+                if (ModelState.IsValid)
+                {
+                    response = await _accountModel.RemoveAccount(account);
+                }
+                else
+                {
+                    response.Code = CodeResponse.NOT_VALIDATE;
+                }
+                return Ok(response);
+            }
+            catch (Exception e)
+            {
+                return StatusCode(500, new { Error = e.Message });
+            }
+        }
     }
 }
