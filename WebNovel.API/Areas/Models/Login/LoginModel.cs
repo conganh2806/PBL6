@@ -14,6 +14,7 @@ using Google.Apis.Auth.OAuth2.Flows;
 using WebNovel.API.Areas.Models.Login.Schemas;
 using Microsoft.Extensions.Options;
 using Google.Apis.Auth;
+using CSharpVitamins;
 
 namespace WebNovel.API.Areas.Models.Login
 {
@@ -22,7 +23,7 @@ namespace WebNovel.API.Areas.Models.Login
         Task<TokenResponse> Login(string email, string password);
         Task<TokenResponse> RefreshTokenAsync(RefreshTokenQuery request);
         Task<ResponseInfo> LoginWithGoogle(string email);
-        Task<TokenResponse> GetGoogleUserTokenAsync(string oauthCode);
+        Task<TokenResponse> GetGoogleUserTokenAsync(GoogleOauthUser googleUser);
     }
     public class LoginModel : BaseModel, ILoginModel
     {
@@ -105,36 +106,19 @@ namespace WebNovel.API.Areas.Models.Login
 
         public async Task<TokenResponse> RefreshTokenAsync(RefreshTokenQuery request) => await _tokenService.RefreshTokenAsync(request);
 
-        public async Task<TokenResponse> GetGoogleUserTokenAsync(string oauthCode)
+        public async Task<TokenResponse> GetGoogleUserTokenAsync(GoogleOauthUser googleUser)
         {
             IDbContextTransaction transaction = null;
             try
             {
-                transaction = await _context.Database.BeginTransactionAsync();
-                GoogleAuthorizationCodeFlow flow = new GoogleAuthorizationCodeFlow(
-                new GoogleAuthorizationCodeFlow.Initializer
-                {
-                    ClientSecrets = new ClientSecrets()
-                    {
-                        ClientId = _googleOAuthSettings.ClientId,
-                        ClientSecret = _googleOAuthSettings.ClientSecret
-                    },
-                });
-                var token = await flow.ExchangeCodeForTokenAsync(string.Empty, oauthCode, _googleOAuthSettings.RedirectUri, CancellationToken.None);
-                GoogleJsonWebSignature.Payload payload = await GoogleJsonWebSignature.ValidateAsync(token.IdToken);
-                GoogleOauthUser googleUser = new GoogleOauthUser()
-                {
-                    Email = payload.Email,
-                    EmailVeriFied = payload.EmailVerified,
-                    Name = payload.Name ?? payload.GivenName,
-                    Picture = payload.Picture
-                };
+                var GuID = (ShortGuid)Guid.NewGuid();
 
                 var userDB = await _context.Accounts.Where(x => x.Email == googleUser.Email).FirstOrDefaultAsync();
                 if (userDB == null)
                 {
                     userDB = new Account()
                     {
+                        Id = GuID.ToString(),
                         Username = googleUser.Email,
                         Email = googleUser.Email,
                         Password = "",
@@ -145,9 +129,19 @@ namespace WebNovel.API.Areas.Models.Login
                     {
                         RoleId = R001.READER.CODE
                     });
-                    _context.Accounts.Add(userDB);
-                    await _context.SaveChangesAsync();
-                    await transaction.CommitAsync();
+                    var strategy = _context.Database.CreateExecutionStrategy();
+                    await strategy.ExecuteAsync(
+                        async () =>
+                        {
+                            using (transaction = await _context.Database.BeginTransactionAsync())
+                            {
+                                await _context.Accounts.AddAsync(userDB);
+                                await _context.SaveChangesAsync();
+                                await transaction.CommitAsync();
+                            }
+                        }
+
+                    );
                 }
                 var tokeninfo = await _tokenService.GetTokenAsync(userDB.Id);
                 return tokeninfo;
