@@ -31,7 +31,7 @@ namespace WebNovel.API.Areas.Controllers
         }
 
         [HttpPost("google")]
-        public async Task<ActionResult<TokenResponse>> CheckTokenAsync(GoogleOauthUser googleUser)
+        public async Task<ActionResult<TokenResponse>> CheckTokenAsync([FromForm]GoogleOauthUser googleUser)
         {
             return await _loginModel.GetGoogleUserTokenAsync(googleUser);
         }
