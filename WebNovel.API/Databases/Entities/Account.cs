@@ -21,18 +21,18 @@ namespace WebNovel.API.Databases.Entitites
                 [StringLength(100)]
                 public string Username { get; set; } = null!;
                 [StringLength(255)]
-                public string Password { get; set; } = null!;
+                public string? Password { get; set; }
                 [StringLength(255)]
                 public string Email { get; set; } = null!;
                 [StringLength(100)]
-                public string NickName { get; set; } = null!;
+                public string? NickName { get; set; }
                 [DataType(DataType.Date)]
                 public DateOnly DateJoined { get; set; }
-                public int Status { get; set; }
-                public float WalletAmmount { get; set; } = 0.0f;
+                public int? Status { get; set; }
+                public float? WalletAmmount { get; set; }
                 public bool IsVerifyEmail { get; set; }
-                public bool IsActive { get; set; }
-                public bool IsAdmin { get; set; }
+                public bool? IsActive { get; set; }
+                public bool? IsAdmin { get; set; }
                 public string? Phone { get; set; }
                 public string? RefreshToken { get; set; }
                 public DateTime? RefreshTokenExpiryTime { get; set; }
