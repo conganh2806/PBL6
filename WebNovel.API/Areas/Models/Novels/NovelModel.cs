@@ -130,6 +130,7 @@ namespace WebNovel.API.Areas.Models.Novels
                 Year = x.Year,
                 Views = x.Views,
                 ImagesURL = _awsS3Service.GetFileImg(x.Id.ToString(), $"{x.ImageURL}"),
+                BackgroundURL = _awsS3Service.GetFileImg(x.Id.ToString(), $"{x.BackgroundURL}"),
                 Description = x.Description,
                 Status = x.Status,
                 ApprovalStatus = x.ApprovalStatus,
@@ -174,6 +175,7 @@ namespace WebNovel.API.Areas.Models.Novels
                 Year = x.Year,
                 Views = x.Views,
                 ImagesURL = _awsS3Service.GetFileImg(x.Id.ToString(), $"{x.ImageURL}"),
+                BackgroundURL = _awsS3Service.GetFileImg(x.Id.ToString(), $"{x.BackgroundURL}"),
                 Description = x.Description,
                 Status = x.Status,
                 ApprovalStatus = x.ApprovalStatus,
@@ -211,6 +213,7 @@ namespace WebNovel.API.Areas.Models.Novels
                 Year = x.Year,
                 Views = x.Views,
                 ImagesURL = _awsS3Service.GetFileImg(x.Id.ToString(), $"{x.ImageURL}"),
+                BackgroundURL = _awsS3Service.GetFileImg(x.Id.ToString(), $"{x.BackgroundURL}"),
                 Description = x.Description,
                 Status = x.Status,
                 ApprovalStatus = x.ApprovalStatus,
@@ -249,6 +252,7 @@ namespace WebNovel.API.Areas.Models.Novels
                 Year = novel.Year,
                 Views = novel.Views,
                 ImagesURL = _awsS3Service.GetFileImg(novel.Id.ToString(), $"{novel.ImageURL}"),
+                BackgroundURL = _awsS3Service.GetFileImg(novel.Id.ToString(), $"{novel.BackgroundURL}"),
                 Description = novel.Description,
                 Status = novel.Status,
                 ApprovalStatus = novel.ApprovalStatus,
@@ -294,6 +298,22 @@ namespace WebNovel.API.Areas.Models.Novels
                     await _awsS3Service.DeleteFromS3(existNovel.Id.ToString(), fileNames);
                     await _awsS3Service.UploadToS3(novel.File, $"thumbnail{fileType}", existNovel.Id.ToString());
                     existNovel.ImageURL = $"thumbnail{fileType}";
+                }
+
+                if (novel.BackgroundFile is not null)
+                {
+                    if (existNovel.BackgroundURL is not null)
+                    {
+                        var fileNames = new List<string>
+                        {
+                            existNovel.BackgroundURL
+                        };
+                        await _awsS3Service.DeleteFromS3(existNovel.Id.ToString(), fileNames);
+                    }
+                    var fileName = novel.BackgroundFile.FileName;
+                    var fileType = System.IO.Path.GetExtension(novel.BackgroundFile.FileName);
+                    await _awsS3Service.UploadToS3(novel.BackgroundFile, $"background{fileType}", existNovel.Id.ToString());
+                    existNovel.BackgroundURL = $"background{fileType}";
                 }
 
                 if (novel.Name is not null) existNovel.Name = novel.Name;
