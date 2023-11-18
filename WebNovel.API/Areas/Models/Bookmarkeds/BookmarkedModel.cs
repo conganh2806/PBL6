@@ -24,6 +24,7 @@ namespace WebNovel.API.Areas.Models.Bookmarked
         Task<List<BookmarkedDto>> GetListBookmarked();
         Task<ResponseInfo> AddBookmarked(BookmarkedCreateUpdateEntity Bookmarked);
         Task<ResponseInfo> UpdateBookmarked(BookmarkedCreateUpdateEntity Bookmarked);
+        Task<ResponseInfo> RemoveBookmarked(BookmarkedDeleteEntity Bookmarked);
         Task<List<BookmarkedDto>> GetBookmarkedByAccount(string AccountId);
         Task<List<BookmarkedDto>> GetBookmarkedByNovel(string NovelId);
         Task<BookmarkedDto?> GetBookmarked(string AccountId, string NovelId);
@@ -44,7 +45,7 @@ namespace WebNovel.API.Areas.Models.Bookmarked
 
         public async Task<ResponseInfo> AddBookmarked(BookmarkedCreateUpdateEntity Bookmarked)
         {
-            IDbContextTransaction transaction = null;
+            IDbContextTransaction? transaction = null;
             string method = GetActualAsyncMethodName();
             try
             {
@@ -66,11 +67,11 @@ namespace WebNovel.API.Areas.Models.Bookmarked
                 await strategy.ExecuteAsync(
                     async () =>
                     {
-                        using (var trn = await _context.Database.BeginTransactionAsync())
+                        using (transaction = await _context.Database.BeginTransactionAsync())
                         {
                             await _context.BookMarked.AddAsync(newBookmarked);
                             await _context.SaveChangesAsync();
-                            await trn.CommitAsync();
+                            await transaction.CommitAsync();
                         }
                     }
                 );
@@ -92,7 +93,7 @@ namespace WebNovel.API.Areas.Models.Bookmarked
 
         public async Task<List<BookmarkedDto>> GetBookmarkedByAccount(string AccountId)
         {
-            var listBookmarked = await _context.BookMarked.Where(e => e.AccountId == AccountId).Select(x => new BookmarkedDto()
+            var listBookmarked = await _context.BookMarked.Where(e => e.DelFlag == false).Where(e => e.AccountId == AccountId).Select(x => new BookmarkedDto()
             {
                 NovelId = x.NovelId,
                 AccountId = x.AccountId,
@@ -122,7 +123,7 @@ namespace WebNovel.API.Areas.Models.Bookmarked
 
         public async Task<List<BookmarkedDto>> GetBookmarkedByNovel(string NovelId)
         {
-            var listBookmarked = await _context.BookMarked.Where(e => e.NovelId == NovelId).Select(x => new BookmarkedDto()
+            var listBookmarked = await _context.BookMarked.Where(e => e.DelFlag == false).Where(e => e.NovelId == NovelId).Select(x => new BookmarkedDto()
             {
                 NovelId = x.NovelId,
                 AccountId = x.AccountId,
@@ -134,7 +135,7 @@ namespace WebNovel.API.Areas.Models.Bookmarked
 
         public async Task<BookmarkedDto?> GetBookmarked(string AccountId, string NovelId)
         {
-            var Bookmarked = await _context.BookMarked.Where(x => x.NovelId == NovelId && x.AccountId == AccountId).FirstOrDefaultAsync();
+            var Bookmarked = await _context.BookMarked.Where(e => e.DelFlag == false).Where(x => x.NovelId == NovelId && x.AccountId == AccountId).FirstOrDefaultAsync();
             if (Bookmarked is null)
             {
                 return null;
@@ -165,7 +166,7 @@ namespace WebNovel.API.Areas.Models.Bookmarked
 
         public async Task<List<BookmarkedDto>> GetListBookmarked()
         {
-            var listBookmarked = await _context.BookMarked.Select(x => new BookmarkedDto()
+            var listBookmarked = await _context.BookMarked.Where(e => e.DelFlag == false).Select(x => new BookmarkedDto()
             {
                 NovelId = x.NovelId,
                 AccountId = x.AccountId,
@@ -195,7 +196,7 @@ namespace WebNovel.API.Areas.Models.Bookmarked
 
         public async Task<ResponseInfo> UpdateBookmarked(BookmarkedCreateUpdateEntity Bookmarked)
         {
-            IDbContextTransaction transaction = null;
+            IDbContextTransaction? transaction = null;
             string method = GetActualAsyncMethodName();
 
             try
@@ -208,7 +209,7 @@ namespace WebNovel.API.Areas.Models.Bookmarked
                     return result;
                 }
 
-                var existBookmarked = _context.BookMarked.Where(x => x.NovelId == Bookmarked.NovelId && x.AccountId == Bookmarked.AccountId).FirstOrDefault();
+                var existBookmarked = _context.BookMarked.Where(e => e.DelFlag == false).Where(x => x.NovelId == Bookmarked.NovelId && x.AccountId == Bookmarked.AccountId).FirstOrDefault();
                 if (existBookmarked is null)
                 {
                     response.Code = CodeResponse.HAVE_ERROR;
@@ -222,10 +223,58 @@ namespace WebNovel.API.Areas.Models.Bookmarked
                 await strategy.ExecuteAsync(
                     async () =>
                     {
-                        using (var trn = await _context.Database.BeginTransactionAsync())
+                        using (transaction = await _context.Database.BeginTransactionAsync())
                         {
                             await _context.SaveChangesAsync();
-                            await trn.CommitAsync();
+                            await transaction.CommitAsync();
+                        }
+                    }
+                );
+
+                _logger.LogInformation($"[{_className}][{method}] End");
+
+                return result;
+            }
+            catch (Exception e)
+            {
+                if (transaction != null)
+                {
+                    await _context.RollbackAsync(transaction);
+                }
+                _logger.LogInformation($"[{_className}][{method}] Exception: {e.Message}");
+                throw;
+            }
+        }
+
+        public async Task<ResponseInfo> RemoveBookmarked(BookmarkedDeleteEntity Bookmarked)
+        {
+            IDbContextTransaction? transaction = null;
+            string method = GetActualAsyncMethodName();
+
+            try
+            {
+                _logger.LogInformation($"[{_className}][{method}] Start");
+                ResponseInfo result = new ResponseInfo();
+                ResponseInfo response = new ResponseInfo();
+
+                var existBookmarked = _context.BookMarked.Where(e => e.DelFlag == false).Where(x => x.NovelId == Bookmarked.NovelId && x.AccountId == Bookmarked.AccountId).FirstOrDefault();
+                if (existBookmarked is null)
+                {
+                    response.Code = CodeResponse.HAVE_ERROR;
+                    response.MsgNo = MSG_NO.NOT_FOUND;
+                    return response;
+                }
+
+                _context.BookMarked.Remove(existBookmarked);
+
+                var strategy = _context.Database.CreateExecutionStrategy();
+                await strategy.ExecuteAsync(
+                    async () =>
+                    {
+                        using (transaction = await _context.Database.BeginTransactionAsync())
+                        {
+                            await _context.SaveChangesAsync();
+                            await transaction.CommitAsync();
                         }
                     }
                 );

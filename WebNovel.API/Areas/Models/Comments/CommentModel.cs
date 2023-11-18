@@ -16,8 +16,9 @@ namespace WebNovel.API.Areas.Models.Comment
         Task<List<CommentDto>> GetCommentByAccount(string accountId);
         Task<List<CommentDto>> GetCommentByNovel(string NovelId);
         Task<List<CommentDto>> GetCommentByAccountNovel(string accountId, string novelId);
-        Task<CommentDto> GetComment(long Id);
+        Task<CommentDto?> GetComment(long Id);
         Task<ResponseInfo> UpdateComment(CommentUpdateEntity comment);
+        Task<ResponseInfo> RemoveComment(CommentDeleteEntity comment);
     }
     public class CommentModel : BaseModel, ICommentModel
     {
@@ -33,7 +34,7 @@ namespace WebNovel.API.Areas.Models.Comment
 
         public async Task<ResponseInfo> AddComment(CommentCreateEntity comment)
         {
-            IDbContextTransaction transaction = null;
+            IDbContextTransaction? transaction = null;
             string method = GetActualAsyncMethodName();
             try
             {
@@ -56,11 +57,11 @@ namespace WebNovel.API.Areas.Models.Comment
                 await strategy.ExecuteAsync(
                     async () =>
                     {
-                        using (var trn = await _context.Database.BeginTransactionAsync())
+                        using (transaction = await _context.Database.BeginTransactionAsync())
                         {
                             await _context.Comment.AddAsync(newComment);
                             await _context.SaveChangesAsync();
-                            await trn.CommitAsync();
+                            await transaction.CommitAsync();
                         }
                     }
                 );
@@ -82,7 +83,7 @@ namespace WebNovel.API.Areas.Models.Comment
 
         public async Task<List<CommentDto>> GetCommentByAccount(string accountId)
         {
-            var listComment = await _context.Comment.Where(e => e.AccountId == accountId).Select(x => new CommentDto()
+            var listComment = await _context.Comment.Where(e => e.DelFlag == false).Where(e => e.AccountId == accountId).Select(x => new CommentDto()
             {
                 Id = x.Id,
                 NovelId = x.NovelId,
@@ -96,7 +97,7 @@ namespace WebNovel.API.Areas.Models.Comment
 
         public async Task<List<CommentDto>> GetCommentByNovel(string novelId)
         {
-            var listComment = await _context.Comment.Where(e => e.NovelId == novelId).Select(x => new CommentDto()
+            var listComment = await _context.Comment.Where(e => e.DelFlag == false).Where(e => e.NovelId == novelId).Select(x => new CommentDto()
             {
                 Id = x.Id,
                 NovelId = x.NovelId,
@@ -110,7 +111,7 @@ namespace WebNovel.API.Areas.Models.Comment
 
         public async Task<List<CommentDto>> GetCommentByAccountNovel(string accountId, string novelId)
         {
-            var listComment = await _context.Comment.Where(e => e.NovelId == novelId && e.AccountId == accountId).Select(x => new CommentDto()
+            var listComment = await _context.Comment.Where(e => e.DelFlag == false).Where(e => e.NovelId == novelId && e.AccountId == accountId).Select(x => new CommentDto()
             {
                 Id = x.Id,
                 NovelId = x.NovelId,
@@ -122,9 +123,9 @@ namespace WebNovel.API.Areas.Models.Comment
             return listComment;
         }
 
-        public async Task<CommentDto> GetComment(long Id)
+        public async Task<CommentDto?> GetComment(long Id)
         {
-            var Comment = await _context.Comment.Where(x => x.Id == Id).FirstOrDefaultAsync();
+            var Comment = await _context.Comment.Where(e => e.DelFlag == false).Where(x => x.Id == Id).FirstOrDefaultAsync();
             if (Comment is not null)
             {
                 var CommentDto = new CommentDto()
@@ -137,12 +138,12 @@ namespace WebNovel.API.Areas.Models.Comment
                 };
                 return CommentDto;
             }
-            return new CommentDto();
+            return null;
         }
 
         public async Task<List<CommentDto>> GetListComment()
         {
-            var listComment = await _context.Comment.Select(x => new CommentDto()
+            var listComment = await _context.Comment.Where(e => e.DelFlag == false).Select(x => new CommentDto()
             {
                 NovelId = x.NovelId,
                 AccountId = x.AccountId,
@@ -168,7 +169,7 @@ namespace WebNovel.API.Areas.Models.Comment
                     return result;
                 }
 
-                var existComment = _context.Comment.Where(x => x.Id == comment.Id).FirstOrDefault();
+                var existComment = _context.Comment.Where(e => e.DelFlag == false).Where(x => x.Id == comment.Id).FirstOrDefault();
                 if (existComment is null)
                 {
                     response.Code = CodeResponse.HAVE_ERROR;
@@ -182,10 +183,62 @@ namespace WebNovel.API.Areas.Models.Comment
                 await strategy.ExecuteAsync(
                     async () =>
                     {
-                        using (var trn = await _context.Database.BeginTransactionAsync())
+                        using (transaction = await _context.Database.BeginTransactionAsync())
                         {
                             await _context.SaveChangesAsync();
-                            await trn.CommitAsync();
+                            await transaction.CommitAsync();
+                        }
+                    }
+                );
+
+                _logger.LogInformation($"[{_className}][{method}] End");
+
+                return result;
+            }
+            catch (Exception e)
+            {
+                if (transaction != null)
+                {
+                    await _context.RollbackAsync(transaction);
+                }
+                _logger.LogInformation($"[{_className}][{method}] Exception: {e.Message}");
+                throw;
+            }
+        }
+
+        public async Task<ResponseInfo> RemoveComment(CommentDeleteEntity comment)
+        {
+            IDbContextTransaction? transaction = null;
+            string method = GetActualAsyncMethodName();
+
+            try
+            {
+                _logger.LogInformation($"[{_className}][{method}] Start");
+                ResponseInfo result = new ResponseInfo();
+                ResponseInfo response = new ResponseInfo();
+                if (result.Code != CodeResponse.OK)
+                {
+                    return result;
+                }
+
+                var existComment = _context.Comment.Where(e => e.DelFlag == false).Where(x => x.Id == comment.Id).FirstOrDefault();
+                if (existComment is null)
+                {
+                    response.Code = CodeResponse.HAVE_ERROR;
+                    response.MsgNo = MSG_NO.NOT_FOUND;
+                    return response;
+                }
+
+                _context.Comment.Remove(existComment);
+
+                var strategy = _context.Database.CreateExecutionStrategy();
+                await strategy.ExecuteAsync(
+                    async () =>
+                    {
+                        using (transaction = await _context.Database.BeginTransactionAsync())
+                        {
+                            await _context.SaveChangesAsync();
+                            await transaction.CommitAsync();
                         }
                     }
                 );

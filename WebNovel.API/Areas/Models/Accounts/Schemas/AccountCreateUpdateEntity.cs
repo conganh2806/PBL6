@@ -42,6 +42,11 @@ namespace WebNovel.API.Areas.Models.Accounts.Schemas
         public bool? IsActive { get; set; }
     }
 
+    public class AccountDeleteEntity
+    {
+        public string Id { get; set; } = null!;
+    }
+
     public class AccountCreateUpdateEntity
     {
         public string? Id { get; set; }

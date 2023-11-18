@@ -13,6 +13,7 @@ using Microsoft.AspNetCore.Authentication.Cookies;
 using System.Security.Claims;
 using WebNovel.API.Commons.Schemas;
 using WebNovel.API.Commons;
+using WebNovel.API.Areas.Models.Login.Schemas;
 
 
 namespace WebNovel.API.Areas.Controllers
@@ -30,9 +31,9 @@ namespace WebNovel.API.Areas.Controllers
         }
 
         [HttpPost("google")]
-        public async Task<ActionResult<TokenResponse>> CheckTokenAsync(string code)
+        public async Task<ActionResult<TokenResponse>> CheckTokenAsync([FromForm]GoogleOauthUser googleUser)
         {
-            return await _loginModel.GetGoogleUserTokenAsync(code);
+            return await _loginModel.GetGoogleUserTokenAsync(googleUser);
         }
     }
 }

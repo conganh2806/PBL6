@@ -70,6 +70,20 @@ namespace WebNovel.API.Areas.Controllers
             }
         }
 
+        [HttpGet("AccountId={AccountId}")]
+        [ProducesResponseType(typeof(NovelDto), (int)HttpStatusCode.OK)]
+        public async Task<IActionResult> GetListNovelByAccountId([FromRoute] string AccountId)
+        {
+            try
+            {
+                return Ok(await _novelModel.GetListNovelByAccountId(AccountId));
+            }
+            catch (Exception e)
+            {
+                return StatusCode(500, new { Error = e.Message });
+            }
+        }
+
 
         [HttpPost]
         [Authorize]
@@ -105,6 +119,30 @@ namespace WebNovel.API.Areas.Controllers
                 if (ModelState.IsValid)
                 {
                     response = await _novelModel.UpdateNovel(novel);
+                }
+                else
+                {
+                    response.Code = CodeResponse.NOT_VALIDATE;
+                }
+                return Ok(response);
+            }
+            catch (Exception e)
+            {
+                return StatusCode(500, new { Error = e.Message });
+            }
+        }
+
+        [HttpDelete]
+        [ProducesResponseType(typeof(ResponseInfo), (int)HttpStatusCode.OK)]
+        [Authorize]
+        public async Task<IActionResult> Delete([FromBody] NovelDeleteEntity novel)
+        {
+            try
+            {
+                ResponseInfo response = new ResponseInfo();
+                if (ModelState.IsValid)
+                {
+                    response = await _novelModel.RemoveNovel(novel);
                 }
                 else
                 {

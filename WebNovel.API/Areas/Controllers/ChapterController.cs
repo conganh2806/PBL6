@@ -104,5 +104,28 @@ namespace WebNovel.API.Areas.Controllers
             }
         }
 
+        [HttpDelete]
+        [ProducesResponseType(typeof(ResponseInfo), (int)HttpStatusCode.OK)]
+        [Authorize]
+        public async Task<IActionResult> Delete([FromBody] ChapterDeleteEntity chapter)
+        {
+            try
+            {
+                ResponseInfo response = new ResponseInfo();
+                if (ModelState.IsValid)
+                {
+                    response = await _chapterModel.RemoveChapter(chapter);
+                }
+                else
+                {
+                    response.Code = CodeResponse.NOT_VALIDATE;
+                }
+                return Ok(response);
+            }
+            catch (Exception e)
+            {
+                return StatusCode(500, new { Error = e.Message });
+            }
+        }
     }
 }
