@@ -77,7 +77,7 @@ internal class Program
         services.Configure<VnpayConfig>(builder.Configuration.GetSection(VnpayConfig.ConfigName));
 
         // Add Hangfire services.
-        var hangfireConnectionString = builder.Configuration.GetConnectionString("HangfireDb");
+        var hangfireConnectionString = builder.Configuration.GetConnectionString("AzureMySQL");
         services.AddHangfire(configuration => configuration
             .SetDataCompatibilityLevel(CompatibilityLevel.Version_170)
             .UseSimpleAssemblyNameTypeSerializer()
