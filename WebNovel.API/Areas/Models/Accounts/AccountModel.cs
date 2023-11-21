@@ -378,7 +378,7 @@ namespace WebNovel.API.Areas.Models.Accounts
                 ResponseInfo result = new ResponseInfo();
                 ResponseInfo response = new ResponseInfo();
 
-                var existAccount = await _context.Accounts.Where(e => e.DelFlag == false).Include(x => x.Roles).ThenInclude(x => x.Role).Where(x => x.Id == account.Id).FirstOrDefaultAsync();
+                var existAccount = await _context.Accounts.Where(e => e.DelFlag == false).Where(x => x.Id == account.Id).FirstOrDefaultAsync();
                 if (existAccount is null)
                 {
                     response.Code = CodeResponse.HAVE_ERROR;
