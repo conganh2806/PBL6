@@ -36,7 +36,7 @@ namespace WebNovel.API.Areas.Models.Accounts.Schemas
         [StringLength(255, ErrorMessage = "E005")]
         public string? Email { get; set; } = null!;
         public bool? IsAdmin { get; set; }
-        public List<string> RoleIds { set; get; } = null!;
+        public List<string>? RoleIds { set; get; } = null!;
         public string? Phone { get; set; }
         public float? WalletAmmount { get; set; }
         public bool? IsActive { get; set; }
