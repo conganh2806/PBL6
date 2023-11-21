@@ -61,7 +61,7 @@ namespace WebNovel.API.Areas.Models.Payments
                 var newPayment = new Payment()
                 {
                     Id = GuID.ToString(),
-                    PaymentContent = payment.PaymentContent,
+                    PaymentContent = "THANH TOAN DON HANG " + payment.PaymentRefId,
                     PaymentCurrency = payment.PaymentCurrency,
                     PaymentRefId = payment.PaymentRefId,
                     RequiredAmount = payment.RequiredAmount,
@@ -70,6 +70,7 @@ namespace WebNovel.API.Areas.Models.Payments
                     PaymentLanguage = payment.PaymentLanguage,
                     MerchantId = payment.MerchantId,
                     PaymentDestinationId = payment.PaymentDestinationId,
+                    PaymentStatus = "0",
                 };
                 var newPaymentSignature = new PaymentSignature()
                 {
@@ -87,10 +88,10 @@ namespace WebNovel.API.Areas.Models.Payments
                 await strategy.ExecuteAsync(
                     async () =>
                     {
-                        using (var trn = await _context.Database.BeginTransactionAsync())
+                        using (transaction = await _context.Database.BeginTransactionAsync())
                         {
                             await _context.SaveChangesAsync();
-                            await trn.CommitAsync();
+                            await transaction.CommitAsync();
                         }
                     }
                 );
@@ -102,7 +103,7 @@ namespace WebNovel.API.Areas.Models.Payments
                     case "VNPAY":
                         var vnpayPayRequest = new VnpayPayRequest(vnpayConfig.Version,
                                 vnpayConfig.TmnCode, DateTime.Now, currentUserService.IpAddress ?? string.Empty, payment.RequiredAmount ?? 0, payment.PaymentCurrency ?? string.Empty,
-                                "other", payment.PaymentContent ?? string.Empty, vnpayConfig.ReturnUrl, newPayment.Id ?? string.Empty);
+                                "other", newPayment.PaymentContent ?? string.Empty, vnpayConfig.ReturnUrl, newPayment.Id ?? string.Empty);
                         paymentUrl = vnpayPayRequest.GetLink(vnpayConfig.PaymentUrl, vnpayConfig.HashSecret);
                         break;
                     default:
@@ -152,34 +153,56 @@ namespace WebNovel.API.Areas.Models.Payments
                     {
                         var merchant = await _context.Merchants.Where(e => e.Id == payment.MerchantId).FirstOrDefaultAsync();
                         returnUrl = merchant?.MerchantReturnUrl ?? string.Empty;
+                        if (payment.RequiredAmount == (vnpayPayResponse.vnp_Amount / 100))
+                        {
+                            if (vnpayPayResponse.vnp_ResponseCode == "00" && vnpayPayResponse.vnp_TransactionStatus == "00")
+                            {
+                                payment.PaidAmount = vnpayPayResponse.vnp_Amount / 100;
+                                payment.PaymentStatus = "1";
+
+                                resultData.PaymentStatus = "00";
+                                resultData.PaymentId = payment.Id;
+                                resultData.PaymentRefId = payment.PaymentRefId;
+                                resultData.Signature = (await _context.PaymentSignatures.Where(e => e.PaymentId == payment.Id).FirstAsync()).SignValue;
+
+                                //TODO: Add coins to account
+                            }
+                            else
+                            {
+                                payment.PaymentStatus = "2";
+
+                                resultData.PaymentStatus = "10";
+                                resultData.PaymentMessage = "Payment process failed";
+                            }
+                        }
+
+                        var strategy = _context.Database.CreateExecutionStrategy();
+                        await strategy.ExecuteAsync(
+                            async () =>
+                            {
+                                using (transaction = await _context.Database.BeginTransactionAsync())
+                                {
+                                    await _context.SaveChangesAsync();
+                                    await transaction.CommitAsync();
+                                }
+                            }
+                        );
+
                     }
                     else
                     {
                         resultData.PaymentStatus = "11";
                         resultData.PaymentMessage = "Can't find payment at payment service";
                     }
-
-                    if (vnpayPayResponse.vnp_ResponseCode == "00")
-                    {
-                        resultData.PaymentStatus = "00";
-                        resultData.PaymentId = payment.Id;
-                        ///TODO: Make signature
-                        resultData.Signature = (ShortGuid)Guid.NewGuid().ToString();
-                    }
-                    else
-                    {
-                        resultData.PaymentStatus = "10";
-                        resultData.PaymentMessage = "Payment process failed";
-                    }
-
-                    result.Data = (resultData, returnUrl);
                 }
                 else
                 {
                     resultData.PaymentStatus = "99";
                     resultData.PaymentMessage = "Invalid signature in response";
-                    result.Data = (resultData, returnUrl);
+
                 }
+
+                result.Data = (resultData, returnUrl);
 
                 return result;
             }
@@ -251,10 +274,10 @@ namespace WebNovel.API.Areas.Models.Payments
                                 await strategy.ExecuteAsync(
                                     async () =>
                                     {
-                                        using (var trn = await _context.Database.BeginTransactionAsync())
+                                        using (transaction = await _context.Database.BeginTransactionAsync())
                                         {
                                             await _context.SaveChangesAsync();
-                                            await trn.CommitAsync();
+                                            await transaction.CommitAsync();
                                         }
                                     }
                                 );

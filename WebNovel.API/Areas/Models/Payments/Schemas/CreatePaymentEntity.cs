@@ -5,7 +5,7 @@ namespace WebNovel.API.Areas.Models.Payments.Schemas
 {
     public class CreatePaymentEntity
     {
-        public string PaymentContent { get; set; } = string.Empty;
+        //public string PaymentContent { get; set; } = string.Empty;
         public string PaymentCurrency { get; set; } = string.Empty;
         public string PaymentRefId { get; set; } = string.Empty;
         public decimal? RequiredAmount { get; set; }
