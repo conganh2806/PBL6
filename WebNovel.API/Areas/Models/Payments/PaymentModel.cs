@@ -166,6 +166,11 @@ namespace WebNovel.API.Areas.Models.Payments
                                 resultData.Signature = (await _context.PaymentSignatures.Where(e => e.PaymentId == payment.Id).FirstAsync()).SignValue;
 
                                 //TODO: Add coins to account
+                                var order = await _context.Orders.Where(e => e.Id == payment.PaymentRefId).FirstAsync();
+                                var bundle = await _context.Bundles.Where(e => e.Id == order.BundleId).FirstAsync();
+                                var account = await _context.Accounts.Where(e => e.Id == order.AccountId).FirstAsync();
+
+                                account.WalletAmmount += bundle.CoinAmount;
                             }
                             else
                             {
