@@ -17,6 +17,7 @@ using WebNovel.API.Areas.Models.Login;
 using WebNovel.API.Areas.Models.Login.Schemas;
 using WebNovel.API.Areas.Models.Merchant;
 using WebNovel.API.Areas.Models.Novels;
+using WebNovel.API.Areas.Models.Orders;
 using WebNovel.API.Areas.Models.Payments;
 using WebNovel.API.Areas.Models.Preferences;
 using WebNovel.API.Areas.Models.Rating;
@@ -72,6 +73,7 @@ internal class Program
         services.AddScoped<ITokenService, TokenService>();
         services.AddScoped<ILoginModel, LoginModel>();
         services.AddScoped<IBundleModel, BundleModel>();
+        services.AddScoped<IOrderModel, OrderModel>();
         services.AddScoped<IMerchantModel, MerchantModel>();
         services.AddScoped<IPaymentModel, PaymentModel>();
         services.AddScoped<ICurrentUserService, CurrentUserService>();

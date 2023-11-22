@@ -48,7 +48,7 @@ namespace WebNovel.API.Areas.Models.Bundles
 
                 var strategy = _context.Database.CreateExecutionStrategy();
                 await strategy.ExecuteAsync(
-                    (Func<Task>)(async () =>
+                    async () =>
                     {
                         using (transaction = await _context.Database.BeginTransactionAsync())
                         {
@@ -56,7 +56,7 @@ namespace WebNovel.API.Areas.Models.Bundles
                             await _context.SaveChangesAsync();
                             await transaction.CommitAsync();
                         }
-                    })
+                    }
                 );
 
                 _logger.LogInformation($"[{_className}][{method}] End");
