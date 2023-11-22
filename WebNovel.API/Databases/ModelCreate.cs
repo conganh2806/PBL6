@@ -188,6 +188,20 @@ namespace WebNovel.API.Databases
             .HasForeignKey(e => e.PaymentId)
             .IsRequired();
 
+            modelBuilder
+            .Entity<Order>()
+            .HasOne(e => e.Account)
+            .WithMany(e => e.Orders)
+            .HasForeignKey(e => e.AccountId)
+            .IsRequired();
+
+            modelBuilder
+            .Entity<Order>()
+            .HasOne(e => e.Bundle)
+            .WithMany(e => e.Orders)
+            .HasForeignKey(e => e.BundleId)
+            .IsRequired();
+
             return modelBuilder;
         }
     }
