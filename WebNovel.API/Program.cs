@@ -9,6 +9,7 @@ using Microsoft.OpenApi.Models;
 using Webnovel.API.Databases;
 using WebNovel.API.Areas.Models.Accounts;
 using WebNovel.API.Areas.Models.Bookmarked;
+using WebNovel.API.Areas.Models.Bundles;
 using WebNovel.API.Areas.Models.Chapter;
 using WebNovel.API.Areas.Models.Comment;
 using WebNovel.API.Areas.Models.Genres;
@@ -70,6 +71,7 @@ internal class Program
         services.AddScoped<IAwsS3Service, AwsS3Service>();
         services.AddScoped<ITokenService, TokenService>();
         services.AddScoped<ILoginModel, LoginModel>();
+        services.AddScoped<IBundleModel, BundleModel>();
         services.AddScoped<IMerchantModel, MerchantModel>();
         services.AddScoped<IPaymentModel, PaymentModel>();
         services.AddScoped<ICurrentUserService, CurrentUserService>();

@@ -28,6 +28,8 @@ namespace Webnovel.API.Databases
         public virtual DbSet<Preferences> Preferences { get; set; } = null!;
         public virtual DbSet<Rating> Ratings { get; set; } = null!;
         public virtual DbSet<IncreasePercent> IncreasePercents { get; set; } = null!;
+        public virtual DbSet<Bundle> Bundles { get; set; } = null!;
+        public virtual DbSet<Order> Orders { get; set; } = null!;
 
         /// <summary>
         /// Payment Database
