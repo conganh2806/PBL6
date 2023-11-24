@@ -142,8 +142,9 @@ namespace WebNovel.API.Areas.Models.Novels
                 var numRating = ratings.Count;
                 if (numRating > 0) novel.Rating = (int)(ratings.Sum() / numRating);
                 else novel.Rating = 0;
-                novel.GenreName = await _context.GenreOfNovels.Include(x => x.Genre).Where(x => x.NovelId == novel.Id).Select(x => x.Genre.Name).ToListAsync();
-                novel.GenreIds = await _context.GenreOfNovels.Include(x => x.Genre).Where(x => x.NovelId == novel.Id).Select(x => x.Genre.Id).ToListAsync();
+                var genres = await _context.GenreOfNovels.Include(x => x.Genre).Where(x => x.NovelId == novel.Id).ToListAsync();
+                novel.GenreName = genres.Select(x => x.Genre.Name).ToList();
+                novel.GenreIds = genres.Select(x => x.Genre.Id).ToList();
                 novel.NumChapter = (await _context.Chapter.Where(e => e.NovelId == novel.Id).ToListAsync()).Count;
             }
 
@@ -185,8 +186,9 @@ namespace WebNovel.API.Areas.Models.Novels
                 var numRating = ratings.Count;
                 if (numRating > 0) novel.Rating = (int)(ratings.Sum() / numRating);
                 else novel.Rating = 0;
-                novel.GenreName = await _context.GenreOfNovels.Include(x => x.Genre).Where(x => x.NovelId == novel.Id).Select(x => x.Genre.Name).ToListAsync();
-                novel.GenreIds = await _context.GenreOfNovels.Include(x => x.Genre).Where(x => x.NovelId == novel.Id).Select(x => x.Genre.Id).ToListAsync();
+                var genres = await _context.GenreOfNovels.Include(x => x.Genre).Where(x => x.NovelId == novel.Id).ToListAsync();
+                novel.GenreName = genres.Select(x => x.Genre.Name).ToList();
+                novel.GenreIds = genres.Select(x => x.Genre.Id).ToList();
                 novel.NumChapter = (await _context.Chapter.Where(e => e.NovelId == novel.Id).ToListAsync()).Count;
             }
 
@@ -222,8 +224,9 @@ namespace WebNovel.API.Areas.Models.Novels
                 var numRating = ratings.Count;
                 if (numRating > 0) novel.Rating = (int)(ratings.Sum() / numRating);
                 else novel.Rating = 0;
-                novel.GenreName = await _context.GenreOfNovels.Include(x => x.Genre).Where(x => x.NovelId == novel.Id).Select(x => x.Genre.Name).ToListAsync();
-                novel.GenreIds = await _context.GenreOfNovels.Include(x => x.Genre).Where(x => x.NovelId == novel.Id).Select(x => x.Genre.Id).ToListAsync();
+                var genres = await _context.GenreOfNovels.Include(x => x.Genre).Where(x => x.NovelId == novel.Id).ToListAsync();
+                novel.GenreName = genres.Select(x => x.Genre.Name).ToList();
+                novel.GenreIds = genres.Select(x => x.Genre.Id).ToList();
                 novel.NumChapter = (await _context.Chapter.Where(e => e.NovelId == novel.Id).ToListAsync()).Count;
             }
 
@@ -252,8 +255,6 @@ namespace WebNovel.API.Areas.Models.Novels
                 Description = novel.Description,
                 Status = novel.Status,
                 ApprovalStatus = novel.ApprovalStatus,
-                GenreName = await _context.GenreOfNovels.Include(x => x.Genre).Where(x => x.NovelId == novel.Id).Select(x => x.Genre.Name).ToListAsync(),
-                GenreIds = await _context.GenreOfNovels.Include(x => x.Genre).Where(x => x.NovelId == novel.Id).Select(x => x.Genre.Id).ToListAsync(),
                 NumChapter = (await _context.Chapter.Where(e => e.NovelId == novel.Id).ToListAsync()).Count
             };
 
@@ -261,6 +262,9 @@ namespace WebNovel.API.Areas.Models.Novels
             var numRating = ratings.Count;
             if (numRating > 0) novelDto.Rating = (int)ratings.Sum() / numRating;
             else novelDto.Rating = 0;
+            var genres = await _context.GenreOfNovels.Include(x => x.Genre).Where(x => x.NovelId == novel.Id).ToListAsync();
+            novelDto.GenreName = genres.Select(x => x.Genre.Name).ToList();
+            novelDto.GenreIds = genres.Select(x => x.Genre.Id).ToList();
 
             return novelDto;
         }
