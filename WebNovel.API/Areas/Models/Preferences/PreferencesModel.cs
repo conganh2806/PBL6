@@ -97,7 +97,7 @@ namespace WebNovel.API.Areas.Models.Preferences
                 AccountId = x.AccountId,
             }).ToListAsync();
 
-            foreach (var preference in listPreference)
+            foreach (var preference in listPreference.ToList())
             {
                 var Novel = await _novelModel.GetNovelAsync(preference.NovelId);
                 if (Novel is null)
@@ -133,7 +133,7 @@ namespace WebNovel.API.Areas.Models.Preferences
                 AccountId = x.AccountId,
             }).ToListAsync();
 
-            foreach (var preference in listPreference)
+            foreach (var preference in listPreference.ToList())
             {
                 var Novel = await _novelModel.GetNovelAsync(preference.NovelId);
                 if (Novel is null)
@@ -203,7 +203,7 @@ namespace WebNovel.API.Areas.Models.Preferences
                 AccountId = x.AccountId,
             }).ToList();
 
-            foreach (var preference in listPreference)
+            foreach (var preference in listPreference.ToList())
             {
                 var Novel = await _novelModel.GetNovelAsync(preference.NovelId);
                 if (Novel is null)
