@@ -77,6 +77,8 @@ internal class Program
         services.AddScoped<IMerchantModel, MerchantModel>();
         services.AddScoped<IPaymentModel, PaymentModel>();
         services.AddScoped<ICurrentUserService, CurrentUserService>();
+        services.AddScoped<IJobService, JobService>();
+        services.AddScoped<IEmailService, SmtpMailService>();
 
         services.Configure<VnpayConfig>(builder.Configuration.GetSection(VnpayConfig.ConfigName));
 
@@ -160,6 +162,31 @@ internal class Program
             });
         });
 
+        services.AddHangfire(cfg => cfg
+            .SetDataCompatibilityLevel(CompatibilityLevel.Version_180)
+            .UseSimpleAssemblyNameTypeSerializer()
+            .UseRecommendedSerializerSettings()
+            .UseStorage(
+                new MySqlStorage(
+                    builder.Configuration.GetConnectionString("AzureMySQL"),
+                    new MySqlStorageOptions
+                    {
+                        QueuePollInterval = TimeSpan.FromSeconds(10),
+                        JobExpirationCheckInterval = TimeSpan.FromHours(1),
+                        CountersAggregateInterval = TimeSpan.FromMinutes(5),
+                        PrepareSchemaIfNecessary = true,
+                        DashboardJobListLimit = 25000,
+                        TransactionTimeout = TimeSpan.FromMinutes(1),
+                        TablesPrefix = "Hangfire",
+                    }
+                )
+            ));
+
+        services.AddHangfireServer();
+
+        services.AddOptions<MailSettings>()
+            .BindConfiguration($"{nameof(MailSettings)}");
+
         var app = builder.Build();
 
         app.UseSwagger();
@@ -183,6 +210,8 @@ internal class Program
         app.UseHangfireDashboard();
 
         app.MapControllers();
+
+        app.UseHangfireDashboard("/hangfire");
 
         app.Run();
     }

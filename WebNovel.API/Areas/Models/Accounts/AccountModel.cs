@@ -14,6 +14,8 @@ using WebNovel.API.Commons.CodeMaster;
 using WebNovel.API.Commons.Enums;
 using WebNovel.API.Commons.Schemas;
 using WebNovel.API.Core.Models;
+using WebNovel.API.Core.Services;
+using WebNovel.API.Core.Services.Schemas;
 using WebNovel.API.Databases.Entities;
 using WebNovel.API.Databases.Entitites;
 using static WebNovel.API.Commons.Enums.CodeResonse;
@@ -36,10 +38,14 @@ namespace WebNovel.API.Areas.Models.Accounts
     {
         private readonly ILogger<IAccountModel> _logger;
         private string _className = "";
-        public AccountModel(IServiceProvider provider, ILogger<IAccountModel> logger) : base(provider)
+        private readonly IJobService _jobService;
+        private readonly IEmailService _emailService;
+        public AccountModel(IServiceProvider provider, ILogger<IAccountModel> logger, IJobService jobService, IEmailService emailService) : base(provider)
         {
             _logger = logger ?? throw new ArgumentNullException(nameof(logger));
             _className = GetType().Name;
+            _emailService = emailService;
+            _jobService = jobService;
         }
 
         static string GetActualAsyncMethodName([CallerMemberName] string name = null) => name;
@@ -102,6 +108,15 @@ namespace WebNovel.API.Areas.Models.Accounts
                         }
                     }
                 );
+
+                var mailRequest = new EmailRequest()
+                {
+                    Subject = "Confirm Registration",
+                    Body = "Successfully to create your account",
+                    ToMail = newAccount.Email
+                };
+                _jobService.Enqueue(() => _emailService.SendAsync(mailRequest));
+
                 // transaction = await _context.Database.BeginTransactionAsync();
                 // await transaction.CommitAsync();
                 _logger.LogInformation($"[{_className}][{method}] End");

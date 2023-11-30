@@ -12,6 +12,9 @@ namespace Webnovel.API.Databases
 {
     public class DataContext : DbContext
     {
+        public DataContext()
+        {
+        }
         public DataContext(DbContextOptions<DataContext> options) : base(options) { }
 
         public virtual DbSet<Account> Accounts { get; set; } = null!;

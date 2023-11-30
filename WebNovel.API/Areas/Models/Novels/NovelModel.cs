@@ -8,6 +8,7 @@ using WebNovel.API.Commons.Enums;
 using WebNovel.API.Commons.Schemas;
 using WebNovel.API.Core.Models;
 using WebNovel.API.Core.Services;
+using WebNovel.API.Core.Services.Schemas;
 using WebNovel.API.Databases.Entities;
 using WebNovel.API.Databases.Entitites;
 using static WebNovel.API.Commons.Enums.CodeResonse;
@@ -30,13 +31,17 @@ namespace WebNovel.API.Areas.Models.Novels
     {
         private readonly ILogger<INovelModel> _logger;
         private readonly IAwsS3Service _awsS3Service;
+        private readonly IJobService _jobService;
+        private readonly IEmailService _emailService;
 
         private string _className = "";
-        public NovelModel(IServiceProvider provider, ILogger<INovelModel> logger, IAwsS3Service awsS3Service) : base(provider)
+        public NovelModel(IServiceProvider provider, ILogger<INovelModel> logger, IAwsS3Service awsS3Service, IEmailService emailService, IJobService jobService) : base(provider)
         {
 
             _logger = logger ?? throw new ArgumentNullException(nameof(logger));
             _className = GetType().Name;
+            _jobService = jobService;
+            _emailService = emailService;
             _awsS3Service = awsS3Service;
         }
 
@@ -95,6 +100,19 @@ namespace WebNovel.API.Areas.Models.Novels
                     }
 
                 );
+
+                foreach(var preference in _context.Preferences) {
+                    var email = _context.Accounts.FirstOrDefault(x => x.Id == preference.AccountId)?.Email;
+                    if(email is not null) {
+                        var mailRequest = new EmailRequest()
+                        {
+                            Subject = "Confirm Registration",
+                            Body = newNovel.Name,
+                            ToMail = email
+                        };
+                        _jobService.Enqueue(() => _emailService.SendAsync(mailRequest));
+                    }
+                }
 
                 _logger.LogInformation($"[{_className}][{method}] End");
                 return results;
