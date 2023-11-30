@@ -7,6 +7,7 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using WebNovel.API.Areas.Models.Accounts;
 using WebNovel.API.Areas.Models.Accounts.Schemas;
+using WebNovel.API.Areas.Models.Login;
 using WebNovel.API.Commons.Schemas;
 using WebNovel.API.Controllers;
 using static WebNovel.API.Commons.Enums.CodeResonse;
@@ -19,9 +20,11 @@ namespace WebNovel.API.Areas.Controllers
     {
         private readonly IAccountModel _accountModel;
         private readonly IServiceProvider _provider;
-        public AccountController(IAccountModel accountModel, IServiceProvider provider) : base(provider)
+        private readonly ILoginModel _loginModel;
+        public AccountController(ILoginModel loginModel, IAccountModel accountModel, IServiceProvider provider) : base(provider)
         {
             _accountModel = accountModel;
+            _loginModel = loginModel;
         }
 
         [HttpGet]
@@ -68,8 +71,10 @@ namespace WebNovel.API.Areas.Controllers
                 else
                 {
                     response.Code = CodeResponse.NOT_VALIDATE;
+                    return Ok(response);
                 }
-                return Ok(response);
+                
+                return Ok(await _loginModel.Login(account.Email, account.Password));
             }
             catch (Exception e)
             {

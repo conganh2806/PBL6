@@ -8,6 +8,7 @@ using Newtonsoft.Json;
 using WebNovel.API.Areas.Models.Payments.Schemas;
 using WebNovel.API.Core.Models;
 using WebNovel.API.Core.Services;
+using WebNovel.API.Core.Services.Schemas;
 using WebNovel.API.Core.Services.VnPay.Schemas;
 using WebNovel.API.Databases.Entities;
 
@@ -35,6 +36,8 @@ namespace WebNovel.API.Areas.Models.Payments
         private string _className = "";
         private readonly VnpayConfig vnpayConfig;
         private readonly ICurrentUserService currentUserService;
+        private readonly IJobService _jobService;
+        private readonly IEmailService _emailService;
         public PaymentModel(IServiceProvider provider,
          ILogger<IPaymentModel> logger,
          IOptions<VnpayConfig> vnpayConfigOptions,
@@ -115,6 +118,14 @@ namespace WebNovel.API.Areas.Models.Payments
                     PaymentId = newPayment.Id ?? string.Empty,
                     PaymentUrl = paymentUrl,
                 };
+
+                // var mailRequest = new EmailRequest()
+                // {
+                //     Subject = "Confirm Registration",
+                //     Body = "",
+                //     ToMail = ""
+                // };
+                // _jobService.Enqueue(() => _emailService.SendAsync(mailRequest));
 
                 _logger.LogInformation($"[{_className}][{method}] End");
                 return result;
