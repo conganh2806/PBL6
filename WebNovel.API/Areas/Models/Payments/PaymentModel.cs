@@ -119,14 +119,6 @@ namespace WebNovel.API.Areas.Models.Payments
                     PaymentUrl = paymentUrl,
                 };
 
-                // var mailRequest = new EmailRequest()
-                // {
-                //     Subject = "Confirm Registration",
-                //     Body = "",
-                //     ToMail = ""
-                // };
-                // _jobService.Enqueue(() => _emailService.SendAsync(mailRequest));
-
                 _logger.LogInformation($"[{_className}][{method}] End");
                 return result;
             }
@@ -182,6 +174,14 @@ namespace WebNovel.API.Areas.Models.Payments
                                 var account = await _context.Accounts.Where(e => e.Id == order.AccountId).FirstAsync();
 
                                 account.WalletAmmount += bundle.CoinAmount;
+
+                                var mailRequest = new EmailRequest()
+                                {
+                                    Subject = "Payment success",
+                                    Body = "",
+                                    ToMail = account.Email
+                                };
+                                _jobService.Enqueue(() => _emailService.SendAsync(mailRequest));
                             }
                             else
                             {
