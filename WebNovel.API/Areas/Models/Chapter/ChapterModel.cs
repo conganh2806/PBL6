@@ -7,6 +7,7 @@ using WebNovel.API.Commons.Enums;
 using WebNovel.API.Commons.Schemas;
 using WebNovel.API.Core.Models;
 using WebNovel.API.Core.Services;
+using WebNovel.API.Core.Services.Schemas;
 using static WebNovel.API.Commons.Enums.CodeResonse;
 
 namespace WebNovel.API.Areas.Models.Chapter
@@ -26,12 +27,16 @@ namespace WebNovel.API.Areas.Models.Chapter
     {
         private readonly ILogger<IChapterModel> _logger;
         private readonly IAwsS3Service _awsS3Service;
+        private readonly IJobService _jobService;
+        private readonly IEmailService _emailService;
 
         private string _className = "";
-        public ChapterModel(IServiceProvider provider, ILogger<IChapterModel> logger, IAwsS3Service awsS3Service) : base(provider)
+        public ChapterModel(IServiceProvider provider, ILogger<IChapterModel> logger, IAwsS3Service awsS3Service, IEmailService emailService, IJobService jobService) : base(provider)
         {
             _logger = logger ?? throw new ArgumentNullException(nameof(logger));
             _className = GetType().Name;
+            _jobService = jobService;
+            _emailService = emailService;
             _awsS3Service = awsS3Service;
         }
         static string GetActualAsyncMethodName([CallerMemberName] string name = null) => name;
@@ -76,6 +81,21 @@ namespace WebNovel.API.Areas.Models.Chapter
                         }
                     }
                 );
+
+                foreach (var preference in await _context.Preferences.Where(e => e.NovelId == newChapter.NovelId).ToListAsync())
+                {
+                    var email = (await _context.Accounts.FirstOrDefaultAsync(x => x.Id == preference.AccountId))?.Email;
+                    if (email is not null)
+                    {
+                        var mailRequest = new EmailRequest()
+                        {
+                            Subject = "New Chapter of Novel:" + newChapter.NovelId,
+                            Body = "New Chapter uploaded:" + newChapter.Name,
+                            ToMail = email
+                        };
+                        _jobService.Enqueue(() => _emailService.SendAsync(mailRequest));
+                    }
+                }
 
                 _logger.LogInformation($"[{_className}][{method}] End");
                 return result;
