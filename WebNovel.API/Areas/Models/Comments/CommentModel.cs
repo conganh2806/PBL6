@@ -178,12 +178,26 @@ namespace WebNovel.API.Areas.Models.Comment
             var Comment = await _context.Comment.Where(e => e.DelFlag == false).Where(x => x.Id == Id).FirstOrDefaultAsync();
             if (Comment is not null)
             {
+                var Novel = await _context.Novel.Where(e => e.DelFlag == false).Where(e => e.Id == Comment.NovelId).FirstOrDefaultAsync();
+                if (Novel is null)
+                {
+                    return null;
+                }
+                var Account = await _accountModel.GetAccount(Comment.AccountId);
+                if (Account is null)
+                {
+                    return null;
+                }
                 var CommentDto = new CommentDto()
                 {
                     Id = Comment.Id,
                     NovelId = Comment.NovelId,
                     AccountId = Comment.AccountId,
                     Text = Comment.Text,
+                    Username = Account.Username,
+                    Email = Account.Email,
+                    NickName = Account.NickName,
+                    RoleIds = Account.RoleIds,
                     CreateOn = Comment.CreateOn,
                 };
                 return CommentDto;
