@@ -82,31 +82,6 @@ internal class Program
 
         services.Configure<VnpayConfig>(builder.Configuration.GetSection(VnpayConfig.ConfigName));
 
-        // Add Hangfire services.
-        var hangfireConnectionString = builder.Configuration.GetConnectionString("AzureMySQL");
-        services.AddHangfire(configuration => configuration
-            .SetDataCompatibilityLevel(CompatibilityLevel.Version_170)
-            .UseSimpleAssemblyNameTypeSerializer()
-            .UseRecommendedSerializerSettings()
-            .UseStorage(
-                new MySqlStorage(
-                    hangfireConnectionString,
-                    new MySqlStorageOptions
-                    {
-                        QueuePollInterval = TimeSpan.FromSeconds(10),
-                        JobExpirationCheckInterval = TimeSpan.FromHours(1),
-                        CountersAggregateInterval = TimeSpan.FromMinutes(5),
-                        PrepareSchemaIfNecessary = true,
-                        DashboardJobListLimit = 25000,
-                        TransactionTimeout = TimeSpan.FromMinutes(1),
-                        TablesPrefix = "Hangfire",
-                    }
-                )
-            ));
-
-        // Add the processing server as IHostedService
-        services.AddHangfireServer(options => options.WorkerCount = 1);
-
         services.AddOptions<JwtSettings>()
             .BindConfiguration($"{nameof(JwtSettings)}")
             .ValidateDataAnnotations()
@@ -206,8 +181,6 @@ internal class Program
         app.UseAuthentication();
 
         app.UseAuthorization();
-
-        app.UseHangfireDashboard();
 
         app.MapControllers();
 
