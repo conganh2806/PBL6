@@ -100,9 +100,14 @@ namespace WebNovel.API.Areas.Models.Bookmarked
                 ChapterId = x.ChapterId,
             }).ToListAsync();
 
-            foreach (var bookmarked in listBookmarked)
+            foreach (var bookmarked in listBookmarked.ToList())
             {
                 var Novel = await _novelModel.GetNovelAsync(bookmarked.NovelId);
+                if (Novel is null)
+                {
+                    listBookmarked.Remove(bookmarked);
+                    continue;
+                }
                 bookmarked.Name = Novel.Name;
                 bookmarked.Title = Novel.Title;
                 bookmarked.Author = Novel.Author;
@@ -141,6 +146,10 @@ namespace WebNovel.API.Areas.Models.Bookmarked
                 return null;
             }
             var Novel = await _novelModel.GetNovelAsync(Bookmarked.NovelId);
+            if (Novel is null)
+            {
+                return null;
+            }
             var BookmarkedDto = new BookmarkedDto()
             {
                 NovelId = Bookmarked.NovelId,
@@ -173,9 +182,14 @@ namespace WebNovel.API.Areas.Models.Bookmarked
                 ChapterId = x.ChapterId,
             }).ToListAsync();
 
-            foreach (var bookmarked in listBookmarked)
+            foreach (var bookmarked in listBookmarked.ToList())
             {
                 var Novel = await _novelModel.GetNovelAsync(bookmarked.NovelId);
+                if (Novel is null)
+                {
+                    listBookmarked.Remove(bookmarked);
+                    continue;
+                }
                 bookmarked.Name = Novel.Name;
                 bookmarked.Title = Novel.Title;
                 bookmarked.Author = Novel.Author;

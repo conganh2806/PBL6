@@ -39,6 +39,21 @@ namespace WebNovel.API.Areas.Controllers
             }
         }
 
+        [HttpGet("{AccountId}/{NovelId}")]
+        [ProducesResponseType(typeof(BookmarkedDto), (int)HttpStatusCode.OK)]
+        [Authorize]
+        public async Task<IActionResult> GetDetail([FromRoute] string AccountId, [FromRoute] string NovelId)
+        {
+            try
+            {
+                return Ok(await _bookMarkedModel.GetBookmarked(AccountId, NovelId));
+            }
+            catch (Exception e)
+            {
+                return StatusCode(500, new { Error = e.Message });
+            }
+        }
+
         [HttpPost]
         [ProducesResponseType(typeof(ResponseInfo), (int)HttpStatusCode.OK)]
         [Authorize]
