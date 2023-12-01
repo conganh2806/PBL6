@@ -1,6 +1,7 @@
 using System.Runtime.CompilerServices;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Storage;
+using WebNovel.API.Areas.Models.Accounts;
 using WebNovel.API.Areas.Models.Comment.Schemas;
 using WebNovel.API.Commons.Enums;
 using WebNovel.API.Commons.Schemas;
@@ -23,11 +24,13 @@ namespace WebNovel.API.Areas.Models.Comment
     public class CommentModel : BaseModel, ICommentModel
     {
         private readonly ILogger<ICommentModel> _logger;
+        private readonly IAccountModel _accountModel;
         private string _className = "";
-        public CommentModel(IServiceProvider provider, ILogger<ICommentModel> logger) : base(provider)
+        public CommentModel(IServiceProvider provider, ILogger<ICommentModel> logger, IAccountModel accountModel) : base(provider)
         {
             _logger = logger ?? throw new ArgumentNullException(nameof(logger));
             _className = GetType().Name;
+            _accountModel = accountModel;
         }
 
         static string GetActualAsyncMethodName([CallerMemberName] string name = "") => name;
@@ -92,6 +95,24 @@ namespace WebNovel.API.Areas.Models.Comment
                 CreateOn = x.CreateOn,
             }).ToListAsync();
 
+            foreach (var comment in listComment.ToList())
+            {
+                var Novel = await _context.Novel.Where(e => e.DelFlag == false).Where(e => e.Id == comment.NovelId).FirstOrDefaultAsync();
+                if (Novel is null)
+                {
+                    listComment.Remove(comment);
+                    continue;
+                }
+                var Account = await _accountModel.GetAccount(comment.AccountId);
+                if (Account is not null)
+                {
+                    comment.Username = Account.Username;
+                    comment.Email = Account.Email;
+                    comment.NickName = Account.NickName;
+                    comment.RoleIds = Account.RoleIds;
+                }
+            }
+
             return listComment;
         }
 
@@ -106,6 +127,23 @@ namespace WebNovel.API.Areas.Models.Comment
                 CreateOn = x.CreateOn,
             }).ToListAsync();
 
+            foreach (var comment in listComment.ToList())
+            {
+                var Account = await _accountModel.GetAccount(comment.AccountId);
+                if (Account is null)
+                {
+                    comment.Username = "[Deleted]";
+                    comment.Email = "[Deleted]";
+                    comment.NickName = "[Deleted]";
+                    comment.RoleIds = null;
+                    continue;
+                }
+                comment.Username = Account.Username;
+                comment.Email = Account.Email;
+                comment.NickName = Account.NickName;
+                comment.RoleIds = Account.RoleIds;
+            }
+
             return listComment;
         }
 
@@ -119,6 +157,18 @@ namespace WebNovel.API.Areas.Models.Comment
                 Text = x.Text,
                 CreateOn = x.CreateOn,
             }).ToListAsync();
+
+            foreach (var comment in listComment.ToList())
+            {
+                var Account = await _accountModel.GetAccount(comment.AccountId);
+                if (Account is not null)
+                {
+                    comment.Username = Account.Username;
+                    comment.Email = Account.Email;
+                    comment.NickName = Account.NickName;
+                    comment.RoleIds = Account.RoleIds;
+                }
+            }
 
             return listComment;
         }
