@@ -41,12 +41,17 @@ namespace WebNovel.API.Areas.Models.Payments
         public PaymentModel(IServiceProvider provider,
          ILogger<IPaymentModel> logger,
          IOptions<VnpayConfig> vnpayConfigOptions,
-         ICurrentUserService currentUserService) : base(provider)
+         ICurrentUserService currentUserService,
+         IJobService jobService,
+         IEmailService emailService) : base(provider)
         {
             _logger = logger ?? throw new ArgumentNullException(nameof(logger));
             _className = GetType().Name;
             vnpayConfig = vnpayConfigOptions.Value;
             this.currentUserService = currentUserService;
+
+            _emailService = emailService;
+            _jobService = jobService;
         }
 
         static string GetActualAsyncMethodName([CallerMemberName] string name = null) => name;

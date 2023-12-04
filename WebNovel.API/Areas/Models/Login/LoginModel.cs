@@ -122,8 +122,11 @@ namespace WebNovel.API.Areas.Models.Login
                         Username = googleUser.Email,
                         Email = googleUser.Email,
                         Password = "",
+                        Status = A001.NORMAL.CODE,
+                        IsAdmin = false,
                         IsActive = true,
                         IsVerifyEmail = true,
+                        WalletAmmount = 0.0f,
                     };
                     userDB.Roles.Add(new RolesOfUser()
                     {
