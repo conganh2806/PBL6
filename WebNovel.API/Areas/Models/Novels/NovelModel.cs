@@ -68,7 +68,7 @@ namespace WebNovel.API.Areas.Models.Novels
                     Views = 0,
                     Rating = 0,
                     Description = novel.Description,
-                    Status = true,
+                    Status = false,
                     ApprovalStatus = false,
                     ImageURL = fileName,
                 };
