@@ -19,6 +19,7 @@ namespace WebNovel.API.Areas.Models.Payments
         Task<PaymentLinkDto> CreatePayment(CreatePaymentEntity payment);
         Task<BaseResultWithData<(PaymentReturnDto, string)>> ProcessVnpayPaymentReturn(VnpayPayResponse vnpayPayResponse);
         Task<VnpayPayIpnResponse> ProcessVnpayPaymentIpn(VnpayPayResponse vnpayPayResponse);
+        Task<List<PaymentHistoryDto>> GetPaymentHistory(string accountId);
     }
 
     public class BaseResultWithData<T>
@@ -340,6 +341,53 @@ namespace WebNovel.API.Areas.Models.Payments
 
                 throw;
             }
+        }
+
+        public async Task<List<PaymentHistoryDto>> GetPaymentHistory(string accountId)
+        {
+            var payments = new List<PaymentHistoryDto>();
+            var account = await _context.Accounts.Where(e => e.DelFlag == false).Where(e => e.Id == accountId).FirstOrDefaultAsync();
+            if (account is null)
+            {
+                return payments;
+            }
+            var orders = await _context.Orders.Where(e => e.DelFlag == false).Where(e => e.AccountId == accountId).ToListAsync();
+            foreach (var order in orders.ToList())
+            {
+                var payment = await _context.Payments.Where(e => e.DelFlag == false).Where(e => e.PaymentRefId == order.Id).FirstOrDefaultAsync();
+                if (payment is null)
+                {
+                    continue;
+                }
+                if (payment.PaymentStatus == "0")
+                {
+                    continue;
+                }
+
+                var bundle = await _context.Bundles.Where(e => e.DelFlag == false).Where(e => e.Id == order.BundleId).FirstOrDefaultAsync();
+                if (bundle is null)
+                {
+                    continue;
+                }
+                var PaymentHistoryDto = new PaymentHistoryDto()
+                {
+                    Id = payment.Id,
+                    OrderId = payment.PaymentRefId,
+
+                    AccountId = account.Id,
+                    Username = account.Username,
+                    Email = account.Email,
+
+                    BundleId = bundle.Id,
+                    CoinAmount = bundle.CoinAmount,
+                    Price = bundle.Price,
+
+                    PaymentDate = payment.PaymentDate,
+                    PaymentStatus = payment.PaymentStatus,
+                };
+                payments.Add(PaymentHistoryDto);
+            }
+            return payments;
         }
     }
 }
