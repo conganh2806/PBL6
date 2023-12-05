@@ -17,4 +17,21 @@ namespace WebNovel.API.Areas.Models.Payments.Schemas
         public string? PaymentStatus { get; set; } = string.Empty;
         public decimal? PaidAmount { get; set; }
     }
+
+    public class PaymentHistoryDto
+    {
+        public string Id { get; set; } = string.Empty;
+        public string OrderId { get; set; } = string.Empty;
+
+        public string AccountId { get; set; } = string.Empty;
+        public string Username { get; set; } = string.Empty;
+        public string Email { get; set; } = string.Empty;
+
+        public long BundleId { get; set; }
+        public float CoinAmount { get; set; }
+        public decimal Price { get; set; }
+
+        public DateTime? PaymentDate { get; set; } = DateTime.Now;
+        public string? PaymentStatus { get; set; } = string.Empty;
+    }
 }

@@ -23,21 +23,6 @@ namespace WebNovel.API.Areas.Controllers
             _orderModel = orderModel;
         }
 
-        [HttpGet("{Id}")]
-        [ProducesResponseType(typeof(OrderDto), (int)HttpStatusCode.OK)]
-        [Authorize]
-        public async Task<IActionResult> GetDetail([FromRoute] string Id)
-        {
-            try
-            {
-                return Ok(await _orderModel.GetOrder(Id));
-            }
-            catch (Exception e)
-            {
-                return StatusCode(500, new { Error = e.Message });
-            }
-        }
-
         [HttpPost]
         [ProducesResponseType(typeof(ResponseInfo), (int)HttpStatusCode.OK)]
         [Authorize]
