@@ -28,7 +28,9 @@ namespace WebNovel.API.Databases.Entitites
                 [StringLength(100)]
                 public string? NickName { get; set; }
                 [DataType(DataType.Date)]
-                public DateOnly DateJoined { get; set; }
+                public DateOnly? DateJoined { get; set; }
+                [StringLength(500)]
+                public string? ImageURL { get; set; }
                 public int? Status { get; set; }
                 public float? WalletAmmount { get; set; }
                 public bool IsVerifyEmail { get; set; }

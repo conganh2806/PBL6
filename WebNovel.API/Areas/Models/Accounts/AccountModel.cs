@@ -40,12 +40,14 @@ namespace WebNovel.API.Areas.Models.Accounts
         private string _className = "";
         private readonly IJobService _jobService;
         private readonly IEmailService _emailService;
-        public AccountModel(IServiceProvider provider, ILogger<IAccountModel> logger, IJobService jobService, IEmailService emailService) : base(provider)
+        private readonly IAwsS3Service _awsS3Service;
+        public AccountModel(IServiceProvider provider, ILogger<IAccountModel> logger, IJobService jobService, IEmailService emailService, IAwsS3Service awsS3Service) : base(provider)
         {
             _logger = logger ?? throw new ArgumentNullException(nameof(logger));
             _className = GetType().Name;
             _emailService = emailService;
             _jobService = jobService;
+            _awsS3Service = awsS3Service;
         }
 
         static string GetActualAsyncMethodName([CallerMemberName] string name = null) => name;
@@ -153,7 +155,9 @@ namespace WebNovel.API.Areas.Models.Accounts
                 IsAdmin = account.IsAdmin,
                 IsVerifyEmail = account.IsVerifyEmail,
                 IsActive = account.IsActive,
-                RoleIds = account.Roles.Select(x => x.RoleId).ToList()
+                RoleIds = account.Roles.Select(x => x.RoleId).ToList(),
+                ImagesURL = (account.ImageURL is null) ? null : _awsS3Service.GetFileImg(account.Id.ToString(), $"{account.ImageURL}"),
+                Birthday = account.DateJoined
             };
 
             return accountDto;
@@ -179,6 +183,8 @@ namespace WebNovel.API.Areas.Models.Accounts
                 IsVerifyEmail = account.IsVerifyEmail,
                 IsActive = account.IsActive,
                 RoleIds = account.Roles.Select(x => x.RoleId).ToList(),
+                ImagesURL = (account.ImageURL is null) ? null : _awsS3Service.GetFileImg(account.Id.ToString(), $"{account.ImageURL}"),
+                Birthday = account.DateJoined,
                 RefreshToken = account.RefreshToken,
                 RefreshTokenExpiryTime = account.RefreshTokenExpiryTime,
             };
@@ -201,6 +207,8 @@ namespace WebNovel.API.Areas.Models.Accounts
                 IsVerifyEmail = x.IsVerifyEmail,
                 IsActive = x.IsActive,
                 RoleIds = x.Roles.Select(x => x.RoleId).ToList(),
+                ImagesURL = (x.ImageURL == null) ? null : _awsS3Service.GetFileImg(x.Id.ToString(), $"{x.ImageURL}"),
+                Birthday = x.DateJoined,
                 RefreshToken = x.RefreshToken,
                 RefreshTokenExpiryTime = x.RefreshTokenExpiryTime,
             }).ToListAsync();
@@ -248,6 +256,22 @@ namespace WebNovel.API.Areas.Models.Accounts
                     return response;
                 }
 
+                if (account.File is not null)
+                {
+                    if (existAccount.ImageURL is not null)
+                    {
+                        var fileNames = new List<string>
+                        {
+                            existAccount.ImageURL
+                        };
+                        await _awsS3Service.DeleteFromS3(existAccount.Id.ToString(), fileNames);
+                    }
+                    var fileName = account.File.FileName;
+                    var fileType = System.IO.Path.GetExtension(account.File.FileName);
+                    await _awsS3Service.UploadToS3(account.File, $"avatar{fileType}", existAccount.Id.ToString());
+                    existAccount.ImageURL = $"avatar{fileType}";
+                }
+
                 if (account.NickName is not null) existAccount.NickName = account.NickName;
                 if (account.Username is not null) existAccount.Username = account.Username;
 
@@ -259,7 +283,8 @@ namespace WebNovel.API.Areas.Models.Accounts
                     existAccount.Email = account.Email;
                 }
 
-                existAccount.Phone = account.Phone;
+                if (account.Phone is not null) existAccount.Phone = account.Phone;
+                if (account.Birthday is not null) existAccount.DateJoined = account.Birthday;
 
                 if (account.WalletAmmount is not null) existAccount.WalletAmmount = (float)account.WalletAmmount;
                 if (account.IsAdmin is not null) existAccount.IsAdmin = (bool)account.IsAdmin;

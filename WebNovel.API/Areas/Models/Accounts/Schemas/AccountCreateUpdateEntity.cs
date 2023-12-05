@@ -40,6 +40,8 @@ namespace WebNovel.API.Areas.Models.Accounts.Schemas
         public string? Phone { get; set; }
         public float? WalletAmmount { get; set; }
         public bool? IsActive { get; set; }
+        public IFormFile? File { get; set; } = null!;
+        public DateOnly? Birthday { get; set; }
     }
 
     public class AccountDeleteEntity
