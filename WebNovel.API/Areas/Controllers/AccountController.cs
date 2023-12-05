@@ -73,7 +73,7 @@ namespace WebNovel.API.Areas.Controllers
                     response.Code = CodeResponse.NOT_VALIDATE;
                     return Ok(response);
                 }
-                
+
                 return Ok(await _loginModel.Login(account.Email, account.Password));
             }
             catch (Exception e)
@@ -85,7 +85,7 @@ namespace WebNovel.API.Areas.Controllers
         [HttpPut]
         [ProducesResponseType(typeof(ResponseInfo), (int)HttpStatusCode.OK)]
         [Authorize]
-        public async Task<IActionResult> Update([FromBody] AccountUpdateEntity account)
+        public async Task<IActionResult> Update([FromForm] AccountUpdateEntity account)
         {
             try
             {
