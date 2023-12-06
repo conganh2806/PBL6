@@ -64,9 +64,9 @@ namespace WebNovel.API.Areas.Models.Orders
                     }
                 );
 
-                result.Data.Add("OrderId(paymentRefId)", newOrder.Id);
+                result.Data.Add("OrderId", newOrder.Id);
                 var bundle = await _context.Bundles.Where(e => e.Id == order.BundleId).FirstAsync();
-                result.Data.Add("Price(requiredAmount)", bundle.Price.ToString());
+                result.Data.Add("Price", bundle.Price.ToString());
 
                 _logger.LogInformation($"[{_className}][{method}] End");
                 return result;
