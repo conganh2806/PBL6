@@ -17,7 +17,7 @@ namespace WebNovel.API.Databases.Entities
         public float Fee { get; set; }
         [DataType(DataType.DateTime)]
         public DateTime DateUpdated { get; set; }
-        public int Type {get; set;}
+        public int Year { get; set; }
         public virtual ICollection<Chapter>? Chapters { get; set; }
 
     }
