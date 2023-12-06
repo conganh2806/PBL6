@@ -17,6 +17,7 @@ namespace WebNovel.API.Databases.Entitites
                         Roles = new HashSet<RolesOfUser>();
                         Ratings = new HashSet<Rating>();
                         Orders = new HashSet<Order>();
+                        ChapterOfAccounts = new HashSet<ChapterOfAccount>();
                 }
 
                 [StringLength(100)]
@@ -45,5 +46,6 @@ namespace WebNovel.API.Databases.Entitites
                 public virtual ICollection<RolesOfUser> Roles { get; set; } = null!;
                 public virtual ICollection<Rating> Ratings { get; set; }
                 public virtual ICollection<Order> Orders { get; set; }
+                public virtual ICollection<ChapterOfAccount> ChapterOfAccounts { get; set; }
         }
 }

@@ -202,6 +202,35 @@ namespace WebNovel.API.Databases
             .HasForeignKey(e => e.BundleId)
             .IsRequired();
 
+            modelBuilder
+            .Entity<ChapterOfAccount>()
+            .HasOne(e => e.Account)
+            .WithMany(e => e.ChapterOfAccounts)
+            .HasForeignKey(e => e.AccountId)
+            .IsRequired();
+
+            modelBuilder
+            .Entity<ChapterOfAccount>()
+            .HasOne(e => e.Chapter)
+            .WithMany(e => e.ChapterOfAccounts)
+            .HasForeignKey(e => e.ChapterId)
+            .IsRequired();
+
+            modelBuilder
+            .Entity<ChapterOfAccount>()
+            .HasOne(e => e.Novel)
+            .WithMany(e => e.ChapterOfAccounts)
+            .HasForeignKey(e => e.NovelId)
+            .IsRequired();
+
+            modelBuilder
+            .Entity<ChapterOfAccount>()
+            .HasKey(e => new
+            {
+                e.AccountId,
+                e.ChapterId
+            });
+
             return modelBuilder;
         }
     }

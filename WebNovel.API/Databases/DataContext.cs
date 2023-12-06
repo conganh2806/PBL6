@@ -26,6 +26,7 @@ namespace Webnovel.API.Databases
         public virtual DbSet<NovelGenre> GenreOfNovels { get; set; }
         public virtual DbSet<Bookmarked> BookMarked { get; set; } = null!;
         public virtual DbSet<Chapter> Chapter { get; set; } = null!;
+        public virtual DbSet<ChapterOfAccount> ChapterOfAccounts { get; set; } = null!;
         public virtual DbSet<Comment> Comment { get; set; } = null!;
         public virtual DbSet<UpdatedFee> UpdatedFee { get; set; } = null!;
         public virtual DbSet<Preferences> Preferences { get; set; } = null!;
