@@ -63,6 +63,9 @@ namespace WebNovel.API.Areas.Models.Bookmarked
                     ChapterId = Bookmarked.ChapterId,
                 };
 
+                var novel = await _context.Novel.Where(e => e.DelFlag == false).Where(e => e.Id == newBookmarked.NovelId).FirstAsync();
+                novel.Views += 1;
+
                 var strategy = _context.Database.CreateExecutionStrategy();
                 await strategy.ExecuteAsync(
                     async () =>

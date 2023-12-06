@@ -306,7 +306,7 @@ namespace WebNovel.API.Areas.Models.Novels
 
                 if (novel.Name is not null) existNovel.Name = novel.Name;
                 if (novel.Title is not null) existNovel.Title = novel.Title;
-                if (novel.Views is not null) existNovel.Views = (int)novel.Views;
+
                 if (novel.Description is not null) existNovel.Description = novel.Description;
                 if (novel.Status is not null) existNovel.Status = (bool)novel.Status;
                 if (novel.ApprovalStatus is not null) existNovel.ApprovalStatus = (bool)novel.ApprovalStatus;
