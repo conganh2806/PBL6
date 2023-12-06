@@ -23,6 +23,21 @@ namespace WebNovel.API.Areas.Controllers
             _paymentModel = paymentModel;
         }
 
+        [HttpGet]
+        [ProducesResponseType(typeof(PaymentHistoryDto), (int)HttpStatusCode.OK)]
+        [Authorize]
+        public async Task<IActionResult> GetDetail()
+        {
+            try
+            {
+                return Ok(await _paymentModel.GetAllPaymentHistory());
+            }
+            catch (Exception e)
+            {
+                return StatusCode(500, new { Error = e.Message });
+            }
+        }
+
         [HttpGet("AccountId={accountId}")]
         [ProducesResponseType(typeof(PaymentHistoryDto), (int)HttpStatusCode.OK)]
         [Authorize]
