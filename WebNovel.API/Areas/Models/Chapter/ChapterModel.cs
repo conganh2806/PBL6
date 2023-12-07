@@ -8,6 +8,7 @@ using WebNovel.API.Commons.Schemas;
 using WebNovel.API.Core.Models;
 using WebNovel.API.Core.Services;
 using WebNovel.API.Core.Services.Schemas;
+using WebNovel.API.Databases.Entities;
 using static WebNovel.API.Commons.Enums.CodeResonse;
 
 namespace WebNovel.API.Areas.Models.Chapter
@@ -15,12 +16,13 @@ namespace WebNovel.API.Areas.Models.Chapter
 
     public interface IChapterModel
     {
-        Task<List<ChapterDto>> GetListChapter();
         Task<ResponseInfo> AddChapter(ChapterCreateEntity chapter);
         Task<ResponseInfo> UpdateChapter(ChapterUpdateEntity chapter);
         Task<ResponseInfo> RemoveChapter(ChapterDeleteEntity chapter);
         Task<ChapterDto?> GetChapterAsync(string id);
         Task<List<ChapterDto>> GetChapterByNovel(string NovelId);
+        Task<List<ChapterDto>> GetChapterByAccount(string NovelId, string accountId);
+        Task<ResponseInfo> UnlockChapter(string id, string accountId);
     }
 
     public class ChapterModel : BaseModel, IChapterModel
@@ -146,7 +148,7 @@ namespace WebNovel.API.Areas.Models.Chapter
         public async Task<List<ChapterDto>> GetChapterByNovel(string NovelId)
         {
             List<ChapterDto> listChapter = new List<ChapterDto>();
-
+            
             listChapter = await _context.Chapter.Where(e => e.DelFlag == false).Where(x => x.NovelId == NovelId).OrderBy(e => e.PublishDate).Select(x => new ChapterDto()
             {
                 Id = x.Id,
@@ -171,24 +173,30 @@ namespace WebNovel.API.Areas.Models.Chapter
             return listChapter;
         }
 
-        public async Task<List<ChapterDto>> GetListChapter()
+        public async Task<List<ChapterDto>> GetChapterByAccount(string NovelId, string accountId)
         {
             List<ChapterDto> listChapter = new List<ChapterDto>();
-
-            listChapter = await _context.Chapter.Where(e => e.DelFlag == false).Select(x => new ChapterDto()
+            var chapterIds = await _context.ChapterOfAccounts.Where(e => e.DelFlag == false && e.NovelId == NovelId && e.AccountId == accountId).Select(x => x.ChapterId).ToListAsync();
+            listChapter = await _context.Chapter.Where(e => e.DelFlag == false).Where(x => x.NovelId == NovelId).OrderBy(e => e.PublishDate).Select(x => new ChapterDto()
             {
                 Id = x.Id,
                 Name = x.Name,
-                IsLocked = x.IsLocked,
+                IsLocked = x.IsLocked ? x.IsLocked && chapterIds.Any() && chapterIds.Contains(x.Id) : x.IsLocked,
                 PublishDate = x.PublishDate,
+                IsPublished = x.IsPublished,
                 Views = x.Views,
                 FeeId = x.FeeId,
+                Fee = x.FeeId == null ? null : (_context.UpdatedFee.Where(e => e.Id == x.FeeId).First()).Fee,
                 FileContent = _awsS3Service.GetFileImg(x.NovelId.ToString() + "/" + x.Id.ToString(), $"{x.FileContent}"),
                 Discount = x.Discount,
                 ApprovalStatus = x.ApprovalStatus,
-                NovelId = x.NovelId
-
+                NovelId = x.NovelId,
             }).ToListAsync();
+
+            for (int i = 0; i < listChapter.Count; i++)
+            {
+                listChapter[i].ChapIndex = i + 1;
+            }
 
             return listChapter;
         }
@@ -239,6 +247,62 @@ namespace WebNovel.API.Areas.Models.Chapter
                 throw;
             }
         }
+
+        public async Task<ResponseInfo> UnlockChapter(string id, string accountId)
+        {
+            IDbContextTransaction transaction = null;
+            string method = GetActualAsyncMethodName();
+            try
+            {
+                _logger.LogInformation($"[{_className}][{method}] Start");
+                ResponseInfo result = new ResponseInfo();
+                ResponseInfo response = new ResponseInfo();
+
+                var existChapter = _context.Chapter.Where(e => e.DelFlag == false).Where(n => n.Id == id).FirstOrDefault();
+                var account = _context.Accounts.Where(e => e.DelFlag == false).Where(n => n.Id == id).FirstOrDefault();
+                if (existChapter is null || account is null)
+                {
+                    response.Code = CodeResponse.HAVE_ERROR;
+                    response.MsgNo = MSG_NO.NOT_FOUND;
+                    return response;
+                }
+
+                var chapterOfAccount = new ChapterOfAccount() {
+                    NovelId = existChapter.NovelId,
+                    AccountId = accountId,
+                    ChapterId = existChapter.Id
+                };
+                account.WalletAmmount -= existChapter.UpdatedFee.Fee;
+
+                var strategy = _context.Database.CreateExecutionStrategy();
+                await strategy.ExecuteAsync(
+                    async () =>
+                    {
+                        using (var trn = await _context.Database.BeginTransactionAsync())
+                        {
+                            await _context.ChapterOfAccounts.AddAsync(chapterOfAccount);
+                            await _context.SaveChangesAsync();
+                            await trn.CommitAsync();
+                        }
+                    }
+                );
+
+                _logger.LogInformation($"[{_className}][{method}] End");
+                return result;
+
+            }
+            catch (Exception e)
+            {
+                if (transaction != null)
+                {
+                    await _context.RollbackAsync(transaction);
+                }
+                _logger.LogInformation($"[{_className}][{method}] Exception: {e.Message}");
+                throw;
+            }
+        }
+
+
 
         public async Task<ResponseInfo> UpdateChapter(ChapterUpdateEntity chapter)
         {
