@@ -56,6 +56,21 @@ namespace WebNovel.API.Areas.Controllers
             }
         }
 
+        [HttpGet("accountId={accountId}/NovelId={NovelId}")]
+        [ProducesResponseType(typeof(ChapterDto), (int)HttpStatusCode.OK)]
+        [Authorize]
+        public async Task<IActionResult> GetDetailByAccount([FromRoute] string NovelId, [FromRoute] string accountId)
+        {
+            try
+            {
+                return Ok(await _chapterModel.GetChapterByAccount(NovelId, accountId));
+            }
+            catch (Exception e)
+            {
+                return StatusCode(500, new { Error = e.Message });
+            }
+        }
+
         [HttpPost]
         [ProducesResponseType(typeof(ResponseInfo), (int)HttpStatusCode.OK)]
         [Authorize]
@@ -115,6 +130,30 @@ namespace WebNovel.API.Areas.Controllers
                 if (ModelState.IsValid)
                 {
                     response = await _chapterModel.RemoveChapter(chapter);
+                }
+                else
+                {
+                    response.Code = CodeResponse.NOT_VALIDATE;
+                }
+                return Ok(response);
+            }
+            catch (Exception e)
+            {
+                return StatusCode(500, new { Error = e.Message });
+            }
+        }
+
+        [HttpPut("unlock-chapter")]
+        [ProducesResponseType(typeof(ResponseInfo), (int)HttpStatusCode.OK)]
+        [Authorize]
+        public async Task<IActionResult> UnlockChapter([FromForm] UnlockChapter param)
+        {
+            try
+            {
+                ResponseInfo response = new ResponseInfo();
+                if (ModelState.IsValid)
+                {
+                    response = await _chapterModel.UnlockChapter(param.ChapterId, param.AccountId);
                 }
                 else
                 {
