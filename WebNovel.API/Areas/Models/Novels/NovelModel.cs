@@ -459,7 +459,7 @@ namespace WebNovel.API.Areas.Models.Novels
                 Description = x.Description,
                 Status = x.Status,
                 ApprovalStatus = x.ApprovalStatus,
-            }).ToList();
+            }).OrderByDescending(x => x.CreateAt).ToList();
 
             foreach (var novel in novelDtoTasks)
             {
