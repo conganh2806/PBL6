@@ -404,7 +404,7 @@ namespace WebNovel.API.Areas.Models.Novels
         public async Task<List<NovelDto>> GetListRecommendedNovel(string accountId)
         {
             List<NovelDto> listNovel = new List<NovelDto>();
-            var preference = await _context.Preferences.Where(x => x.AccountId == accountId).Select(x => x.NovelId).ToListAsync();
+            var preference = await _context.BookMarked.Where(x => x.AccountId == accountId).Select(x => x.NovelId).ToListAsync();
             var novels = await _context.Novel.Where(e => e.DelFlag == false && preference.Contains(e.Id)).Include(x => x.Genres).Include(x => x.Account).ToListAsync();
             var novelDtoTasks = novels.Select(x => new NovelDto()
             {
