@@ -50,7 +50,7 @@ namespace WebNovel.API.Areas.Models.Chapter.Schemas
 
     public class UnlockChapter
     {
-        public string NovelId { get; set; }
-        public string AccountId { get; set; }
+        public string ChapterId { get; set; } = null!;
+        public string AccountId { get; set; } = null!;
     }
 }

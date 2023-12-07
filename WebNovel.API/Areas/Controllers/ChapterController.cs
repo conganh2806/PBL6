@@ -56,9 +56,10 @@ namespace WebNovel.API.Areas.Controllers
             }
         }
 
-        [HttpGet("accountId={accountId}")]
+        [HttpGet("accountId={accountId}/NovelId={NovelId}")]
         [ProducesResponseType(typeof(ChapterDto), (int)HttpStatusCode.OK)]
-        public async Task<IActionResult> GetDetailByNovel([FromRoute] string NovelId,[FromRoute] string accountId)
+        [Authorize]
+        public async Task<IActionResult> GetDetailByAccount([FromRoute] string NovelId, [FromRoute] string accountId)
         {
             try
             {
@@ -152,7 +153,7 @@ namespace WebNovel.API.Areas.Controllers
                 ResponseInfo response = new ResponseInfo();
                 if (ModelState.IsValid)
                 {
-                    response = await _chapterModel.UnlockChapter(param.NovelId, param.AccountId);
+                    response = await _chapterModel.UnlockChapter(param.ChapterId, param.AccountId);
                 }
                 else
                 {

@@ -148,7 +148,7 @@ namespace WebNovel.API.Areas.Models.Chapter
         public async Task<List<ChapterDto>> GetChapterByNovel(string NovelId)
         {
             List<ChapterDto> listChapter = new List<ChapterDto>();
-            
+
             listChapter = await _context.Chapter.Where(e => e.DelFlag == false).Where(x => x.NovelId == NovelId).OrderBy(e => e.PublishDate).Select(x => new ChapterDto()
             {
                 Id = x.Id,
@@ -181,7 +181,7 @@ namespace WebNovel.API.Areas.Models.Chapter
             {
                 Id = x.Id,
                 Name = x.Name,
-                IsLocked = x.IsLocked ? x.IsLocked && chapterIds.Any() && chapterIds.Contains(x.Id) : x.IsLocked,
+                IsLocked = x.IsLocked ? ((chapterIds.Any() && chapterIds.Contains(x.Id)) ? !x.IsLocked : x.IsLocked) : x.IsLocked,
                 PublishDate = x.PublishDate,
                 IsPublished = x.IsPublished,
                 Views = x.Views,
@@ -248,7 +248,7 @@ namespace WebNovel.API.Areas.Models.Chapter
             }
         }
 
-        public async Task<ResponseInfo> UnlockChapter(string id, string accountId)
+        public async Task<ResponseInfo> UnlockChapter(string chapterId, string accountId)
         {
             IDbContextTransaction transaction = null;
             string method = GetActualAsyncMethodName();
@@ -258,8 +258,8 @@ namespace WebNovel.API.Areas.Models.Chapter
                 ResponseInfo result = new ResponseInfo();
                 ResponseInfo response = new ResponseInfo();
 
-                var existChapter = _context.Chapter.Where(e => e.DelFlag == false).Where(n => n.Id == id).FirstOrDefault();
-                var account = _context.Accounts.Where(e => e.DelFlag == false).Where(n => n.Id == id).FirstOrDefault();
+                var existChapter = _context.Chapter.Where(e => e.DelFlag == false).Where(n => n.Id == chapterId).Include(e => e.UpdatedFee).FirstOrDefault();
+                var account = _context.Accounts.Where(e => e.DelFlag == false).Where(n => n.Id == accountId).FirstOrDefault();
                 if (existChapter is null || account is null)
                 {
                     response.Code = CodeResponse.HAVE_ERROR;
@@ -267,9 +267,10 @@ namespace WebNovel.API.Areas.Models.Chapter
                     return response;
                 }
 
-                var chapterOfAccount = new ChapterOfAccount() {
+                var chapterOfAccount = new ChapterOfAccount()
+                {
                     NovelId = existChapter.NovelId,
-                    AccountId = accountId,
+                    AccountId = account.Id,
                     ChapterId = existChapter.Id
                 };
                 account.WalletAmmount -= existChapter.UpdatedFee.Fee;
@@ -301,8 +302,6 @@ namespace WebNovel.API.Areas.Models.Chapter
                 throw;
             }
         }
-
-
 
         public async Task<ResponseInfo> UpdateChapter(ChapterUpdateEntity chapter)
         {
