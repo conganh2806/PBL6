@@ -85,6 +85,7 @@ namespace WebNovel.API.Areas.Models.Accounts
                     IsActive = true,
                     IsVerifyEmail = false,
                     WalletAmmount = 0.0f,
+                    CreatorWallet = 0.0f,
                 };
                 if (account.RoleIds.Any())
                 {
@@ -152,6 +153,7 @@ namespace WebNovel.API.Areas.Models.Accounts
                 Email = account.Email,
                 Phone = account.Phone,
                 WalletAmmount = account.WalletAmmount,
+                CreatorWallet = account.CreatorWallet,
                 IsAdmin = account.IsAdmin,
                 IsVerifyEmail = account.IsVerifyEmail,
                 IsActive = account.IsActive,
@@ -179,6 +181,7 @@ namespace WebNovel.API.Areas.Models.Accounts
                 Email = account.Email,
                 Phone = account.Phone,
                 WalletAmmount = account.WalletAmmount,
+                CreatorWallet = account.CreatorWallet,
                 IsAdmin = account.IsAdmin,
                 IsVerifyEmail = account.IsVerifyEmail,
                 IsActive = account.IsActive,
@@ -203,6 +206,7 @@ namespace WebNovel.API.Areas.Models.Accounts
                 Email = x.Email,
                 Phone = x.Phone,
                 WalletAmmount = x.WalletAmmount,
+                CreatorWallet = x.CreatorWallet,
                 IsAdmin = x.IsAdmin,
                 IsVerifyEmail = x.IsVerifyEmail,
                 IsActive = x.IsActive,
@@ -287,6 +291,7 @@ namespace WebNovel.API.Areas.Models.Accounts
                 if (account.Birthday is not null) existAccount.DateJoined = account.Birthday;
 
                 if (account.WalletAmmount is not null) existAccount.WalletAmmount = (float)account.WalletAmmount;
+                if (account.CreatorWallet is not null) existAccount.CreatorWallet = (float)account.CreatorWallet;
                 if (account.IsAdmin is not null) existAccount.IsAdmin = (bool)account.IsAdmin;
                 if (account.IsActive is not null) existAccount.IsActive = (bool)account.IsActive;
 

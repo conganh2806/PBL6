@@ -258,7 +258,7 @@ namespace WebNovel.API.Areas.Models.Chapter
                 ResponseInfo result = new ResponseInfo();
                 ResponseInfo response = new ResponseInfo();
 
-                var existChapter = _context.Chapter.Where(e => e.DelFlag == false).Where(n => n.Id == chapterId).Include(e => e.UpdatedFee).FirstOrDefault();
+                var existChapter = _context.Chapter.Where(e => e.DelFlag == false).Where(n => n.Id == chapterId).Include(e => e.UpdatedFee).Include(e => e.Novel).ThenInclude(e => e.Account).FirstOrDefault();
                 var account = _context.Accounts.Where(e => e.DelFlag == false).Where(n => n.Id == accountId).FirstOrDefault();
                 if (existChapter is null || account is null)
                 {
@@ -274,6 +274,7 @@ namespace WebNovel.API.Areas.Models.Chapter
                     ChapterId = existChapter.Id
                 };
                 account.WalletAmmount -= existChapter.UpdatedFee.Fee;
+                existChapter.Novel.Account.CreatorWallet += existChapter.UpdatedFee.Fee;
 
                 var strategy = _context.Database.CreateExecutionStrategy();
                 await strategy.ExecuteAsync(

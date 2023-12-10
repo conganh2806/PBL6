@@ -33,7 +33,8 @@ namespace WebNovel.API.Databases.Entitites
                 [StringLength(500)]
                 public string? ImageURL { get; set; }
                 public int? Status { get; set; }
-                public float? WalletAmmount { get; set; }
+                public float WalletAmmount { get; set; }
+                public float CreatorWallet { get; set; }
                 public bool IsVerifyEmail { get; set; }
                 public bool? IsActive { get; set; }
                 public bool? IsAdmin { get; set; }

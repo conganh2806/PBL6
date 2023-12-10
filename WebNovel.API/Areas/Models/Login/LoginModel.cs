@@ -119,14 +119,15 @@ namespace WebNovel.API.Areas.Models.Login
                     userDB = new Account()
                     {
                         Id = GuID.ToString(),
-                        Username = googleUser.Email,
-                        Email = googleUser.Email,
+                        Username = googleUser.Name ?? string.Empty,
+                        Email = googleUser.Email ?? string.Empty,
                         Password = "",
                         Status = A001.NORMAL.CODE,
                         IsAdmin = false,
                         IsActive = true,
                         IsVerifyEmail = true,
                         WalletAmmount = 0.0f,
+                        CreatorWallet = 0.0f,
                     };
                     userDB.Roles.Add(new RolesOfUser()
                     {
