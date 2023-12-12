@@ -115,15 +115,14 @@ namespace WebNovel.API.Areas.Models.Novels
 
         public async Task<List<NovelDto>> GetListNovel(SearchCondition searchCondition)
         {
-
-            List<NovelDto> listNovel = new List<NovelDto>();
-
-            var novels = await _context.Novel.Where(e => e.DelFlag == false).Include(x => x.Genres).Include(x => x.Account)
+            var novels = await _context.Novel.Where(e => e.DelFlag == false)
+            .Include(x => x.Account)
             .Where(x => string.IsNullOrEmpty(searchCondition.Key)
                         || x.Title.Contains(searchCondition.Key)
                         || x.Account != null && x.Account.Username.Contains(searchCondition.Key))
-                        .ToListAsync();
-            var novelDtoTasks = novels.Select(x => new NovelDto()
+            .Include(x => x.Genres).ThenInclude(e => e.Genre)
+            .ToListAsync();
+            var listNovel = novels.Select(x => new NovelDto()
             {
                 Id = x.Id,
                 Name = x.Name,
@@ -136,25 +135,22 @@ namespace WebNovel.API.Areas.Models.Novels
                 Description = x.Description,
                 Status = x.Status,
                 ApprovalStatus = x.ApprovalStatus,
-                CreateAt = x.CreatedAt
+                CreateAt = x.CreatedAt,
+                GenreName = x.Genres.Select(x => x.Genre.Name).ToList(),
+                GenreIds = x.Genres.Select(x => x.Genre.Id).ToList(),
             }).ToList();
 
-
-            foreach (var novel in novelDtoTasks)
+            foreach (var novel in listNovel)
             {
                 var ratings = await _context.Ratings.Where(x => x.NovelId == novel.Id).Select(x => x.RateScore).ToListAsync();
                 var numRating = ratings.Count;
                 if (numRating > 0) novel.Rating = (int)(ratings.Sum() / numRating);
                 else novel.Rating = 0;
-                var genres = await _context.GenreOfNovels.Include(x => x.Genre).Where(x => x.NovelId == novel.Id).ToListAsync();
-                novel.GenreName = genres.Select(x => x.Genre.Name).ToList();
-                novel.GenreIds = genres.Select(x => x.Genre.Id).ToList();
+
                 novel.NumChapter = (await _context.Chapter.Where(e => e.NovelId == novel.Id).ToListAsync()).Count;
+                novel.NumRating = numRating;
+                novel.NumPreference = (await _context.Preferences.Where(e => e.NovelId == novel.Id).ToListAsync()).Count;
             }
-
-            listNovel = novelDtoTasks;
-
-
             return listNovel;
         }
 
@@ -162,14 +158,12 @@ namespace WebNovel.API.Areas.Models.Novels
         //and click in one genre
         public async Task<List<NovelDto>> GetListNovelByGenreId(long genreId)
         {
-            List<NovelDto> listNovel = new List<NovelDto>();
-            //List<NovelGenre> listOfNovelGenre = new List<NovelGenre>();
-
-
-            var novels = await _context.Novel.Where(e => e.DelFlag == false).Include(x => x.Genres).Include(x => x.Account).
-                                Where(novel => novel.Genres != null && novel.Genres.Any(ng => ng.GenreId == genreId)).
-                                ToListAsync();
-            var novelDtoTasks = novels.Select(x => new NovelDto()
+            var novels = await _context.Novel.Where(e => e.DelFlag == false)
+            .Include(x => x.Genres).ThenInclude(e => e.Genre)
+            .Where(novel => novel.Genres != null && novel.Genres.Any(ng => ng.GenreId == genreId))
+            .Include(x => x.Account)
+            .ToListAsync();
+            var listNovel = novels.Select(x => new NovelDto()
             {
                 Id = x.Id,
                 Name = x.Name,
@@ -182,32 +176,33 @@ namespace WebNovel.API.Areas.Models.Novels
                 Description = x.Description,
                 Status = x.Status,
                 ApprovalStatus = x.ApprovalStatus,
+                CreateAt = x.CreatedAt,
+                GenreName = x.Genres.Select(x => x.Genre.Name).ToList(),
+                GenreIds = x.Genres.Select(x => x.Genre.Id).ToList(),
             }).ToList();
 
-            foreach (var novel in novelDtoTasks)
+            foreach (var novel in listNovel)
             {
                 var ratings = await _context.Ratings.Where(x => x.NovelId == novel.Id).Select(x => x.RateScore).ToListAsync();
                 var numRating = ratings.Count;
                 if (numRating > 0) novel.Rating = (int)(ratings.Sum() / numRating);
                 else novel.Rating = 0;
-                var genres = await _context.GenreOfNovels.Include(x => x.Genre).Where(x => x.NovelId == novel.Id).ToListAsync();
-                novel.GenreName = genres.Select(x => x.Genre.Name).ToList();
-                novel.GenreIds = genres.Select(x => x.Genre.Id).ToList();
+
                 novel.NumChapter = (await _context.Chapter.Where(e => e.NovelId == novel.Id).ToListAsync()).Count;
+                novel.NumRating = numRating;
+                novel.NumPreference = (await _context.Preferences.Where(e => e.NovelId == novel.Id).ToListAsync()).Count;
             }
-
-            listNovel = novelDtoTasks;
-
             return listNovel;
-
         }
 
         public async Task<List<NovelDto>> GetListNovelByAccountId(string accountId)
         {
-            List<NovelDto> listNovel = new List<NovelDto>();
-            var novels = await _context.Novel.Where(e => e.DelFlag == false).Include(x => x.Genres).Include(x => x.Account).
-                                Where(e => e.AccountId == accountId).ToListAsync();
-            var novelDtoTasks = novels.Select(x => new NovelDto()
+            var novels = await _context.Novel.Where(e => e.DelFlag == false)
+            .Where(e => e.AccountId == accountId)
+            .Include(x => x.Genres).ThenInclude(e => e.Genre)
+            .Include(x => x.Account)
+            .ToListAsync();
+            var listNovel = novels.Select(x => new NovelDto()
             {
                 Id = x.Id,
                 Name = x.Name,
@@ -220,28 +215,32 @@ namespace WebNovel.API.Areas.Models.Novels
                 Description = x.Description,
                 Status = x.Status,
                 ApprovalStatus = x.ApprovalStatus,
+                CreateAt = x.CreatedAt,
+                GenreName = x.Genres.Select(x => x.Genre.Name).ToList(),
+                GenreIds = x.Genres.Select(x => x.Genre.Id).ToList(),
             }).ToList();
 
-            foreach (var novel in novelDtoTasks)
+            foreach (var novel in listNovel)
             {
                 var ratings = await _context.Ratings.Where(x => x.NovelId == novel.Id).Select(x => x.RateScore).ToListAsync();
                 var numRating = ratings.Count;
                 if (numRating > 0) novel.Rating = (int)(ratings.Sum() / numRating);
                 else novel.Rating = 0;
-                var genres = await _context.GenreOfNovels.Include(x => x.Genre).Where(x => x.NovelId == novel.Id).ToListAsync();
-                novel.GenreName = genres.Select(x => x.Genre.Name).ToList();
-                novel.GenreIds = genres.Select(x => x.Genre.Id).ToList();
+
                 novel.NumChapter = (await _context.Chapter.Where(e => e.NovelId == novel.Id).ToListAsync()).Count;
+                novel.NumRating = numRating;
+                novel.NumPreference = (await _context.Preferences.Where(e => e.NovelId == novel.Id).ToListAsync()).Count;
             }
-
-            listNovel = novelDtoTasks;
-
             return listNovel;
         }
 
         public async Task<NovelDto?> GetNovelAsync(string id)
         {
-            var novel = await _context.Novel.Where(e => e.DelFlag == false).Include(x => x.Genres).Include(x => x.Account).Where(x => x.Id == id).FirstOrDefaultAsync();
+            var novel = await _context.Novel.Where(e => e.DelFlag == false)
+            .Where(x => x.Id == id)
+            .Include(x => x.Genres).ThenInclude(e => e.Genre)
+            .Include(x => x.Account)
+            .FirstOrDefaultAsync();
             if (novel is null)
             {
                 return null;
@@ -259,16 +258,19 @@ namespace WebNovel.API.Areas.Models.Novels
                 Description = novel.Description,
                 Status = novel.Status,
                 ApprovalStatus = novel.ApprovalStatus,
-                NumChapter = (await _context.Chapter.Where(e => e.NovelId == novel.Id).ToListAsync()).Count
+                CreateAt = novel.CreatedAt,
+                NumChapter = (await _context.Chapter.Where(e => e.NovelId == novel.Id).ToListAsync()).Count,
+                NumPreference = (await _context.Preferences.Where(e => e.NovelId == novel.Id).ToListAsync()).Count,
+                GenreName = novel.Genres.Select(x => x.Genre.Name).ToList(),
+                GenreIds = novel.Genres.Select(x => x.Genre.Id).ToList(),
             };
 
             var ratings = await _context.Ratings.Where(x => x.NovelId == novel.Id).Select(x => x.RateScore).ToListAsync();
             var numRating = ratings.Count;
             if (numRating > 0) novelDto.Rating = (int)ratings.Sum() / numRating;
             else novelDto.Rating = 0;
-            var genres = await _context.GenreOfNovels.Include(x => x.Genre).Where(x => x.NovelId == novel.Id).ToListAsync();
-            novelDto.GenreName = genres.Select(x => x.Genre.Name).ToList();
-            novelDto.GenreIds = genres.Select(x => x.Genre.Id).ToList();
+
+            novelDto.NumRating = numRating;
 
             return novelDto;
         }
@@ -404,8 +406,11 @@ namespace WebNovel.API.Areas.Models.Novels
         public async Task<List<NovelDto>> GetListRecommendedNovel(string accountId)
         {
             List<NovelDto> listNovel = new List<NovelDto>();
-            var preference = await _context.BookMarked.Where(x => x.AccountId == accountId).Select(x => x.NovelId).ToListAsync();
-            var novels = await _context.Novel.Where(e => e.DelFlag == false && preference.Contains(e.Id)).Include(x => x.Genres).Include(x => x.Account).ToListAsync();
+            var bookMarked = await _context.BookMarked.Where(x => x.AccountId == accountId).Select(x => x.NovelId).ToListAsync();
+            var novels = await _context.Novel.Where(e => e.DelFlag == false && bookMarked.Contains(e.Id))
+            .Include(x => x.Genres).ThenInclude(e => e.Genre)
+            .Include(x => x.Account)
+            .ToListAsync();
             var novelDtoTasks = novels.Select(x => new NovelDto()
             {
                 Id = x.Id,
@@ -419,6 +424,9 @@ namespace WebNovel.API.Areas.Models.Novels
                 Description = x.Description,
                 Status = x.Status,
                 ApprovalStatus = x.ApprovalStatus,
+                CreateAt = x.CreatedAt,
+                GenreName = x.Genres.Select(e => e.Genre.Name).ToList(),
+                GenreIds = x.Genres.Select(e => e.Genre.Id).ToList(),
             }).ToList();
 
             foreach (var novel in novelDtoTasks)
@@ -427,10 +435,10 @@ namespace WebNovel.API.Areas.Models.Novels
                 var numRating = ratings.Count;
                 if (numRating > 0) novel.Rating = (int)(ratings.Sum() / numRating);
                 else novel.Rating = 0;
-                var genres = await _context.GenreOfNovels.Include(x => x.Genre).Where(x => x.NovelId == novel.Id).ToListAsync();
-                novel.GenreName = genres.Select(x => x.Genre.Name).ToList();
-                novel.GenreIds = genres.Select(x => x.Genre.Id).ToList();
+
                 novel.NumChapter = (await _context.Chapter.Where(e => e.NovelId == novel.Id).ToListAsync()).Count;
+                novel.NumRating = numRating;
+                novel.NumPreference = (await _context.Preferences.Where(e => e.NovelId == novel.Id).ToListAsync()).Count;
             }
 
             listNovel = novelDtoTasks;
@@ -443,10 +451,12 @@ namespace WebNovel.API.Areas.Models.Novels
             DateTimeOffset currentDate = DateTimeOffset.Now;
             // Calculate the date 7 days ago
             DateTimeOffset sevenDaysAgo = currentDate.AddDays(-7);
-            List<NovelDto> listNovel = new List<NovelDto>();
 
-            var novels = await _context.Novel.Where(e => e.DelFlag == false && e.CreatedAt > sevenDaysAgo).Include(x => x.Genres).Include(x => x.Account).ToListAsync();
-            var novelDtoTasks = novels.Select(x => new NovelDto()
+            var novels = await _context.Novel.Where(e => e.DelFlag == false && e.CreatedAt > sevenDaysAgo)
+            .Include(x => x.Genres).ThenInclude(e => e.Genre)
+            .Include(x => x.Account)
+            .ToListAsync();
+            var listNovel = novels.Select(x => new NovelDto()
             {
                 Id = x.Id,
                 Name = x.Name,
@@ -459,22 +469,22 @@ namespace WebNovel.API.Areas.Models.Novels
                 Description = x.Description,
                 Status = x.Status,
                 ApprovalStatus = x.ApprovalStatus,
+                CreateAt = x.CreatedAt,
+                GenreName = x.Genres.Select(e => e.Genre.Name).ToList(),
+                GenreIds = x.Genres.Select(e => e.Genre.Id).ToList(),
             }).OrderByDescending(x => x.CreateAt).ToList();
 
-            foreach (var novel in novelDtoTasks)
+            foreach (var novel in listNovel)
             {
                 var ratings = await _context.Ratings.Where(x => x.NovelId == novel.Id).Select(x => x.RateScore).ToListAsync();
                 var numRating = ratings.Count;
                 if (numRating > 0) novel.Rating = (int)(ratings.Sum() / numRating);
                 else novel.Rating = 0;
-                var genres = await _context.GenreOfNovels.Include(x => x.Genre).Where(x => x.NovelId == novel.Id).ToListAsync();
-                novel.GenreName = genres.Select(x => x.Genre.Name).ToList();
-                novel.GenreIds = genres.Select(x => x.Genre.Id).ToList();
+
                 novel.NumChapter = (await _context.Chapter.Where(e => e.NovelId == novel.Id).ToListAsync()).Count;
+                novel.NumRating = numRating;
+                novel.NumPreference = (await _context.Preferences.Where(e => e.NovelId == novel.Id).ToListAsync()).Count;
             }
-
-            listNovel = novelDtoTasks;
-
             return listNovel;
         }
     }
