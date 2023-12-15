@@ -110,6 +110,7 @@ namespace WebNovel.API.Areas.Models.Comment
                     comment.Email = Account.Email;
                     comment.NickName = Account.NickName;
                     comment.RoleIds = Account.RoleIds;
+                    comment.AccountImagesURL = Account.ImagesURL;
                 }
             }
 
@@ -136,12 +137,14 @@ namespace WebNovel.API.Areas.Models.Comment
                     comment.Email = "[Deleted]";
                     comment.NickName = "[Deleted]";
                     comment.RoleIds = null;
+                    comment.AccountImagesURL = null;
                     continue;
                 }
                 comment.Username = Account.Username;
                 comment.Email = Account.Email;
                 comment.NickName = Account.NickName;
                 comment.RoleIds = Account.RoleIds;
+                comment.AccountImagesURL = Account.ImagesURL;
             }
 
             return listComment;
@@ -167,6 +170,7 @@ namespace WebNovel.API.Areas.Models.Comment
                     comment.Email = Account.Email;
                     comment.NickName = Account.NickName;
                     comment.RoleIds = Account.RoleIds;
+                    comment.AccountImagesURL = Account.ImagesURL;
                 }
             }
 
@@ -199,6 +203,7 @@ namespace WebNovel.API.Areas.Models.Comment
                     NickName = Account.NickName,
                     RoleIds = Account.RoleIds,
                     CreateOn = Comment.CreateOn,
+                    AccountImagesURL = Account.ImagesURL,
                 };
                 return CommentDto;
             }
