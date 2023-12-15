@@ -24,6 +24,7 @@ namespace WebNovel.API.Areas.Models.UpdatedFees
         Task<ResponseInfo> AddUpdatedFee(UpdatedFeeCreateUpdateEntity account);
         Task<ResponseInfo> UpdateUpdatedFee(long id, UpdatedFeeCreateUpdateEntity account);
         UpdatedFeeDto GetUpdatedFee(long id);
+        Task<UpdatedFeeDto?> GetActiveFee();
     }
     public class UpdatedFeeModel : BaseModel, IUpdatedFeeModel
     {
@@ -52,20 +53,76 @@ namespace WebNovel.API.Areas.Models.UpdatedFees
 
                 var newUpdatedFee = new UpdatedFee()
                 {
-                    Id = updatedFee.Id,
                     Fee = updatedFee.Fee,
                     DateUpdated = DateTime.Now,
+                    Year = DateTime.Now.Year,
                 };
 
                 var strategy = _context.Database.CreateExecutionStrategy();
                 await strategy.ExecuteAsync(
                     async () =>
                     {
-                        using (var trn = await _context.Database.BeginTransactionAsync())
+                        using (transaction = await _context.Database.BeginTransactionAsync())
                         {
                             await _context.UpdatedFee.AddAsync(newUpdatedFee);
                             await _context.SaveChangesAsync();
-                            await trn.CommitAsync();
+                            await transaction.CommitAsync();
+                        }
+                    }
+                );
+
+                result = await UpdateFeeAllChapter();
+
+                _logger.LogInformation($"[{_className}][{method}] End");
+                return result;
+            }
+            catch (Exception e)
+            {
+                if (transaction != null)
+                {
+                    await _context.RollbackAsync(transaction);
+                }
+                _logger.LogError($"[{_className}][{method}] Exception: {e.Message}");
+
+                throw;
+            }
+        }
+
+        public async Task<ResponseInfo> UpdateFeeAllChapter()
+        {
+            IDbContextTransaction transaction = null;
+            string method = GetActualAsyncMethodName();
+            try
+            {
+                _logger.LogInformation($"[{_className}][{method}] Start");
+                ResponseInfo result = new ResponseInfo();
+                if (result.Code != CodeResponse.OK)
+                {
+                    return result;
+                }
+
+                var Fee = await GetActiveFee();
+                if (Fee is null)
+                {
+                    result.Code = CodeResponse.HAVE_ERROR;
+                    result.MsgNo = "Update Chapter Failed";
+                    return result;
+                }
+
+                foreach (var chapter in await _context.Chapter.Where(e => e.DelFlag == false && e.IsLocked == true)
+                                                                .ToListAsync())
+                {
+                    chapter.FeeId = Fee.Id;
+                }
+
+                var strategy = _context.Database.CreateExecutionStrategy();
+                await strategy.ExecuteAsync(
+                    async () =>
+                    {
+                        using (transaction = await _context.Database.BeginTransactionAsync())
+                        {
+                            await _context.SaveChangesAsync();
+                            await transaction.CommitAsync();
                         }
                     }
                 );
@@ -93,6 +150,7 @@ namespace WebNovel.API.Areas.Models.UpdatedFees
                 Id = updatedFee.Id,
                 Fee = updatedFee.Fee,
                 DateUpdated = updatedFee.DateUpdated,
+                Year = updatedFee.Year,
             };
 
             return updatedFeeDto;
@@ -100,12 +158,13 @@ namespace WebNovel.API.Areas.Models.UpdatedFees
 
         public async Task<List<UpdatedFeeDto>> GetListUpdatedFee()
         {
-            var listUpdatedFee = _context.UpdatedFee.Select(x => new UpdatedFeeDto()
+            var listUpdatedFee = await _context.UpdatedFee.Select(x => new UpdatedFeeDto()
             {
                 Id = x.Id,
                 Fee = x.Fee,
                 DateUpdated = x.DateUpdated,
-            }).ToList();
+                Year = x.Year,
+            }).OrderByDescending(x => x.DateUpdated).ToListAsync();
 
             return listUpdatedFee;
         }
@@ -163,6 +222,23 @@ namespace WebNovel.API.Areas.Models.UpdatedFees
             }
         }
 
+        public async Task<UpdatedFeeDto?> GetActiveFee()
+        {
+            var activeFee = await _context.UpdatedFee.OrderByDescending(e => e.CreatedAt).FirstOrDefaultAsync();
+            if (activeFee is null)
+            {
+                return null;
+            }
 
+            var updatedFeeDto = new UpdatedFeeDto()
+            {
+                Id = activeFee.Id,
+                Fee = activeFee.Fee,
+                DateUpdated = activeFee.DateUpdated,
+                Year = activeFee.Year,
+            };
+
+            return updatedFeeDto;
+        }
     }
 }
