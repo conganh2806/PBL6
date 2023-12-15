@@ -38,13 +38,13 @@ namespace WebNovel.API.Areas.Controllers
             }
         }
 
-        [HttpGet("{id}")]
+        [HttpGet("get-active-fee")]
         [ProducesResponseType(typeof(UpdatedFeeDto), (int)HttpStatusCode.OK)]
-        public async Task<IActionResult> GetDetail([FromRoute] long id)
+        public async Task<IActionResult> GetActive()
         {
             try
             {
-                return Ok(_updatedFeeModel.GetUpdatedFee(id));
+                return Ok(await _updatedFeeModel.GetActiveFee());
             }
             catch (Exception e)
             {
@@ -63,30 +63,6 @@ namespace WebNovel.API.Areas.Controllers
                 if (ModelState.IsValid)
                 {
                     response = await _updatedFeeModel.AddUpdatedFee(updatedFee);
-                }
-                else
-                {
-                    response.Code = CodeResponse.NOT_VALIDATE;
-                }
-                return Ok(response);
-            }
-            catch (Exception e)
-            {
-                return StatusCode(500, new { Error = e.Message });
-            }
-        }
-
-        [HttpPut("{id}")]
-        [ProducesResponseType(typeof(ResponseInfo), (int)HttpStatusCode.OK)]
-        [Authorize]
-        public async Task<IActionResult> Update([FromRoute] long id, [FromBody] UpdatedFeeCreateUpdateEntity updatedFee)
-        {
-            try
-            {
-                ResponseInfo response = new ResponseInfo();
-                if (ModelState.IsValid)
-                {
-                    response = await _updatedFeeModel.UpdateUpdatedFee(id, updatedFee);
                 }
                 else
                 {
