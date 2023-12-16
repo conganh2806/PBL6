@@ -177,11 +177,11 @@ namespace WebNovel.API.Areas.Models.Chapter
         {
             List<ChapterDto> listChapter = new List<ChapterDto>();
             var chapterIds = await _context.ChapterOfAccounts.Where(e => e.DelFlag == false && e.NovelId == NovelId && e.AccountId == accountId).Select(x => x.ChapterId).ToListAsync();
-            listChapter = await _context.Chapter.Where(e => e.DelFlag == false).Where(x => x.NovelId == NovelId).OrderBy(e => e.PublishDate).Select(x => new ChapterDto()
+            listChapter = await _context.Chapter.Where(e => e.DelFlag == false).Where(x => x.NovelId == NovelId).Include(e => e.Novel).ThenInclude(e => e.Account).OrderBy(e => e.PublishDate).Select(x => new ChapterDto()
             {
                 Id = x.Id,
                 Name = x.Name,
-                IsLocked = x.IsLocked ? ((chapterIds.Any() && chapterIds.Contains(x.Id)) ? !x.IsLocked : x.IsLocked) : x.IsLocked,
+                IsLocked = x.IsLocked ? ((chapterIds.Any() && chapterIds.Contains(x.Id)) || x.Novel.Account.Id == accountId ? !x.IsLocked : x.IsLocked) : x.IsLocked,
                 PublishDate = x.PublishDate,
                 IsPublished = x.IsPublished,
                 Views = x.Views,
