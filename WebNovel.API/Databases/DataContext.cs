@@ -34,6 +34,7 @@ namespace Webnovel.API.Databases
         public virtual DbSet<IncreasePercent> IncreasePercents { get; set; } = null!;
         public virtual DbSet<Bundle> Bundles { get; set; } = null!;
         public virtual DbSet<Order> Orders { get; set; } = null!;
+        public virtual DbSet<Payout> Payouts { get; set; } = null!;
 
         /// <summary>
         /// Payment Database

@@ -231,6 +231,13 @@ namespace WebNovel.API.Databases
                 e.ChapterId
             });
 
+            modelBuilder
+            .Entity<Payout>()
+            .HasOne(e => e.Account)
+            .WithMany(e => e.Payouts)
+            .HasForeignKey(e => e.AccountId)
+            .IsRequired();
+
             return modelBuilder;
         }
     }
