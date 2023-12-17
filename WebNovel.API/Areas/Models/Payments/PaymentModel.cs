@@ -24,8 +24,11 @@ namespace WebNovel.API.Areas.Models.Payments
         Task<VnpayPayIpnResponse> ProcessVnpayPaymentIpn(VnpayPayResponse vnpayPayResponse);
         Task<List<PaymentHistoryDto>> GetPaymentHistory(string accountId);
         Task<List<PaymentHistoryDto>> GetAllPaymentHistory();
-        Task<ResponseInfo> CreateRequestPayout(PayoutDto novel);
-        Task<ResponseInfo> Payout(string accountId);
+        Task<ResponseInfo> CreateRequestPayout(CreatePayoutDto payout);
+        Task<ResponseInfo> DeleteRequestPayout(DeletePayoutDto payout);
+        Task<ResponseInfo> Payout(long PayoutId);
+        Task<List<PayoutDto>> GetAllPayout();
+        Task<List<PayoutDto>> GetAllPayout(string AccountId);
     }
 
     public class BaseResultWithData<T>
@@ -445,7 +448,7 @@ namespace WebNovel.API.Areas.Models.Payments
             return payments;
         }
 
-        public async Task<ResponseInfo> CreateRequestPayout(PayoutDto request)
+        public async Task<ResponseInfo> CreateRequestPayout(CreatePayoutDto request)
         {
             IDbContextTransaction? transaction = null;
             string method = GetActualAsyncMethodName();
@@ -489,23 +492,32 @@ namespace WebNovel.API.Areas.Models.Payments
             }
         }
 
-        public async Task<ResponseInfo> Payout(string accountId)
+        public async Task<ResponseInfo> Payout(long PayoutId)
         {
             IDbContextTransaction? transaction = null;
             string method = GetActualAsyncMethodName();
             ResponseInfo results = new ResponseInfo();
             try
             {
-                var requestPayout = await _context.Payouts.Where(x => x.AccountId == accountId && !x.PayoutStatus).FirstOrDefaultAsync();
-                var account = await _context.Accounts.Where(x => x.Id == accountId && x.IsActive.HasValue).FirstOrDefaultAsync();
-                if (requestPayout is null || account is null)
+                var requestPayout = await _context.Payouts.Where(e => e.Id == PayoutId)
+                                                            .Include(e => e.Account)
+                                                            .FirstOrDefaultAsync();
+                if (requestPayout is null)
                 {
                     results.Code = CodeResponse.HAVE_ERROR;
                     results.MsgNo = MSG_NO.NOT_FOUND;
                     return results;
                 }
+
+                if (requestPayout.Account.CreatorWallet < requestPayout.PayoutAmount)
+                {
+                    results.Code = CodeResponse.HAVE_ERROR;
+                    results.MsgNo = "Account doesn't have enough amount";
+                    return results;
+                }
+
                 requestPayout.PayoutStatus = true;
-                account.WalletAmmount -= requestPayout.PayoutAmount;
+                requestPayout.Account.CreatorWallet -= requestPayout.PayoutAmount;
 
                 var strategy = _context.Database.CreateExecutionStrategy();
                 await strategy.ExecuteAsync(
@@ -523,8 +535,8 @@ namespace WebNovel.API.Areas.Models.Payments
                 var mailRequest = new EmailRequest()
                 {
                     Subject = "Request Payout",
-                    Body = "Request Payout is accepted.",
-                    ToMail = account.Email
+                    Body = "Request Payout is accepted. The amount is: " + requestPayout.PayoutAmount + ".",
+                    ToMail = requestPayout.Account.Email
                 };
                 _jobService.Enqueue(() => _emailService.SendAsync(mailRequest));
 
@@ -540,6 +552,105 @@ namespace WebNovel.API.Areas.Models.Payments
                 _logger.LogError($"[{_className}][{method}] Exception: {e.Message}");
                 throw;
             }
+        }
+
+        public async Task<ResponseInfo> DeleteRequestPayout(DeletePayoutDto request)
+        {
+            IDbContextTransaction? transaction = null;
+            string method = GetActualAsyncMethodName();
+            ResponseInfo results = new ResponseInfo();
+            try
+            {
+                var requestPayout = await _context.Payouts.Where(e => e.Id == request.PayoutId)
+                                                            .Include(e => e.Account)
+                                                            .FirstOrDefaultAsync();
+                if (requestPayout is null)
+                {
+                    results.Code = CodeResponse.HAVE_ERROR;
+                    results.MsgNo = MSG_NO.NOT_FOUND;
+                    return results;
+                }
+
+                _context.Payouts.Remove(requestPayout);
+
+                var strategy = _context.Database.CreateExecutionStrategy();
+                await strategy.ExecuteAsync(
+                    async () =>
+                    {
+                        using (transaction = await _context.Database.BeginTransactionAsync())
+                        {
+                            await _context.SaveChangesAsync();
+                            await transaction.CommitAsync();
+                        }
+                    }
+
+                );
+
+                var mailRequest = new EmailRequest()
+                {
+                    Subject = "Request Payout canceled",
+                    Body = "Request Payout is canceled. The amount is: " + requestPayout.PayoutAmount + ".",
+                    ToMail = requestPayout.Account.Email
+                };
+                _jobService.Enqueue(() => _emailService.SendAsync(mailRequest));
+
+                _logger.LogInformation($"[{_className}][{method}] End");
+                return results;
+            }
+            catch (Exception e)
+            {
+                if (transaction != null)
+                {
+                    await _context.RollbackAsync(transaction);
+                }
+                _logger.LogError($"[{_className}][{method}] Exception: {e.Message}");
+                throw;
+            }
+        }
+
+        public async Task<List<PayoutDto>> GetAllPayout()
+        {
+            var payouts = await _context.Payouts.Where(e => e.DelFlag == false)
+            .Include(e => e.Account)
+            .OrderBy(e => e.PayoutStatus).ThenBy(e => e.CreatedAt)
+            .Select(e => new PayoutDto()
+            {
+                Id = e.Id,
+                AccountId = e.AccountId,
+                Username = e.Account.Username,
+                Email = e.Account.Email,
+                NickName = e.Account.NickName,
+                PayoutAmount = e.PayoutAmount,
+                PayoutStatus = e.PayoutStatus,
+                Bank = e.Bank,
+                BankName = e.BankName,
+                BankNumber = e.BankNumber,
+            }).ToListAsync();
+
+            return payouts;
+        }
+
+        public async Task<List<PayoutDto>> GetAllPayout(string AccountId)
+        {
+            var payouts = await _context.Payouts.Where(e => e.DelFlag == false)
+            .Where(e => e.AccountId == AccountId)
+            .Include(e => e.Account)
+            .OrderByDescending(e => e.CreatedAt)
+            .Select(e => new PayoutDto()
+            {
+                Id = e.Id,
+                AccountId = e.AccountId,
+                Username = e.Account.Username,
+                Email = e.Account.Email,
+                NickName = e.Account.NickName,
+                PayoutAmount = e.PayoutAmount,
+                PayoutStatus = e.PayoutStatus,
+                Bank = e.Bank,
+                BankName = e.BankName,
+                BankNumber = e.BankNumber,
+            }).ToListAsync();
+
+            return payouts;
         }
     }
 }

@@ -92,7 +92,7 @@ namespace WebNovel.API.Areas.Controllers
 
         [HttpPost("request-payout")]
         [Authorize]
-        public async Task<IActionResult> CreateRequestPayout([FromForm] PayoutDto request)
+        public async Task<IActionResult> CreateRequestPayout([FromBody] CreatePayoutDto request)
         {
             try
             {
@@ -113,22 +113,73 @@ namespace WebNovel.API.Areas.Controllers
             }
         }
 
-        [HttpPut("accepted-request-payout/{accountId}")]
+        [HttpPut("accept-request-payout/{PayoutId}")]
         [Authorize]
-        public async Task<IActionResult> AcceptRequestPayout(string accountId)
+        public async Task<IActionResult> AcceptRequestPayout(long PayoutId)
         {
             try
             {
                 ResponseInfo response = new ResponseInfo();
                 if (ModelState.IsValid)
                 {
-                    response = await _paymentModel.Payout(accountId);
+                    response = await _paymentModel.Payout(PayoutId);
                 }
                 else
                 {
                     response.Code = CodeResponse.NOT_VALIDATE;
                 }
                 return Ok(response);
+            }
+            catch (Exception e)
+            {
+                return StatusCode(500, new { Error = e.Message });
+            }
+        }
+
+        [HttpDelete("cancel-request-payout")]
+        [Authorize]
+        public async Task<IActionResult> DeleteRequestPayout([FromBody] DeletePayoutDto request)
+        {
+            try
+            {
+                ResponseInfo response = new ResponseInfo();
+                if (ModelState.IsValid)
+                {
+                    response = await _paymentModel.DeleteRequestPayout(request);
+                }
+                else
+                {
+                    response.Code = CodeResponse.NOT_VALIDATE;
+                }
+                return Ok(response);
+            }
+            catch (Exception e)
+            {
+                return StatusCode(500, new { Error = e.Message });
+            }
+        }
+
+        [HttpGet("get-payout")]
+        [Authorize]
+        public async Task<IActionResult> GetPayout()
+        {
+            try
+            {
+                return Ok(await _paymentModel.GetAllPayout());
+            }
+            catch (Exception e)
+            {
+                return StatusCode(500, new { Error = e.Message });
+            }
+        }
+
+        [HttpGet("get-payout/{AccountId}")]
+        [Authorize]
+        public async Task<IActionResult> GetPayout(string AccountId)
+        {
+            try
+            {
+                return Ok(await _paymentModel.GetAllPayout(AccountId));
             }
             catch (Exception e)
             {

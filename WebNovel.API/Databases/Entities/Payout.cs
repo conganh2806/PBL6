@@ -6,6 +6,10 @@ namespace WebNovel.API.Databases.Entities
 {
     public class Payout : TableHaveIdInt
     {
+        public Payout()
+        {
+            ForceDel = true;
+        }
         [StringLength(36)]
         public string AccountId { set; get; } = string.Empty;
         public float PayoutAmount { get; set; }
