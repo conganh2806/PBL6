@@ -183,5 +183,19 @@ namespace WebNovel.API.Areas.Controllers
                 return StatusCode(500, new { Error = e.Message });
             }
         }
+
+        [HttpGet("top-trending-novels")]
+        [ProducesResponseType(typeof(NovelDto), (int)HttpStatusCode.OK)]
+        public async Task<IActionResult> GetListTopTrendingNovel()
+        {
+            try
+            {
+                return Ok(await _novelModel.GetListTopTrendingNovel());
+            }
+            catch (Exception e)
+            {
+                return StatusCode(500, new { Error = e.Message });
+            }
+        }
     }
 }
