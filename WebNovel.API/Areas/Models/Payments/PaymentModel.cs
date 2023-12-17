@@ -6,11 +6,14 @@ using Microsoft.EntityFrameworkCore.Storage;
 using Microsoft.Extensions.Options;
 using Newtonsoft.Json;
 using WebNovel.API.Areas.Models.Payments.Schemas;
+using WebNovel.API.Commons.Enums;
+using WebNovel.API.Commons.Schemas;
 using WebNovel.API.Core.Models;
 using WebNovel.API.Core.Services;
 using WebNovel.API.Core.Services.Schemas;
 using WebNovel.API.Core.Services.VnPay.Schemas;
 using WebNovel.API.Databases.Entities;
+using static WebNovel.API.Commons.Enums.CodeResonse;
 
 namespace WebNovel.API.Areas.Models.Payments
 {
@@ -21,6 +24,8 @@ namespace WebNovel.API.Areas.Models.Payments
         Task<VnpayPayIpnResponse> ProcessVnpayPaymentIpn(VnpayPayResponse vnpayPayResponse);
         Task<List<PaymentHistoryDto>> GetPaymentHistory(string accountId);
         Task<List<PaymentHistoryDto>> GetAllPaymentHistory();
+        Task<ResponseInfo> CreateRequestPayout(PayoutDto novel);
+        Task<ResponseInfo> Payout(string accountId);
     }
 
     public class BaseResultWithData<T>
@@ -438,6 +443,103 @@ namespace WebNovel.API.Areas.Models.Payments
                 payments.Add(PaymentHistoryDto);
             }
             return payments;
+        }
+
+        public async Task<ResponseInfo> CreateRequestPayout(PayoutDto request)
+        {
+            IDbContextTransaction? transaction = null;
+            string method = GetActualAsyncMethodName();
+            ResponseInfo results = new ResponseInfo();
+            try
+            {
+                var payout = new Payout()
+                {
+                    AccountId = request.AccountId,
+                    PayoutAmount = request.PayoutAmount,
+                    Bank = request.Bank,
+                    BankName = request.BankName,
+                    BankNumber = request.BankNumber
+                };
+
+                var strategy = _context.Database.CreateExecutionStrategy();
+                await strategy.ExecuteAsync(
+                    async () =>
+                    {
+                        using (transaction = await _context.Database.BeginTransactionAsync())
+                        {
+                            await _context.Payouts.AddAsync(payout);
+                            await _context.SaveChangesAsync();
+                            await transaction.CommitAsync();
+                        }
+                    }
+
+                );
+
+                _logger.LogInformation($"[{_className}][{method}] End");
+                return results;
+            }
+            catch (Exception e)
+            {
+                if (transaction != null)
+                {
+                    await _context.RollbackAsync(transaction);
+                }
+                _logger.LogError($"[{_className}][{method}] Exception: {e.Message}");
+                throw;
+            }
+        }
+
+        public async Task<ResponseInfo> Payout(string accountId)
+        {
+            IDbContextTransaction? transaction = null;
+            string method = GetActualAsyncMethodName();
+            ResponseInfo results = new ResponseInfo();
+            try
+            {
+                var requestPayout = await _context.Payouts.Where(x => x.AccountId == accountId && !x.PayoutStatus).FirstOrDefaultAsync();
+                var account = await _context.Accounts.Where(x => x.Id == accountId && x.IsActive.HasValue).FirstOrDefaultAsync();
+                if (requestPayout is null || account is null)
+                {
+                    results.Code = CodeResponse.HAVE_ERROR;
+                    results.MsgNo = MSG_NO.NOT_FOUND;
+                    return results;
+                }
+                requestPayout.PayoutStatus = true;
+                account.WalletAmmount -= requestPayout.PayoutAmount;
+
+                var strategy = _context.Database.CreateExecutionStrategy();
+                await strategy.ExecuteAsync(
+                    async () =>
+                    {
+                        using (transaction = await _context.Database.BeginTransactionAsync())
+                        {
+                            await _context.SaveChangesAsync();
+                            await transaction.CommitAsync();
+                        }
+                    }
+
+                );
+
+                var mailRequest = new EmailRequest()
+                {
+                    Subject = "Request Payout",
+                    Body = "Request Payout is accepted.",
+                    ToMail = account.Email
+                };
+                _jobService.Enqueue(() => _emailService.SendAsync(mailRequest));
+
+                _logger.LogInformation($"[{_className}][{method}] End");
+                return results;
+            }
+            catch (Exception e)
+            {
+                if (transaction != null)
+                {
+                    await _context.RollbackAsync(transaction);
+                }
+                _logger.LogError($"[{_className}][{method}] Exception: {e.Message}");
+                throw;
+            }
         }
     }
 }

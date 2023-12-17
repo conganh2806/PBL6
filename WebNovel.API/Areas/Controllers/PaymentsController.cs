@@ -8,6 +8,7 @@ using WebNovel.API.Commons.Schemas;
 using WebNovel.API.Controllers;
 using WebNovel.API.Core.Extentions;
 using WebNovel.API.Core.Services.VnPay.Schemas;
+using static WebNovel.API.Commons.Enums.CodeResonse;
 
 namespace WebNovel.API.Areas.Controllers
 {
@@ -87,6 +88,52 @@ namespace WebNovel.API.Areas.Controllers
                 return StatusCode(500, new { Error = e.Message });
             }
 
+        }
+
+        [HttpPost("request-payout")]
+        [Authorize]
+        public async Task<IActionResult> CreateRequestPayout([FromForm] PayoutDto request)
+        {
+            try
+            {
+                ResponseInfo response = new ResponseInfo();
+                if (ModelState.IsValid)
+                {
+                    response = await _paymentModel.CreateRequestPayout(request);
+                }
+                else
+                {
+                    response.Code = CodeResponse.NOT_VALIDATE;
+                }
+                return Ok(response);
+            }
+            catch (Exception e)
+            {
+                return StatusCode(500, new { Error = e.Message });
+            }
+        }
+
+        [HttpPut("accepted-request-payout/{accountId}")]
+        [Authorize]
+        public async Task<IActionResult> AcceptRequestPayout(string accountId)
+        {
+            try
+            {
+                ResponseInfo response = new ResponseInfo();
+                if (ModelState.IsValid)
+                {
+                    response = await _paymentModel.Payout(accountId);
+                }
+                else
+                {
+                    response.Code = CodeResponse.NOT_VALIDATE;
+                }
+                return Ok(response);
+            }
+            catch (Exception e)
+            {
+                return StatusCode(500, new { Error = e.Message });
+            }
         }
     }
 }
