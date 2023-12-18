@@ -67,6 +67,10 @@ namespace WebNovel.API.Areas.Controllers
                 if (ModelState.IsValid)
                 {
                     response = await _accountModel.AddAccount(account);
+                    if (response.Code != CodeResponse.OK)
+                    {
+                        return BadRequest(response);
+                    }
                 }
                 else
                 {
