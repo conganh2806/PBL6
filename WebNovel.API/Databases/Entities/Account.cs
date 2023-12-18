@@ -19,6 +19,7 @@ namespace WebNovel.API.Databases.Entitites
                         Orders = new HashSet<Order>();
                         ChapterOfAccounts = new HashSet<ChapterOfAccount>();
                         Payouts = new HashSet<Payout>();
+                        Reports = new HashSet<Report>();
                 }
 
                 [StringLength(100)]
@@ -50,5 +51,6 @@ namespace WebNovel.API.Databases.Entitites
                 public virtual ICollection<Order> Orders { get; set; }
                 public virtual ICollection<ChapterOfAccount> ChapterOfAccounts { get; set; }
                 public virtual ICollection<Payout> Payouts { get; set; }
+                public virtual ICollection<Report> Reports { get; set; }
         }
 }

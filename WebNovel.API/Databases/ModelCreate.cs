@@ -238,6 +238,18 @@ namespace WebNovel.API.Databases
             .HasForeignKey(e => e.AccountId)
             .IsRequired();
 
+            modelBuilder
+            .Entity<Report>()
+            .HasOne(e => e.Account)
+            .WithMany(e => e.Reports)
+            .IsRequired();
+
+            modelBuilder
+            .Entity<Report>()
+            .HasOne(e => e.Novel)
+            .WithMany(e => e.Reports)
+            .IsRequired();
+
             return modelBuilder;
         }
     }
