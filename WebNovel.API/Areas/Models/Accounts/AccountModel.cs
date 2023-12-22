@@ -472,7 +472,7 @@ namespace WebNovel.API.Areas.Models.Accounts
             var currentYear = DateTime.Now.Year;
 
             ResponseInfo.Data.Add("AccountTotal", (await _context.Accounts.Where(e => e.DelFlag == false).CountAsync()).ToString());
-            ResponseInfo.Data.Add("AccountMonthly", (await _context.Accounts.Where(e => e.DelFlag == false && e.CreatedAt.Month == currentMonth).CountAsync()).ToString());
+            ResponseInfo.Data.Add("AccountMonthly", (await _context.Accounts.Where(e => e.DelFlag == false && e.CreatedAt.Year == currentYear && e.CreatedAt.Month == currentMonth).CountAsync()).ToString());
             ResponseInfo.Data.Add("AccountYearly", (await _context.Accounts.Where(e => e.DelFlag == false && e.CreatedAt.Year == currentYear).CountAsync()).ToString());
 
             return ResponseInfo;

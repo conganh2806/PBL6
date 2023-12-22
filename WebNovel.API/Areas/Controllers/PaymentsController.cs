@@ -186,5 +186,35 @@ namespace WebNovel.API.Areas.Controllers
                 return StatusCode(500, new { Error = e.Message });
             }
         }
+
+        [HttpGet("admin-revenue")]
+        [ProducesResponseType(typeof(ResponseInfo), (int)HttpStatusCode.OK)]
+        [Authorize]
+        public async Task<IActionResult> GetRevenue()
+        {
+            try
+            {
+                return Ok(await _paymentModel.GetAdminRevenue());
+            }
+            catch (Exception e)
+            {
+                return StatusCode(500, new { Error = e.Message });
+            }
+        }
+
+        [HttpGet("creator-revenue/{AccountId}")]
+        [ProducesResponseType(typeof(ResponseInfo), (int)HttpStatusCode.OK)]
+        [Authorize]
+        public async Task<IActionResult> GetRevenue(string AccountId)
+        {
+            try
+            {
+                return Ok(await _paymentModel.GetRevenue(AccountId));
+            }
+            catch (Exception e)
+            {
+                return StatusCode(500, new { Error = e.Message });
+            }
+        }
     }
 }

@@ -29,6 +29,8 @@ namespace WebNovel.API.Areas.Models.Payments
         Task<ResponseInfo> Payout(long PayoutId);
         Task<List<PayoutDto>> GetAllPayout();
         Task<List<PayoutDto>> GetAllPayout(string AccountId);
+        Task<ResponseInfo> GetRevenue(string AccountId);
+        Task<ResponseInfo> GetAdminRevenue();
     }
 
     public class BaseResultWithData<T>
@@ -354,16 +356,18 @@ namespace WebNovel.API.Areas.Models.Payments
 
         public async Task<List<PaymentHistoryDto>> GetPaymentHistory(string accountId)
         {
-            var payments = new List<PaymentHistoryDto>();
+            var paymentsHistory = new List<PaymentHistoryDto>();
             var account = await _context.Accounts.Where(e => e.DelFlag == false).Where(e => e.Id == accountId).FirstOrDefaultAsync();
             if (account is null)
             {
-                return payments;
+                return paymentsHistory;
             }
             var orders = await _context.Orders.Where(e => e.DelFlag == false).Where(e => e.AccountId == accountId).ToListAsync();
+            var payments = await _context.Payments.Where(e => e.DelFlag == false).ToListAsync();
+            var bundles = await _context.Bundles.Where(e => e.DelFlag == false).ToListAsync();
             foreach (var order in orders.ToList())
             {
-                var payment = await _context.Payments.Where(e => e.DelFlag == false).Where(e => e.PaymentRefId == order.Id).FirstOrDefaultAsync();
+                var payment = payments.Where(e => e.PaymentRefId == order.Id).FirstOrDefault();
                 if (payment is null)
                 {
                     continue;
@@ -373,7 +377,7 @@ namespace WebNovel.API.Areas.Models.Payments
                     continue;
                 }
 
-                var bundle = await _context.Bundles.Where(e => e.DelFlag == false).Where(e => e.Id == order.BundleId).FirstOrDefaultAsync();
+                var bundle = bundles.Where(e => e.Id == order.BundleId).FirstOrDefault();
                 if (bundle is null)
                 {
                     continue;
@@ -394,18 +398,21 @@ namespace WebNovel.API.Areas.Models.Payments
                     PaymentDate = payment.PaymentDate,
                     PaymentStatus = payment.PaymentStatus,
                 };
-                payments.Add(PaymentHistoryDto);
+                paymentsHistory.Add(PaymentHistoryDto);
             }
-            return payments;
+            return paymentsHistory;
         }
 
         public async Task<List<PaymentHistoryDto>> GetAllPaymentHistory()
         {
-            var payments = new List<PaymentHistoryDto>();
+            var paymentsHistory = new List<PaymentHistoryDto>();
             var orders = await _context.Orders.Where(e => e.DelFlag == false).ToListAsync();
+            var payments = await _context.Payments.Where(e => e.DelFlag == false).ToListAsync();
+            var accounts = await _context.Accounts.Where(e => e.DelFlag == false).ToListAsync();
+            var bundles = await _context.Bundles.Where(e => e.DelFlag == false).ToListAsync();
             foreach (var order in orders.ToList())
             {
-                var payment = await _context.Payments.Where(e => e.DelFlag == false).Where(e => e.PaymentRefId == order.Id).FirstOrDefaultAsync();
+                var payment = payments.Where(e => e.PaymentRefId == order.Id).FirstOrDefault();
                 if (payment is null)
                 {
                     continue;
@@ -415,13 +422,13 @@ namespace WebNovel.API.Areas.Models.Payments
                     continue;
                 }
 
-                var account = await _context.Accounts.Where(e => e.DelFlag == false).Where(e => e.Id == order.AccountId).FirstOrDefaultAsync();
+                var account = accounts.Where(e => e.Id == order.AccountId).FirstOrDefault();
                 if (account is null)
                 {
                     continue;
                 }
 
-                var bundle = await _context.Bundles.Where(e => e.DelFlag == false).Where(e => e.Id == order.BundleId).FirstOrDefaultAsync();
+                var bundle = bundles.Where(e => e.Id == order.BundleId).FirstOrDefault();
                 if (bundle is null)
                 {
                     continue;
@@ -443,9 +450,9 @@ namespace WebNovel.API.Areas.Models.Payments
                     PaymentDate = payment.PaymentDate,
                     PaymentStatus = payment.PaymentStatus,
                 };
-                payments.Add(PaymentHistoryDto);
+                paymentsHistory.Add(PaymentHistoryDto);
             }
-            return payments;
+            return paymentsHistory;
         }
 
         public async Task<ResponseInfo> CreateRequestPayout(CreatePayoutDto request)
@@ -651,6 +658,77 @@ namespace WebNovel.API.Areas.Models.Payments
             }).ToListAsync();
 
             return payouts;
+        }
+
+        public async Task<ResponseInfo> GetRevenue(string AccountId)
+        {
+            var ChapterOfAccounts = await _context.ChapterOfAccounts.Where(e => e.DelFlag == false)
+            .Include(e => e.Novel)
+            .Where(e => e.Novel.AccountId == AccountId)
+            .Include(e => e.Chapter).ThenInclude(e => e.UpdatedFee)
+            .ToListAsync();
+
+            var DayOfWeek = (int)DateTimeOffset.Now.DayOfWeek;
+            var currentWeek = DateTimeOffset.Now.AddDays(-DayOfWeek);
+            var currentMonth = DateTimeOffset.Now.Month;
+            var currentYear = DateTimeOffset.Now.Year;
+
+            var ResponseInfo = new ResponseInfo
+            {
+                MsgNo = AccountId + " Revenue"
+            };
+
+            ResponseInfo.Data.Add("WeeklyRevenue", ChapterOfAccounts.Where(e => e.CreatedAt > currentWeek).Select(e => e.Chapter.UpdatedFee.Fee).Sum().ToString());
+            ResponseInfo.Data.Add("MonthlyRevenue", ChapterOfAccounts.Where(e => e.CreatedAt.Year == currentYear && e.CreatedAt.Month == currentMonth).Select(e => e.Chapter.UpdatedFee.Fee).Sum().ToString());
+            ResponseInfo.Data.Add("YearlyRevenue", ChapterOfAccounts.Where(e => e.CreatedAt.Year == currentYear).Select(e => e.Chapter.UpdatedFee.Fee).Sum().ToString());
+
+            ResponseInfo.Data.Add("January", ChapterOfAccounts.Where(e => e.CreatedAt.Year == currentYear && e.CreatedAt.Month == 1).Select(e => e.Chapter.UpdatedFee.Fee).Sum().ToString());
+            ResponseInfo.Data.Add("February", ChapterOfAccounts.Where(e => e.CreatedAt.Year == currentYear && e.CreatedAt.Month == 2).Select(e => e.Chapter.UpdatedFee.Fee).Sum().ToString());
+            ResponseInfo.Data.Add("March", ChapterOfAccounts.Where(e => e.CreatedAt.Year == currentYear && e.CreatedAt.Month == 3).Select(e => e.Chapter.UpdatedFee.Fee).Sum().ToString());
+            ResponseInfo.Data.Add("April", ChapterOfAccounts.Where(e => e.CreatedAt.Year == currentYear && e.CreatedAt.Month == 4).Select(e => e.Chapter.UpdatedFee.Fee).Sum().ToString());
+            ResponseInfo.Data.Add("May", ChapterOfAccounts.Where(e => e.CreatedAt.Year == currentYear && e.CreatedAt.Month == 5).Select(e => e.Chapter.UpdatedFee.Fee).Sum().ToString());
+            ResponseInfo.Data.Add("June", ChapterOfAccounts.Where(e => e.CreatedAt.Year == currentYear && e.CreatedAt.Month == 6).Select(e => e.Chapter.UpdatedFee.Fee).Sum().ToString());
+            ResponseInfo.Data.Add("July", ChapterOfAccounts.Where(e => e.CreatedAt.Year == currentYear && e.CreatedAt.Month == 7).Select(e => e.Chapter.UpdatedFee.Fee).Sum().ToString());
+            ResponseInfo.Data.Add("August", ChapterOfAccounts.Where(e => e.CreatedAt.Year == currentYear && e.CreatedAt.Month == 8).Select(e => e.Chapter.UpdatedFee.Fee).Sum().ToString());
+            ResponseInfo.Data.Add("September", ChapterOfAccounts.Where(e => e.CreatedAt.Year == currentYear && e.CreatedAt.Month == 9).Select(e => e.Chapter.UpdatedFee.Fee).Sum().ToString());
+            ResponseInfo.Data.Add("October", ChapterOfAccounts.Where(e => e.CreatedAt.Year == currentYear && e.CreatedAt.Month == 10).Select(e => e.Chapter.UpdatedFee.Fee).Sum().ToString());
+            ResponseInfo.Data.Add("November", ChapterOfAccounts.Where(e => e.CreatedAt.Year == currentYear && e.CreatedAt.Month == 11).Select(e => e.Chapter.UpdatedFee.Fee).Sum().ToString());
+            ResponseInfo.Data.Add("December", ChapterOfAccounts.Where(e => e.CreatedAt.Year == currentYear && e.CreatedAt.Month == 12).Select(e => e.Chapter.UpdatedFee.Fee).Sum().ToString());
+
+            return ResponseInfo;
+        }
+
+        public async Task<ResponseInfo> GetAdminRevenue()
+        {
+            var payments = await GetAllPaymentHistory();
+            var DayOfWeek = (int)DateTime.Now.DayOfWeek;
+            var currentWeek = DateTime.Now.AddDays(-DayOfWeek);
+            var currentMonth = DateTime.Now.Month;
+            var currentYear = DateTime.Now.Year;
+
+            var ResponseInfo = new ResponseInfo
+            {
+                MsgNo = "Admin Revenue"
+            };
+
+            ResponseInfo.Data.Add("WeeklyRevenue", payments.Where(e => e.PaymentDate > currentWeek).Select(e => e.Price).Sum().ToString());
+            ResponseInfo.Data.Add("MonthlyRevenue", payments.Where(e => e.PaymentDate?.Year == currentYear && e.PaymentDate?.Month == currentMonth).Select(e => e.Price).Sum().ToString());
+            ResponseInfo.Data.Add("YearlyRevenue", payments.Where(e => e.PaymentDate?.Year == currentYear).Select(e => e.Price).Sum().ToString());
+
+            ResponseInfo.Data.Add("January", payments.Where(e => e.PaymentDate?.Year == currentYear && e.PaymentDate?.Month == 1).Select(e => e.Price).Sum().ToString());
+            ResponseInfo.Data.Add("February", payments.Where(e => e.PaymentDate?.Year == currentYear && e.PaymentDate?.Month == 2).Select(e => e.Price).Sum().ToString());
+            ResponseInfo.Data.Add("March", payments.Where(e => e.PaymentDate?.Year == currentYear && e.PaymentDate?.Month == 3).Select(e => e.Price).Sum().ToString());
+            ResponseInfo.Data.Add("April", payments.Where(e => e.PaymentDate?.Year == currentYear && e.PaymentDate?.Month == 4).Select(e => e.Price).Sum().ToString());
+            ResponseInfo.Data.Add("May", payments.Where(e => e.PaymentDate?.Year == currentYear && e.PaymentDate?.Month == 5).Select(e => e.Price).Sum().ToString());
+            ResponseInfo.Data.Add("June", payments.Where(e => e.PaymentDate?.Year == currentYear && e.PaymentDate?.Month == 6).Select(e => e.Price).Sum().ToString());
+            ResponseInfo.Data.Add("July", payments.Where(e => e.PaymentDate?.Year == currentYear && e.PaymentDate?.Month == 7).Select(e => e.Price).Sum().ToString());
+            ResponseInfo.Data.Add("August", payments.Where(e => e.PaymentDate?.Year == currentYear && e.PaymentDate?.Month == 8).Select(e => e.Price).Sum().ToString());
+            ResponseInfo.Data.Add("September", payments.Where(e => e.PaymentDate?.Year == currentYear && e.PaymentDate?.Month == 9).Select(e => e.Price).Sum().ToString());
+            ResponseInfo.Data.Add("October", payments.Where(e => e.PaymentDate?.Year == currentYear && e.PaymentDate?.Month == 10).Select(e => e.Price).Sum().ToString());
+            ResponseInfo.Data.Add("November", payments.Where(e => e.PaymentDate?.Year == currentYear && e.PaymentDate?.Month == 11).Select(e => e.Price).Sum().ToString());
+            ResponseInfo.Data.Add("December", payments.Where(e => e.PaymentDate?.Year == currentYear && e.PaymentDate?.Month == 12).Select(e => e.Price).Sum().ToString());
+
+            return ResponseInfo;
         }
     }
 }
