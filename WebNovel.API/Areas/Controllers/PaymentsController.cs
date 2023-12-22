@@ -105,7 +105,7 @@ namespace WebNovel.API.Areas.Controllers
                 {
                     response.Code = CodeResponse.NOT_VALIDATE;
                 }
-                return Ok(response);
+                return StatusCode(response.Code, response);
             }
             catch (Exception e)
             {

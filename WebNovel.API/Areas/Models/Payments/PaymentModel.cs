@@ -462,6 +462,34 @@ namespace WebNovel.API.Areas.Models.Payments
             ResponseInfo results = new ResponseInfo();
             try
             {
+                var existPayout = await _context.Payouts.Where(e => e.DelFlag == false)
+                .Where(e => e.AccountId == request.AccountId && e.PayoutStatus == false)
+                .OrderByDescending(e => e.CreatedAt)
+                .FirstOrDefaultAsync();
+
+                if (existPayout is not null)
+                {
+                    results.Code = CodeResponse.HAVE_ERROR;
+                    results.MsgNo = "Already have requested a payout";
+                    return results;
+                }
+
+                var account = await _context.Accounts.Where(e => e.DelFlag == false).Where(x => x.Id == request.AccountId).FirstOrDefaultAsync();
+
+                if (account is null)
+                {
+                    results.Code = CodeResponse.HAVE_ERROR;
+                    results.MsgNo = "Account does not exist";
+                    return results;
+                }
+
+                if (account.CreatorWallet < request.PayoutAmount)
+                {
+                    results.Code = CodeResponse.HAVE_ERROR;
+                    results.MsgNo = "Payout amount is larger than Creator Wallet";
+                    return results;
+                }
+
                 var payout = new Payout()
                 {
                     AccountId = request.AccountId,
