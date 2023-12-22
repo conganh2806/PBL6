@@ -133,5 +133,20 @@ namespace WebNovel.API.Areas.Controllers
                 return StatusCode(500, new { Error = e.Message });
             }
         }
+
+        [HttpGet("accounts-info-admin")]
+        [ProducesResponseType(typeof(ResponseInfo), (int)HttpStatusCode.OK)]
+        [Authorize]
+        public async Task<IActionResult> GetNumberAccount()
+        {
+            try
+            {
+                return Ok(await _accountModel.GetNumberAccount());
+            }
+            catch (Exception e)
+            {
+                return StatusCode(500, new { Error = e.Message });
+            }
+        }
     }
 }

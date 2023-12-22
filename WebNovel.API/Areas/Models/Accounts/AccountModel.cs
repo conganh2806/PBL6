@@ -33,6 +33,7 @@ namespace WebNovel.API.Areas.Models.Accounts
         Task<AccountDto?> FindByEmailAsync(string email);
         Task<ResponseInfo> UpdateToken(AccountCreateUpdateEntity account);
         Task<string> LoginWithPasswordAsync(string email, string password);
+        Task<ResponseInfo> GetNumberAccount();
     }
     public class AccountModel : BaseModel, IAccountModel
     {
@@ -458,6 +459,23 @@ namespace WebNovel.API.Areas.Models.Accounts
                 _logger.LogInformation($"[{_className}][{method}] Exception: {e.Message}");
                 throw;
             }
+        }
+
+        public async Task<ResponseInfo> GetNumberAccount()
+        {
+            var ResponseInfo = new ResponseInfo
+            {
+                MsgNo = "Number of accounts",
+            };
+
+            var currentMonth = DateTime.Now.Month;
+            var currentYear = DateTime.Now.Year;
+
+            ResponseInfo.Data.Add("AccountTotal", (await _context.Accounts.Where(e => e.DelFlag == false).CountAsync()).ToString());
+            ResponseInfo.Data.Add("AccountMonthly", (await _context.Accounts.Where(e => e.DelFlag == false && e.CreatedAt.Month == currentMonth).CountAsync()).ToString());
+            ResponseInfo.Data.Add("AccountYearly", (await _context.Accounts.Where(e => e.DelFlag == false && e.CreatedAt.Year == currentYear).CountAsync()).ToString());
+
+            return ResponseInfo;
         }
     }
 }
