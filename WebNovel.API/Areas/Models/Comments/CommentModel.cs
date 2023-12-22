@@ -2,6 +2,7 @@ using System.Runtime.CompilerServices;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Storage;
 using WebNovel.API.Areas.Models.Accounts;
+using WebNovel.API.Areas.Models.Accounts.Schemas;
 using WebNovel.API.Areas.Models.Comment.Schemas;
 using WebNovel.API.Commons.Enums;
 using WebNovel.API.Commons.Schemas;
@@ -14,9 +15,9 @@ namespace WebNovel.API.Areas.Models.Comment
     {
         Task<List<CommentDto>> GetListComment();
         Task<ResponseInfo> AddComment(CommentCreateEntity comment);
-        Task<List<CommentDto>> GetCommentByAccount(string accountId);
+        Task<List<CommentDto>?> GetCommentByAccount(string accountId);
         Task<List<CommentDto>> GetCommentByNovel(string NovelId);
-        Task<List<CommentDto>> GetCommentByAccountNovel(string accountId, string novelId);
+        Task<List<CommentDto>?> GetCommentByAccountNovel(string accountId, string novelId);
         Task<CommentDto?> GetComment(long Id);
         Task<ResponseInfo> UpdateComment(CommentUpdateEntity comment);
         Task<ResponseInfo> RemoveComment(CommentDeleteEntity comment);
@@ -84,35 +85,31 @@ namespace WebNovel.API.Areas.Models.Comment
             }
         }
 
-        public async Task<List<CommentDto>> GetCommentByAccount(string accountId)
+        public async Task<List<CommentDto>?> GetCommentByAccount(string accountId)
         {
-            var listComment = await _context.Comment.Where(e => e.DelFlag == false).Where(e => e.AccountId == accountId).Select(x => new CommentDto()
+            var Account = await _accountModel.GetAccount(accountId);
+            if (Account is null)
+            {
+                return null;
+            }
+
+            var listComment = await _context.Comment.Where(e => e.DelFlag == false)
+            .Where(e => e.AccountId == accountId)
+            .Include(e => e.Novel)
+            .Where(e => e.Novel.DelFlag == false)
+            .Select(x => new CommentDto()
             {
                 Id = x.Id,
                 NovelId = x.NovelId,
                 AccountId = x.AccountId,
                 Text = x.Text,
                 CreateOn = x.CreateOn,
+                Username = Account.Username,
+                Email = Account.Email,
+                NickName = Account.NickName,
+                RoleIds = Account.RoleIds,
+                AccountImagesURL = Account.ImagesURL,
             }).ToListAsync();
-
-            foreach (var comment in listComment.ToList())
-            {
-                var Novel = await _context.Novel.Where(e => e.DelFlag == false).Where(e => e.Id == comment.NovelId).FirstOrDefaultAsync();
-                if (Novel is null)
-                {
-                    listComment.Remove(comment);
-                    continue;
-                }
-                var Account = await _accountModel.GetAccount(comment.AccountId);
-                if (Account is not null)
-                {
-                    comment.Username = Account.Username;
-                    comment.Email = Account.Email;
-                    comment.NickName = Account.NickName;
-                    comment.RoleIds = Account.RoleIds;
-                    comment.AccountImagesURL = Account.ImagesURL;
-                }
-            }
 
             return listComment;
         }
@@ -128,9 +125,11 @@ namespace WebNovel.API.Areas.Models.Comment
                 CreateOn = x.CreateOn,
             }).ToListAsync();
 
+            var Accounts = await _accountModel.GetListAccount(new SearchCondition());
+
             foreach (var comment in listComment.ToList())
             {
-                var Account = await _accountModel.GetAccount(comment.AccountId);
+                var Account = Accounts.Where(e => e.Id == comment.AccountId).FirstOrDefault();
                 if (Account is null)
                 {
                     comment.Username = "[Deleted]";
@@ -150,8 +149,14 @@ namespace WebNovel.API.Areas.Models.Comment
             return listComment;
         }
 
-        public async Task<List<CommentDto>> GetCommentByAccountNovel(string accountId, string novelId)
+        public async Task<List<CommentDto>?> GetCommentByAccountNovel(string accountId, string novelId)
         {
+            var Account = await _accountModel.GetAccount(accountId);
+            if (Account is null)
+            {
+                return null;
+            }
+
             var listComment = await _context.Comment.Where(e => e.DelFlag == false).Where(e => e.NovelId == novelId && e.AccountId == accountId).Select(x => new CommentDto()
             {
                 Id = x.Id,
@@ -159,20 +164,12 @@ namespace WebNovel.API.Areas.Models.Comment
                 AccountId = x.AccountId,
                 Text = x.Text,
                 CreateOn = x.CreateOn,
+                Username = Account.Username,
+                Email = Account.Email,
+                NickName = Account.NickName,
+                RoleIds = Account.RoleIds,
+                AccountImagesURL = Account.ImagesURL,
             }).ToListAsync();
-
-            foreach (var comment in listComment.ToList())
-            {
-                var Account = await _accountModel.GetAccount(comment.AccountId);
-                if (Account is not null)
-                {
-                    comment.Username = Account.Username;
-                    comment.Email = Account.Email;
-                    comment.NickName = Account.NickName;
-                    comment.RoleIds = Account.RoleIds;
-                    comment.AccountImagesURL = Account.ImagesURL;
-                }
-            }
 
             return listComment;
         }
