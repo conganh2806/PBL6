@@ -15,6 +15,7 @@ namespace WebNovel.API.Areas.Models.Novels.Schemas
                 public string? Description { get; set; }
                 public List<long> GenreIds { get; set; } = null!;
                 public IFormFile File { get; set; } = null!;
+                public IFormFile BackgroundFile { get; set; } = null!;
         }
         public class NovelUpdateEntity
         {

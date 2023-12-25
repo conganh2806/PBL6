@@ -59,6 +59,11 @@ namespace WebNovel.API.Areas.Models.Novels
                 var fileType = System.IO.Path.GetExtension(novel.File.FileName);
                 await _awsS3Service.UploadToS3(novel.File, $"thumbnail{fileType}", GuID.ToString());
                 var fileName = $"thumbnail{fileType}";
+
+                var BGfileType = System.IO.Path.GetExtension(novel.BackgroundFile.FileName);
+                await _awsS3Service.UploadToS3(novel.BackgroundFile, $"background{BGfileType}", GuID.ToString());
+                var BGfileName = $"background{BGfileType}";
+
                 var newNovel = new Novel()
                 {
                     Id = GuID.ToString(),
@@ -72,6 +77,7 @@ namespace WebNovel.API.Areas.Models.Novels
                     Status = false,
                     ApprovalStatus = false,
                     ImageURL = fileName,
+                    BackgroundURL = BGfileName,
                 };
 
                 if (novel.GenreIds.Any())
@@ -453,6 +459,7 @@ namespace WebNovel.API.Areas.Models.Novels
                 Year = x.Year,
                 Views = x.Views,
                 ImagesURL = _awsS3Service.GetFileImg(x.Id.ToString(), $"{x.ImageURL}"),
+                BackgroundURL = _awsS3Service.GetFileImg(x.Id.ToString(), $"{x.BackgroundURL}"),
                 Description = x.Description,
                 Status = x.Status,
                 ApprovalStatus = x.ApprovalStatus,
@@ -500,6 +507,7 @@ namespace WebNovel.API.Areas.Models.Novels
                 Year = x.Year,
                 Views = x.Views,
                 ImagesURL = _awsS3Service.GetFileImg(x.Id.ToString(), $"{x.ImageURL}"),
+                BackgroundURL = _awsS3Service.GetFileImg(x.Id.ToString(), $"{x.BackgroundURL}"),
                 Description = x.Description,
                 Status = x.Status,
                 ApprovalStatus = x.ApprovalStatus,
@@ -543,6 +551,7 @@ namespace WebNovel.API.Areas.Models.Novels
                 Year = x.Year,
                 Views = x.Views,
                 ImagesURL = _awsS3Service.GetFileImg(x.Id.ToString(), $"{x.ImageURL}"),
+                BackgroundURL = _awsS3Service.GetFileImg(x.Id.ToString(), $"{x.BackgroundURL}"),
                 Description = x.Description,
                 Status = x.Status,
                 ApprovalStatus = x.ApprovalStatus,
