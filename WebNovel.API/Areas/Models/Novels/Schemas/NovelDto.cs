@@ -4,7 +4,7 @@ namespace WebNovel.API.Areas.Models.Novels.Schemas
 {
     public class NovelDto
     {
-        public string Id { get; set; }
+        public string Id { get; set; } = null!;
         [StringLength(255)]
         public string Name { get; set; } = null!;
         [StringLength(255)]
@@ -15,7 +15,9 @@ namespace WebNovel.API.Areas.Models.Novels.Schemas
         public int Views { get; set; }
         public int Rating { get; set; }
         [MaxLength()]
-        public string ImagesURL { get; set; } = null!;
+        public string? ImagesURL { get; set; } = null!;
+        [MaxLength()]
+        public string? BackgroundURL { get; set; } = null!;
         public List<string> GenreName { get; set; } = null!;
         [StringLength(10000)]
         public string? Description { get; set; }
