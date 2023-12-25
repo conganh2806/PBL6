@@ -6,6 +6,11 @@ namespace WebNovel.API.Areas.Models.Comment.Schemas
         public string AccountId { get; set; } = null!;
         public string NovelId { get; set; } = null!;
         public string Text { get; set; } = null!;
+        public string Username { get; set; } = null!;
+        public string Email { get; set; } = null!;
+        public string? NickName { get; set; } = null!;
+        public string? AccountImagesURL { get; set; }
+        public List<string>? RoleIds { set; get; } = null!;
         public DateTime? CreateOn { get; set; }
     }
 }

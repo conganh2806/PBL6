@@ -97,22 +97,29 @@ namespace WebNovel.API.Areas.Models.Preferences
                 AccountId = x.AccountId,
             }).ToListAsync();
 
-            foreach (var preference in listPreference)
+            foreach (var preference in listPreference.ToList())
             {
                 var Novel = await _novelModel.GetNovelAsync(preference.NovelId);
-                preference.Name = Novel.Name;
-                preference.Title = Novel.Title;
-                preference.Author = Novel.Author;
-                preference.Year = Novel.Year;
-                preference.Views = Novel.Views;
-                preference.Rating = Novel.Rating;
-                preference.ImagesURL = Novel.ImagesURL;
-                preference.GenreName = Novel.GenreName;
-                preference.GenreIds = Novel.GenreIds;
-                preference.Description = Novel.Description;
-                preference.Status = Novel.Status;
-                preference.ApprovalStatus = Novel.ApprovalStatus;
-                preference.NumChapter = Novel.NumChapter;
+                if (Novel is null)
+                {
+                    listPreference.Remove(preference);
+                }
+                else
+                {
+                    preference.Name = Novel.Name;
+                    preference.Title = Novel.Title;
+                    preference.Author = Novel.Author;
+                    preference.Year = Novel.Year;
+                    preference.Views = Novel.Views;
+                    preference.Rating = Novel.Rating;
+                    preference.ImagesURL = Novel.ImagesURL;
+                    preference.GenreName = Novel.GenreName;
+                    preference.GenreIds = Novel.GenreIds;
+                    preference.Description = Novel.Description;
+                    preference.Status = Novel.Status;
+                    preference.ApprovalStatus = Novel.ApprovalStatus;
+                    preference.NumChapter = Novel.NumChapter;
+                }
             }
 
             return listPreference;
@@ -126,22 +133,29 @@ namespace WebNovel.API.Areas.Models.Preferences
                 AccountId = x.AccountId,
             }).ToListAsync();
 
-            foreach (var preference in listPreference)
+            foreach (var preference in listPreference.ToList())
             {
                 var Novel = await _novelModel.GetNovelAsync(preference.NovelId);
-                preference.Name = Novel.Name;
-                preference.Title = Novel.Title;
-                preference.Author = Novel.Author;
-                preference.Year = Novel.Year;
-                preference.Views = Novel.Views;
-                preference.Rating = Novel.Rating;
-                preference.ImagesURL = Novel.ImagesURL;
-                preference.GenreName = Novel.GenreName;
-                preference.GenreIds = Novel.GenreIds;
-                preference.Description = Novel.Description;
-                preference.Status = Novel.Status;
-                preference.ApprovalStatus = Novel.ApprovalStatus;
-                preference.NumChapter = Novel.NumChapter;
+                if (Novel is null)
+                {
+                    listPreference.Remove(preference);
+                }
+                else
+                {
+                    preference.Name = Novel.Name;
+                    preference.Title = Novel.Title;
+                    preference.Author = Novel.Author;
+                    preference.Year = Novel.Year;
+                    preference.Views = Novel.Views;
+                    preference.Rating = Novel.Rating;
+                    preference.ImagesURL = Novel.ImagesURL;
+                    preference.GenreName = Novel.GenreName;
+                    preference.GenreIds = Novel.GenreIds;
+                    preference.Description = Novel.Description;
+                    preference.Status = Novel.Status;
+                    preference.ApprovalStatus = Novel.ApprovalStatus;
+                    preference.NumChapter = Novel.NumChapter;
+                }
             }
 
             return listPreference;
@@ -155,6 +169,10 @@ namespace WebNovel.API.Areas.Models.Preferences
                 return null;
             }
             var Novel = await _novelModel.GetNovelAsync(preference.NovelId);
+            if (Novel is null)
+            {
+                return null;
+            }
             var preferenceDto = new PreferencesDto
             {
                 NovelId = preference.NovelId,
@@ -185,22 +203,29 @@ namespace WebNovel.API.Areas.Models.Preferences
                 AccountId = x.AccountId,
             }).ToList();
 
-            foreach (var preference in listPreference)
+            foreach (var preference in listPreference.ToList())
             {
                 var Novel = await _novelModel.GetNovelAsync(preference.NovelId);
-                preference.Name = Novel.Name;
-                preference.Title = Novel.Title;
-                preference.Author = Novel.Author;
-                preference.Year = Novel.Year;
-                preference.Views = Novel.Views;
-                preference.Rating = Novel.Rating;
-                preference.ImagesURL = Novel.ImagesURL;
-                preference.GenreName = Novel.GenreName;
-                preference.GenreIds = Novel.GenreIds;
-                preference.Description = Novel.Description;
-                preference.Status = Novel.Status;
-                preference.ApprovalStatus = Novel.ApprovalStatus;
-                preference.NumChapter = Novel.NumChapter;
+                if (Novel is null)
+                {
+                    listPreference.Remove(preference);
+                }
+                else
+                {
+                    preference.Name = Novel.Name;
+                    preference.Title = Novel.Title;
+                    preference.Author = Novel.Author;
+                    preference.Year = Novel.Year;
+                    preference.Views = Novel.Views;
+                    preference.Rating = Novel.Rating;
+                    preference.ImagesURL = Novel.ImagesURL;
+                    preference.GenreName = Novel.GenreName;
+                    preference.GenreIds = Novel.GenreIds;
+                    preference.Description = Novel.Description;
+                    preference.Status = Novel.Status;
+                    preference.ApprovalStatus = Novel.ApprovalStatus;
+                    preference.NumChapter = Novel.NumChapter;
+                }
             }
 
             return listPreference;

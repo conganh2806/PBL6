@@ -113,17 +113,21 @@ namespace WebNovel.API.Areas.Models.Login
             {
                 var GuID = (ShortGuid)Guid.NewGuid();
 
-                var userDB = await _context.Accounts.Where(x => x.Email == googleUser.Email).FirstOrDefaultAsync();
+                var userDB = await _context.Accounts.Where(e => e.DelFlag == false).Where(x => x.Email == googleUser.Email).FirstOrDefaultAsync();
                 if (userDB == null)
                 {
                     userDB = new Account()
                     {
                         Id = GuID.ToString(),
-                        Username = googleUser.Email,
-                        Email = googleUser.Email,
+                        Username = googleUser.Name ?? string.Empty,
+                        Email = googleUser.Email ?? string.Empty,
                         Password = "",
+                        Status = A001.NORMAL.CODE,
+                        IsAdmin = false,
                         IsActive = true,
                         IsVerifyEmail = true,
+                        WalletAmmount = 0.0f,
+                        CreatorWallet = 0.0f,
                     };
                     userDB.Roles.Add(new RolesOfUser()
                     {

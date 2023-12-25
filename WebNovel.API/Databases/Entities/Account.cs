@@ -16,6 +16,10 @@ namespace WebNovel.API.Databases.Entitites
                         Preferences = new HashSet<Preferences>();
                         Roles = new HashSet<RolesOfUser>();
                         Ratings = new HashSet<Rating>();
+                        Orders = new HashSet<Order>();
+                        ChapterOfAccounts = new HashSet<ChapterOfAccount>();
+                        Payouts = new HashSet<Payout>();
+                        Reports = new HashSet<Report>();
                 }
 
                 [StringLength(100)]
@@ -27,9 +31,12 @@ namespace WebNovel.API.Databases.Entitites
                 [StringLength(100)]
                 public string? NickName { get; set; }
                 [DataType(DataType.Date)]
-                public DateOnly DateJoined { get; set; }
+                public DateOnly? DateJoined { get; set; }
+                [StringLength(500)]
+                public string? ImageURL { get; set; }
                 public int? Status { get; set; }
-                public float? WalletAmmount { get; set; }
+                public float WalletAmmount { get; set; }
+                public float CreatorWallet { get; set; }
                 public bool IsVerifyEmail { get; set; }
                 public bool? IsActive { get; set; }
                 public bool? IsAdmin { get; set; }
@@ -41,5 +48,9 @@ namespace WebNovel.API.Databases.Entitites
                 public virtual ICollection<Preferences>? Preferences { get; set; }
                 public virtual ICollection<RolesOfUser> Roles { get; set; } = null!;
                 public virtual ICollection<Rating> Ratings { get; set; }
+                public virtual ICollection<Order> Orders { get; set; }
+                public virtual ICollection<ChapterOfAccount> ChapterOfAccounts { get; set; }
+                public virtual ICollection<Payout> Payouts { get; set; }
+                public virtual ICollection<Report> Reports { get; set; }
         }
 }

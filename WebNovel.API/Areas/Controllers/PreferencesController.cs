@@ -39,6 +39,20 @@ namespace WebNovel.API.Areas.Controllers
             }
         }
 
+        [HttpGet("{AccountId}/{NovelId}")]
+        [ProducesResponseType(typeof(PreferencesDto), (int)HttpStatusCode.OK)]
+        public async Task<IActionResult> GetDetail([FromRoute] string AccountId, [FromRoute] string NovelId)
+        {
+            try
+            {
+                return Ok(await _preferencesModel.GetPreference(AccountId, NovelId));
+            }
+            catch (Exception e)
+            {
+                return StatusCode(500, new { Error = e.Message });
+            }
+        }
+
         [HttpPost]
         [ProducesResponseType(typeof(ResponseInfo), (int)HttpStatusCode.OK)]
         public async Task<IActionResult> Create([FromBody] PreferencesCreateUpdateEntity preference)

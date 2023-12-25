@@ -1,4 +1,7 @@
 using System.Text;
+using Hangfire;
+using Hangfire.Dashboard;
+using Hangfire.MySql;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
@@ -6,18 +9,23 @@ using Microsoft.OpenApi.Models;
 using Webnovel.API.Databases;
 using WebNovel.API.Areas.Models.Accounts;
 using WebNovel.API.Areas.Models.Bookmarked;
+using WebNovel.API.Areas.Models.Bundles;
 using WebNovel.API.Areas.Models.Chapter;
 using WebNovel.API.Areas.Models.Comment;
 using WebNovel.API.Areas.Models.Genres;
 using WebNovel.API.Areas.Models.Login;
 using WebNovel.API.Areas.Models.Login.Schemas;
+using WebNovel.API.Areas.Models.Merchant;
 using WebNovel.API.Areas.Models.Novels;
+using WebNovel.API.Areas.Models.Orders;
+using WebNovel.API.Areas.Models.Payments;
 using WebNovel.API.Areas.Models.Preferences;
 using WebNovel.API.Areas.Models.Rating;
 using WebNovel.API.Areas.Models.Roles;
 using WebNovel.API.Areas.Models.UpdatedFees;
 using WebNovel.API.Core.Services;
 using WebNovel.API.Core.Services.Schemas;
+using WebNovel.API.Core.Services.VnPay.Schemas;
 
 internal class Program
 {
@@ -30,6 +38,7 @@ internal class Program
         services.AddControllers();
         // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
         services.AddEndpointsApiExplorer();
+        services.AddHttpContextAccessor();
         services.AddCors(options =>
         {
             options.AddPolicy(name: "WebNovel",
@@ -63,6 +72,15 @@ internal class Program
         services.AddScoped<IAwsS3Service, AwsS3Service>();
         services.AddScoped<ITokenService, TokenService>();
         services.AddScoped<ILoginModel, LoginModel>();
+        services.AddScoped<IBundleModel, BundleModel>();
+        services.AddScoped<IOrderModel, OrderModel>();
+        services.AddScoped<IMerchantModel, MerchantModel>();
+        services.AddScoped<IPaymentModel, PaymentModel>();
+        services.AddScoped<ICurrentUserService, CurrentUserService>();
+        services.AddScoped<IJobService, JobService>();
+        services.AddScoped<IEmailService, SmtpMailService>();
+
+        services.Configure<VnpayConfig>(builder.Configuration.GetSection(VnpayConfig.ConfigName));
 
         services.AddOptions<JwtSettings>()
             .BindConfiguration($"{nameof(JwtSettings)}")
@@ -119,6 +137,31 @@ internal class Program
             });
         });
 
+        services.AddHangfire(cfg => cfg
+            .SetDataCompatibilityLevel(CompatibilityLevel.Version_180)
+            .UseSimpleAssemblyNameTypeSerializer()
+            .UseRecommendedSerializerSettings()
+            .UseStorage(
+                new MySqlStorage(
+                    builder.Configuration.GetConnectionString("AzureMySQL"),
+                    new MySqlStorageOptions
+                    {
+                        QueuePollInterval = TimeSpan.FromSeconds(10),
+                        JobExpirationCheckInterval = TimeSpan.FromHours(1),
+                        CountersAggregateInterval = TimeSpan.FromMinutes(5),
+                        PrepareSchemaIfNecessary = true,
+                        DashboardJobListLimit = 25000,
+                        TransactionTimeout = TimeSpan.FromMinutes(1),
+                        TablesPrefix = "Hangfire",
+                    }
+                )
+            ));
+
+        services.AddHangfireServer();
+
+        services.AddOptions<MailSettings>()
+            .BindConfiguration($"{nameof(MailSettings)}");
+
         var app = builder.Build();
 
         app.UseSwagger();
@@ -140,6 +183,8 @@ internal class Program
         app.UseAuthorization();
 
         app.MapControllers();
+
+        app.UseHangfireDashboard("/hangfire");
 
         app.Run();
     }

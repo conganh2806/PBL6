@@ -13,6 +13,8 @@ namespace WebNovel.API.Databases.Entitites
             this.Preferences = new HashSet<Preferences>();
             this.Ratings = new HashSet<Rating>();
             this.Bookmarkeds = new HashSet<Bookmarked>();
+            this.ChapterOfAccounts = new HashSet<ChapterOfAccount>();
+            this.Reports = new HashSet<Report>();
         }
 
 
@@ -39,6 +41,8 @@ namespace WebNovel.API.Databases.Entitites
         public virtual ICollection<Bookmarked>? Bookmarkeds { get; set; }
         public virtual ICollection<Preferences>? Preferences { get; set; }
         public virtual ICollection<Rating> Ratings { get; set; }
+        public virtual ICollection<ChapterOfAccount> ChapterOfAccounts { get; set; }
+        public virtual ICollection<Report> Reports { get; set; }
     }
 
 

@@ -47,4 +47,10 @@ namespace WebNovel.API.Areas.Models.Chapter.Schemas
         public string NovelId { get; set; }
         public IFormFile File { get; set; }
     }
+
+    public class UnlockChapter
+    {
+        public string ChapterId { get; set; } = null!;
+        public string AccountId { get; set; } = null!;
+    }
 }

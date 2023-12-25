@@ -14,6 +14,8 @@ using WebNovel.API.Commons.CodeMaster;
 using WebNovel.API.Commons.Enums;
 using WebNovel.API.Commons.Schemas;
 using WebNovel.API.Core.Models;
+using WebNovel.API.Core.Services;
+using WebNovel.API.Core.Services.Schemas;
 using WebNovel.API.Databases.Entities;
 using WebNovel.API.Databases.Entitites;
 using static WebNovel.API.Commons.Enums.CodeResonse;
@@ -31,15 +33,22 @@ namespace WebNovel.API.Areas.Models.Accounts
         Task<AccountDto?> FindByEmailAsync(string email);
         Task<ResponseInfo> UpdateToken(AccountCreateUpdateEntity account);
         Task<string> LoginWithPasswordAsync(string email, string password);
+        Task<ResponseInfo> GetNumberAccount();
     }
     public class AccountModel : BaseModel, IAccountModel
     {
         private readonly ILogger<IAccountModel> _logger;
         private string _className = "";
-        public AccountModel(IServiceProvider provider, ILogger<IAccountModel> logger) : base(provider)
+        private readonly IJobService _jobService;
+        private readonly IEmailService _emailService;
+        private readonly IAwsS3Service _awsS3Service;
+        public AccountModel(IServiceProvider provider, ILogger<IAccountModel> logger, IJobService jobService, IEmailService emailService, IAwsS3Service awsS3Service) : base(provider)
         {
             _logger = logger ?? throw new ArgumentNullException(nameof(logger));
             _className = GetType().Name;
+            _emailService = emailService;
+            _jobService = jobService;
+            _awsS3Service = awsS3Service;
         }
 
         static string GetActualAsyncMethodName([CallerMemberName] string name = null) => name;
@@ -77,6 +86,7 @@ namespace WebNovel.API.Areas.Models.Accounts
                     IsActive = true,
                     IsVerifyEmail = false,
                     WalletAmmount = 0.0f,
+                    CreatorWallet = 0.0f,
                 };
                 if (account.RoleIds.Any())
                 {
@@ -102,6 +112,15 @@ namespace WebNovel.API.Areas.Models.Accounts
                         }
                     }
                 );
+
+                var mailRequest = new EmailRequest()
+                {
+                    Subject = "Confirm Registration",
+                    Body = "Successfully to create your account",
+                    ToMail = newAccount.Email
+                };
+                _jobService.Enqueue(() => _emailService.SendAsync(mailRequest));
+
                 // transaction = await _context.Database.BeginTransactionAsync();
                 // await transaction.CommitAsync();
                 _logger.LogInformation($"[{_className}][{method}] End");
@@ -135,10 +154,13 @@ namespace WebNovel.API.Areas.Models.Accounts
                 Email = account.Email,
                 Phone = account.Phone,
                 WalletAmmount = account.WalletAmmount,
+                CreatorWallet = account.CreatorWallet,
                 IsAdmin = account.IsAdmin,
                 IsVerifyEmail = account.IsVerifyEmail,
                 IsActive = account.IsActive,
-                RoleIds = account.Roles.Select(x => x.RoleId).ToList()
+                RoleIds = account.Roles.Select(x => x.RoleId).ToList(),
+                ImagesURL = (account.ImageURL is null) ? null : _awsS3Service.GetFileImg(account.Id.ToString(), $"{account.ImageURL}"),
+                Birthday = account.DateJoined
             };
 
             return accountDto;
@@ -160,10 +182,13 @@ namespace WebNovel.API.Areas.Models.Accounts
                 Email = account.Email,
                 Phone = account.Phone,
                 WalletAmmount = account.WalletAmmount,
+                CreatorWallet = account.CreatorWallet,
                 IsAdmin = account.IsAdmin,
                 IsVerifyEmail = account.IsVerifyEmail,
                 IsActive = account.IsActive,
                 RoleIds = account.Roles.Select(x => x.RoleId).ToList(),
+                ImagesURL = (account.ImageURL is null) ? null : _awsS3Service.GetFileImg(account.Id.ToString(), $"{account.ImageURL}"),
+                Birthday = account.DateJoined,
                 RefreshToken = account.RefreshToken,
                 RefreshTokenExpiryTime = account.RefreshTokenExpiryTime,
             };
@@ -182,10 +207,13 @@ namespace WebNovel.API.Areas.Models.Accounts
                 Email = x.Email,
                 Phone = x.Phone,
                 WalletAmmount = x.WalletAmmount,
+                CreatorWallet = x.CreatorWallet,
                 IsAdmin = x.IsAdmin,
                 IsVerifyEmail = x.IsVerifyEmail,
                 IsActive = x.IsActive,
                 RoleIds = x.Roles.Select(x => x.RoleId).ToList(),
+                ImagesURL = (x.ImageURL == null) ? null : _awsS3Service.GetFileImg(x.Id.ToString(), $"{x.ImageURL}"),
+                Birthday = x.DateJoined,
                 RefreshToken = x.RefreshToken,
                 RefreshTokenExpiryTime = x.RefreshTokenExpiryTime,
             }).ToListAsync();
@@ -233,6 +261,22 @@ namespace WebNovel.API.Areas.Models.Accounts
                     return response;
                 }
 
+                if (account.File is not null)
+                {
+                    if (existAccount.ImageURL is not null)
+                    {
+                        var fileNames = new List<string>
+                        {
+                            existAccount.ImageURL
+                        };
+                        await _awsS3Service.DeleteFromS3(existAccount.Id.ToString(), fileNames);
+                    }
+                    var fileName = account.File.FileName;
+                    var fileType = System.IO.Path.GetExtension(account.File.FileName);
+                    await _awsS3Service.UploadToS3(account.File, $"avatar{fileType}", existAccount.Id.ToString());
+                    existAccount.ImageURL = $"avatar{fileType}";
+                }
+
                 if (account.NickName is not null) existAccount.NickName = account.NickName;
                 if (account.Username is not null) existAccount.Username = account.Username;
 
@@ -244,9 +288,11 @@ namespace WebNovel.API.Areas.Models.Accounts
                     existAccount.Email = account.Email;
                 }
 
-                existAccount.Phone = account.Phone;
+                if (account.Phone is not null) existAccount.Phone = account.Phone;
+                if (account.Birthday is not null) existAccount.DateJoined = account.Birthday;
 
                 if (account.WalletAmmount is not null) existAccount.WalletAmmount = (float)account.WalletAmmount;
+                if (account.CreatorWallet is not null) existAccount.CreatorWallet = (float)account.CreatorWallet;
                 if (account.IsAdmin is not null) existAccount.IsAdmin = (bool)account.IsAdmin;
                 if (account.IsActive is not null) existAccount.IsActive = (bool)account.IsActive;
 
@@ -378,7 +424,7 @@ namespace WebNovel.API.Areas.Models.Accounts
                 ResponseInfo result = new ResponseInfo();
                 ResponseInfo response = new ResponseInfo();
 
-                var existAccount = await _context.Accounts.Where(e => e.DelFlag == false).Include(x => x.Roles).ThenInclude(x => x.Role).Where(x => x.Id == account.Id).FirstOrDefaultAsync();
+                var existAccount = await _context.Accounts.Where(e => e.DelFlag == false).Where(x => x.Id == account.Id).FirstOrDefaultAsync();
                 if (existAccount is null)
                 {
                     response.Code = CodeResponse.HAVE_ERROR;
@@ -413,6 +459,23 @@ namespace WebNovel.API.Areas.Models.Accounts
                 _logger.LogInformation($"[{_className}][{method}] Exception: {e.Message}");
                 throw;
             }
+        }
+
+        public async Task<ResponseInfo> GetNumberAccount()
+        {
+            var ResponseInfo = new ResponseInfo
+            {
+                MsgNo = "Number of accounts",
+            };
+
+            var currentMonth = DateTime.Now.Month;
+            var currentYear = DateTime.Now.Year;
+
+            ResponseInfo.Data.Add("AccountTotal", (await _context.Accounts.Where(e => e.DelFlag == false).CountAsync()).ToString());
+            ResponseInfo.Data.Add("AccountMonthly", (await _context.Accounts.Where(e => e.DelFlag == false && e.CreatedAt.Year == currentYear && e.CreatedAt.Month == currentMonth).CountAsync()).ToString());
+            ResponseInfo.Data.Add("AccountYearly", (await _context.Accounts.Where(e => e.DelFlag == false && e.CreatedAt.Year == currentYear).CountAsync()).ToString());
+
+            return ResponseInfo;
         }
     }
 }

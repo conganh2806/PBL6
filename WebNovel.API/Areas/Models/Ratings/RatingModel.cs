@@ -101,13 +101,16 @@ namespace WebNovel.API.Areas.Models.Rating
                 RateScore = x.RateScore
             }).ToListAsync();
 
-            foreach (var rating in listRating)
+            var Account = await _accountModel.GetAccount(AccountId);
+            if (Account is not null)
             {
-                var Account = await _accountModel.GetAccount(rating.AccountId);
-                rating.Username = Account.Username;
-                rating.Email = Account.Email;
-                rating.NickName = Account.NickName;
-                rating.RoleIds = Account.RoleIds;
+                foreach (var rating in listRating)
+                {
+                    rating.Username = Account.Username;
+                    rating.Email = Account.Email;
+                    rating.NickName = Account.NickName;
+                    rating.RoleIds = Account.RoleIds;
+                }
             }
 
             return listRating;
@@ -125,6 +128,14 @@ namespace WebNovel.API.Areas.Models.Rating
             foreach (var rating in listRating)
             {
                 var Account = await _accountModel.GetAccount(rating.AccountId);
+                if (Account is null)
+                {
+                    rating.Username = "[Deleted]";
+                    rating.Email = "[Deleted]";
+                    rating.NickName = "[Deleted]";
+                    rating.RoleIds = null;
+                    continue;
+                }
                 rating.Username = Account.Username;
                 rating.Email = Account.Email;
                 rating.NickName = Account.NickName;
@@ -142,6 +153,10 @@ namespace WebNovel.API.Areas.Models.Rating
                 return null;
             }
             var Account = await _accountModel.GetAccount(Rating.AccountId);
+            if (Account is null)
+            {
+                return null;
+            }
             var RatingDto = new RatingDto()
             {
                 NovelId = Rating.NovelId,

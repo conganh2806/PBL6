@@ -25,7 +25,6 @@ namespace WebNovel.API.Areas.Models.Novels.Schemas
                 public string? Title { get; set; } = null!;
                 [StringLength(10000, ErrorMessage = "E005, Description is too long")]
                 public string? Description { get; set; }
-                public int? Views { get; set; }
                 public bool? Status { get; set; }
                 public bool? ApprovalStatus { get; set; }
 

@@ -9,7 +9,7 @@ namespace WebNovel.API.Areas.Models.Rating.Schemas
                 public float RateScore { get; set; }
                 public string Username { get; set; } = null!;
                 public string Email { get; set; } = null!;
-                public string NickName { get; set; } = null!;
-                public List<string> RoleIds { set; get; } = null!;
+                public string? NickName { get; set; } = null!;
+                public List<string>? RoleIds { set; get; } = null!;
         }
 }

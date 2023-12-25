@@ -1,6 +1,8 @@
 using System.Runtime.CompilerServices;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Storage;
+using WebNovel.API.Areas.Models.Accounts;
+using WebNovel.API.Areas.Models.Accounts.Schemas;
 using WebNovel.API.Areas.Models.Comment.Schemas;
 using WebNovel.API.Commons.Enums;
 using WebNovel.API.Commons.Schemas;
@@ -13,9 +15,9 @@ namespace WebNovel.API.Areas.Models.Comment
     {
         Task<List<CommentDto>> GetListComment();
         Task<ResponseInfo> AddComment(CommentCreateEntity comment);
-        Task<List<CommentDto>> GetCommentByAccount(string accountId);
+        Task<List<CommentDto>?> GetCommentByAccount(string accountId);
         Task<List<CommentDto>> GetCommentByNovel(string NovelId);
-        Task<List<CommentDto>> GetCommentByAccountNovel(string accountId, string novelId);
+        Task<List<CommentDto>?> GetCommentByAccountNovel(string accountId, string novelId);
         Task<CommentDto?> GetComment(long Id);
         Task<ResponseInfo> UpdateComment(CommentUpdateEntity comment);
         Task<ResponseInfo> RemoveComment(CommentDeleteEntity comment);
@@ -23,11 +25,13 @@ namespace WebNovel.API.Areas.Models.Comment
     public class CommentModel : BaseModel, ICommentModel
     {
         private readonly ILogger<ICommentModel> _logger;
+        private readonly IAccountModel _accountModel;
         private string _className = "";
-        public CommentModel(IServiceProvider provider, ILogger<ICommentModel> logger) : base(provider)
+        public CommentModel(IServiceProvider provider, ILogger<ICommentModel> logger, IAccountModel accountModel) : base(provider)
         {
             _logger = logger ?? throw new ArgumentNullException(nameof(logger));
             _className = GetType().Name;
+            _accountModel = accountModel;
         }
 
         static string GetActualAsyncMethodName([CallerMemberName] string name = "") => name;
@@ -81,15 +85,30 @@ namespace WebNovel.API.Areas.Models.Comment
             }
         }
 
-        public async Task<List<CommentDto>> GetCommentByAccount(string accountId)
+        public async Task<List<CommentDto>?> GetCommentByAccount(string accountId)
         {
-            var listComment = await _context.Comment.Where(e => e.DelFlag == false).Where(e => e.AccountId == accountId).Select(x => new CommentDto()
+            var Account = await _accountModel.GetAccount(accountId);
+            if (Account is null)
+            {
+                return null;
+            }
+
+            var listComment = await _context.Comment.Where(e => e.DelFlag == false)
+            .Where(e => e.AccountId == accountId)
+            .Include(e => e.Novel)
+            .Where(e => e.Novel.DelFlag == false)
+            .Select(x => new CommentDto()
             {
                 Id = x.Id,
                 NovelId = x.NovelId,
                 AccountId = x.AccountId,
                 Text = x.Text,
                 CreateOn = x.CreateOn,
+                Username = Account.Username,
+                Email = Account.Email,
+                NickName = Account.NickName,
+                RoleIds = Account.RoleIds,
+                AccountImagesURL = Account.ImagesURL,
             }).ToListAsync();
 
             return listComment;
@@ -106,11 +125,38 @@ namespace WebNovel.API.Areas.Models.Comment
                 CreateOn = x.CreateOn,
             }).ToListAsync();
 
+            var Accounts = await _accountModel.GetListAccount(new SearchCondition());
+
+            foreach (var comment in listComment.ToList())
+            {
+                var Account = Accounts.Where(e => e.Id == comment.AccountId).FirstOrDefault();
+                if (Account is null)
+                {
+                    comment.Username = "[Deleted]";
+                    comment.Email = "[Deleted]";
+                    comment.NickName = "[Deleted]";
+                    comment.RoleIds = null;
+                    comment.AccountImagesURL = null;
+                    continue;
+                }
+                comment.Username = Account.Username;
+                comment.Email = Account.Email;
+                comment.NickName = Account.NickName;
+                comment.RoleIds = Account.RoleIds;
+                comment.AccountImagesURL = Account.ImagesURL;
+            }
+
             return listComment;
         }
 
-        public async Task<List<CommentDto>> GetCommentByAccountNovel(string accountId, string novelId)
+        public async Task<List<CommentDto>?> GetCommentByAccountNovel(string accountId, string novelId)
         {
+            var Account = await _accountModel.GetAccount(accountId);
+            if (Account is null)
+            {
+                return null;
+            }
+
             var listComment = await _context.Comment.Where(e => e.DelFlag == false).Where(e => e.NovelId == novelId && e.AccountId == accountId).Select(x => new CommentDto()
             {
                 Id = x.Id,
@@ -118,6 +164,11 @@ namespace WebNovel.API.Areas.Models.Comment
                 AccountId = x.AccountId,
                 Text = x.Text,
                 CreateOn = x.CreateOn,
+                Username = Account.Username,
+                Email = Account.Email,
+                NickName = Account.NickName,
+                RoleIds = Account.RoleIds,
+                AccountImagesURL = Account.ImagesURL,
             }).ToListAsync();
 
             return listComment;
@@ -128,13 +179,28 @@ namespace WebNovel.API.Areas.Models.Comment
             var Comment = await _context.Comment.Where(e => e.DelFlag == false).Where(x => x.Id == Id).FirstOrDefaultAsync();
             if (Comment is not null)
             {
+                var Novel = await _context.Novel.Where(e => e.DelFlag == false).Where(e => e.Id == Comment.NovelId).FirstOrDefaultAsync();
+                if (Novel is null)
+                {
+                    return null;
+                }
+                var Account = await _accountModel.GetAccount(Comment.AccountId);
+                if (Account is null)
+                {
+                    return null;
+                }
                 var CommentDto = new CommentDto()
                 {
                     Id = Comment.Id,
                     NovelId = Comment.NovelId,
                     AccountId = Comment.AccountId,
                     Text = Comment.Text,
+                    Username = Account.Username,
+                    Email = Account.Email,
+                    NickName = Account.NickName,
+                    RoleIds = Account.RoleIds,
                     CreateOn = Comment.CreateOn,
+                    AccountImagesURL = Account.ImagesURL,
                 };
                 return CommentDto;
             }

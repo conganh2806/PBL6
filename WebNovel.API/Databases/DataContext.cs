@@ -12,6 +12,9 @@ namespace Webnovel.API.Databases
 {
     public class DataContext : DbContext
     {
+        public DataContext()
+        {
+        }
         public DataContext(DbContextOptions<DataContext> options) : base(options) { }
 
         public virtual DbSet<Account> Accounts { get; set; } = null!;
@@ -23,12 +26,27 @@ namespace Webnovel.API.Databases
         public virtual DbSet<NovelGenre> GenreOfNovels { get; set; }
         public virtual DbSet<Bookmarked> BookMarked { get; set; } = null!;
         public virtual DbSet<Chapter> Chapter { get; set; } = null!;
+        public virtual DbSet<ChapterOfAccount> ChapterOfAccounts { get; set; } = null!;
         public virtual DbSet<Comment> Comment { get; set; } = null!;
         public virtual DbSet<UpdatedFee> UpdatedFee { get; set; } = null!;
         public virtual DbSet<Preferences> Preferences { get; set; } = null!;
         public virtual DbSet<Rating> Ratings { get; set; } = null!;
         public virtual DbSet<IncreasePercent> IncreasePercents { get; set; } = null!;
+        public virtual DbSet<Bundle> Bundles { get; set; } = null!;
+        public virtual DbSet<Order> Orders { get; set; } = null!;
+        public virtual DbSet<Payout> Payouts { get; set; } = null!;
+        public virtual DbSet<Report> Reports { get; set; } = null!;
 
+        /// <summary>
+        /// Payment Database
+        /// </summary>
+        /// <value></value>
+        public virtual DbSet<Merchant> Merchants { get; set; } = null!;
+        public virtual DbSet<Payment> Payments { get; set; } = null!;
+        public virtual DbSet<PaymentDestination> PaymentDestinations { get; set; } = null!;
+        public virtual DbSet<PaymentNotification> PaymentNotifications { get; set; } = null!;
+        public virtual DbSet<PaymentSignature> PaymentSignatures { get; set; } = null!;
+        public virtual DbSet<PaymentTransaction> PaymentTransactions { get; set; } = null!;
 
         /// <summary>
         /// Quy định định dạng dữ liệu và liên kết của các bảng.

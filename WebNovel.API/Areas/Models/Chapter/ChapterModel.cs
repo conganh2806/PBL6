@@ -7,6 +7,8 @@ using WebNovel.API.Commons.Enums;
 using WebNovel.API.Commons.Schemas;
 using WebNovel.API.Core.Models;
 using WebNovel.API.Core.Services;
+using WebNovel.API.Core.Services.Schemas;
+using WebNovel.API.Databases.Entities;
 using static WebNovel.API.Commons.Enums.CodeResonse;
 
 namespace WebNovel.API.Areas.Models.Chapter
@@ -14,24 +16,29 @@ namespace WebNovel.API.Areas.Models.Chapter
 
     public interface IChapterModel
     {
-        Task<List<ChapterDto>> GetListChapter();
         Task<ResponseInfo> AddChapter(ChapterCreateEntity chapter);
         Task<ResponseInfo> UpdateChapter(ChapterUpdateEntity chapter);
         Task<ResponseInfo> RemoveChapter(ChapterDeleteEntity chapter);
         Task<ChapterDto?> GetChapterAsync(string id);
         Task<List<ChapterDto>> GetChapterByNovel(string NovelId);
+        Task<List<ChapterDto>> GetChapterByAccount(string NovelId, string accountId);
+        Task<ResponseInfo> UnlockChapter(string id, string accountId);
     }
 
     public class ChapterModel : BaseModel, IChapterModel
     {
         private readonly ILogger<IChapterModel> _logger;
         private readonly IAwsS3Service _awsS3Service;
+        private readonly IJobService _jobService;
+        private readonly IEmailService _emailService;
 
         private string _className = "";
-        public ChapterModel(IServiceProvider provider, ILogger<IChapterModel> logger, IAwsS3Service awsS3Service) : base(provider)
+        public ChapterModel(IServiceProvider provider, ILogger<IChapterModel> logger, IAwsS3Service awsS3Service, IEmailService emailService, IJobService jobService) : base(provider)
         {
             _logger = logger ?? throw new ArgumentNullException(nameof(logger));
             _className = GetType().Name;
+            _jobService = jobService;
+            _emailService = emailService;
             _awsS3Service = awsS3Service;
         }
         static string GetActualAsyncMethodName([CallerMemberName] string name = null) => name;
@@ -77,6 +84,21 @@ namespace WebNovel.API.Areas.Models.Chapter
                     }
                 );
 
+                foreach (var preference in await _context.Preferences.Where(e => e.NovelId == newChapter.NovelId).ToListAsync())
+                {
+                    var email = (await _context.Accounts.FirstOrDefaultAsync(x => x.Id == preference.AccountId))?.Email;
+                    if (email is not null)
+                    {
+                        var mailRequest = new EmailRequest()
+                        {
+                            Subject = "New Chapter of Novel:" + newChapter.NovelId,
+                            Body = "New Chapter uploaded:" + newChapter.Name,
+                            ToMail = email
+                        };
+                        _jobService.Enqueue(() => _emailService.SendAsync(mailRequest));
+                    }
+                }
+
                 _logger.LogInformation($"[{_className}][{method}] End");
                 return result;
             }
@@ -110,6 +132,7 @@ namespace WebNovel.API.Areas.Models.Chapter
                 IsPublished = chapter.IsPublished,
                 Views = chapter.Views,
                 FeeId = chapter.FeeId,
+                Fee = chapter.FeeId is null ? null : (await _context.UpdatedFee.Where(e => e.Id == chapter.FeeId).FirstAsync()).Fee,
                 FileContent = _awsS3Service.GetFileImg(chapter.NovelId.ToString() + "/" + chapter.Id.ToString(), $"{chapter.FileContent}"),
                 Discount = chapter.Discount,
                 ApprovalStatus = chapter.ApprovalStatus,
@@ -135,6 +158,7 @@ namespace WebNovel.API.Areas.Models.Chapter
                 IsPublished = x.IsPublished,
                 Views = x.Views,
                 FeeId = x.FeeId,
+                Fee = x.FeeId == null ? null : (_context.UpdatedFee.Where(e => e.Id == x.FeeId).First()).Fee,
                 FileContent = _awsS3Service.GetFileImg(x.NovelId.ToString() + "/" + x.Id.ToString(), $"{x.FileContent}"),
                 Discount = x.Discount,
                 ApprovalStatus = x.ApprovalStatus,
@@ -149,24 +173,30 @@ namespace WebNovel.API.Areas.Models.Chapter
             return listChapter;
         }
 
-        public async Task<List<ChapterDto>> GetListChapter()
+        public async Task<List<ChapterDto>> GetChapterByAccount(string NovelId, string accountId)
         {
             List<ChapterDto> listChapter = new List<ChapterDto>();
-
-            listChapter = await _context.Chapter.Where(e => e.DelFlag == false).Select(x => new ChapterDto()
+            var chapterIds = await _context.ChapterOfAccounts.Where(e => e.DelFlag == false && e.NovelId == NovelId && e.AccountId == accountId).Select(x => x.ChapterId).ToListAsync();
+            listChapter = await _context.Chapter.Where(e => e.DelFlag == false).Where(x => x.NovelId == NovelId).Include(e => e.Novel).ThenInclude(e => e.Account).OrderBy(e => e.PublishDate).Select(x => new ChapterDto()
             {
                 Id = x.Id,
                 Name = x.Name,
-                IsLocked = x.IsLocked,
+                IsLocked = x.IsLocked ? ((chapterIds.Any() && chapterIds.Contains(x.Id)) || x.Novel.Account.Id == accountId ? !x.IsLocked : x.IsLocked) : x.IsLocked,
                 PublishDate = x.PublishDate,
+                IsPublished = x.IsPublished,
                 Views = x.Views,
                 FeeId = x.FeeId,
+                Fee = x.FeeId == null ? null : (_context.UpdatedFee.Where(e => e.Id == x.FeeId).First()).Fee,
                 FileContent = _awsS3Service.GetFileImg(x.NovelId.ToString() + "/" + x.Id.ToString(), $"{x.FileContent}"),
                 Discount = x.Discount,
                 ApprovalStatus = x.ApprovalStatus,
-                NovelId = x.NovelId
-
+                NovelId = x.NovelId,
             }).ToListAsync();
+
+            for (int i = 0; i < listChapter.Count; i++)
+            {
+                listChapter[i].ChapIndex = i + 1;
+            }
 
             return listChapter;
         }
@@ -206,6 +236,62 @@ namespace WebNovel.API.Areas.Models.Chapter
 
                 _logger.LogInformation($"[{_className}][{method}] End");
                 return result;
+            }
+            catch (Exception e)
+            {
+                if (transaction != null)
+                {
+                    await _context.RollbackAsync(transaction);
+                }
+                _logger.LogInformation($"[{_className}][{method}] Exception: {e.Message}");
+                throw;
+            }
+        }
+
+        public async Task<ResponseInfo> UnlockChapter(string chapterId, string accountId)
+        {
+            IDbContextTransaction transaction = null;
+            string method = GetActualAsyncMethodName();
+            try
+            {
+                _logger.LogInformation($"[{_className}][{method}] Start");
+                ResponseInfo result = new ResponseInfo();
+                ResponseInfo response = new ResponseInfo();
+
+                var existChapter = _context.Chapter.Where(e => e.DelFlag == false).Where(n => n.Id == chapterId).Include(e => e.UpdatedFee).Include(e => e.Novel).ThenInclude(e => e.Account).FirstOrDefault();
+                var account = _context.Accounts.Where(e => e.DelFlag == false).Where(n => n.Id == accountId).FirstOrDefault();
+                if (existChapter is null || account is null)
+                {
+                    response.Code = CodeResponse.HAVE_ERROR;
+                    response.MsgNo = MSG_NO.NOT_FOUND;
+                    return response;
+                }
+
+                var chapterOfAccount = new ChapterOfAccount()
+                {
+                    NovelId = existChapter.NovelId,
+                    AccountId = account.Id,
+                    ChapterId = existChapter.Id
+                };
+                account.WalletAmmount -= existChapter.UpdatedFee.Fee;
+                existChapter.Novel.Account.CreatorWallet += existChapter.UpdatedFee.Fee;
+
+                var strategy = _context.Database.CreateExecutionStrategy();
+                await strategy.ExecuteAsync(
+                    async () =>
+                    {
+                        using (var trn = await _context.Database.BeginTransactionAsync())
+                        {
+                            await _context.ChapterOfAccounts.AddAsync(chapterOfAccount);
+                            await _context.SaveChangesAsync();
+                            await trn.CommitAsync();
+                        }
+                    }
+                );
+
+                _logger.LogInformation($"[{_className}][{method}] End");
+                return result;
+
             }
             catch (Exception e)
             {

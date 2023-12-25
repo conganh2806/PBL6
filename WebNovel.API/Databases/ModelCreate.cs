@@ -146,7 +146,109 @@ namespace WebNovel.API.Databases
                 e.NovelId
             });
 
+            modelBuilder
+            .Entity<Merchant>()
+            .HasMany(e => e.PaymentNotifications)
+            .WithOne(e => e.Merchant)
+            .HasForeignKey(e => e.NotiMerchantId)
+            .IsRequired();
 
+            modelBuilder
+            .Entity<Merchant>()
+            .HasMany(e => e.Payments)
+            .WithOne(e => e.Merchant)
+            .HasForeignKey(e => e.MerchantId)
+            .IsRequired();
+
+            modelBuilder
+            .Entity<Payment>()
+            .HasMany(e => e.PaymentNotifications)
+            .WithOne(e => e.Payment)
+            .HasForeignKey(e => e.NotiPaymentId)
+            .IsRequired();
+
+            modelBuilder
+            .Entity<Payment>()
+            .HasOne(e => e.PaymentDestination)
+            .WithMany(e => e.Payments)
+            .HasForeignKey(e => e.PaymentDestinationId)
+            .IsRequired();
+
+            modelBuilder
+            .Entity<Payment>()
+            .HasMany(e => e.PaymentSignatures)
+            .WithOne(e => e.Payment)
+            .HasForeignKey(e => e.PaymentId)
+            .IsRequired();
+
+            modelBuilder
+            .Entity<Payment>()
+            .HasMany(e => e.PaymentTransactions)
+            .WithOne(e => e.Payment)
+            .HasForeignKey(e => e.PaymentId)
+            .IsRequired();
+
+            modelBuilder
+            .Entity<Order>()
+            .HasOne(e => e.Account)
+            .WithMany(e => e.Orders)
+            .HasForeignKey(e => e.AccountId)
+            .IsRequired();
+
+            modelBuilder
+            .Entity<Order>()
+            .HasOne(e => e.Bundle)
+            .WithMany(e => e.Orders)
+            .HasForeignKey(e => e.BundleId)
+            .IsRequired();
+
+            modelBuilder
+            .Entity<ChapterOfAccount>()
+            .HasOne(e => e.Account)
+            .WithMany(e => e.ChapterOfAccounts)
+            .HasForeignKey(e => e.AccountId)
+            .IsRequired();
+
+            modelBuilder
+            .Entity<ChapterOfAccount>()
+            .HasOne(e => e.Chapter)
+            .WithMany(e => e.ChapterOfAccounts)
+            .HasForeignKey(e => e.ChapterId)
+            .IsRequired();
+
+            modelBuilder
+            .Entity<ChapterOfAccount>()
+            .HasOne(e => e.Novel)
+            .WithMany(e => e.ChapterOfAccounts)
+            .HasForeignKey(e => e.NovelId)
+            .IsRequired();
+
+            modelBuilder
+            .Entity<ChapterOfAccount>()
+            .HasKey(e => new
+            {
+                e.AccountId,
+                e.ChapterId
+            });
+
+            modelBuilder
+            .Entity<Payout>()
+            .HasOne(e => e.Account)
+            .WithMany(e => e.Payouts)
+            .HasForeignKey(e => e.AccountId)
+            .IsRequired();
+
+            modelBuilder
+            .Entity<Report>()
+            .HasOne(e => e.Account)
+            .WithMany(e => e.Reports)
+            .IsRequired();
+
+            modelBuilder
+            .Entity<Report>()
+            .HasOne(e => e.Novel)
+            .WithMany(e => e.Reports)
+            .IsRequired();
 
             return modelBuilder;
         }
