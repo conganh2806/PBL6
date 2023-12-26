@@ -404,6 +404,10 @@ namespace WebNovel.API.Areas.Models.Accounts
             {
                 throw new UnauthorizedAccessException("Authentication Failed.");
             }
+            if (user.IsActive == false)
+            {
+                throw new UnauthorizedAccessException("Account is inactive");
+            }
 
             // if (!user.IsVerifyEmail)
             // {

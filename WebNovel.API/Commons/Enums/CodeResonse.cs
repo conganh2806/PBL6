@@ -7,11 +7,6 @@ namespace WebNovel.API.Commons.Enums
 {
     public class CodeResonse
     {
-        /// <summary>
-        /// Các giá trị hằng số xác định kết quả trả về từ server.
-        /// <para>Author: QuyPN.</para>
-        /// <para>Created at: 13/02/2020.</para>
-        /// </summary>
         public class CodeResponse
         {
             /// <summary>
