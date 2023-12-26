@@ -399,13 +399,13 @@ namespace WebNovel.API.Areas.Models.Accounts
         public async Task<string> LoginWithPasswordAsync(string email, string password)
         {
             var user = await _context.Accounts.Where(e => e.DelFlag == false).Where(x => x.Email == email && x.Password == Security.Sha256(password)).FirstOrDefaultAsync();
-            if (!user.IsActive.HasValue)
-            {
-                throw new UnauthorizedAccessException("Account is inactive");
-            }
             if (user == null)
             {
                 throw new UnauthorizedAccessException("Authentication Failed.");
+            }
+            if (user.IsActive == false)
+            {
+                throw new UnauthorizedAccessException("Account is inactive");
             }
 
             // if (!user.IsVerifyEmail)

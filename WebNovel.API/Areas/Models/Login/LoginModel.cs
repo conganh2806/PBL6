@@ -82,6 +82,12 @@ namespace WebNovel.API.Areas.Models.Login
                     if (!userDB.IsVerifyEmail)
                     {
                         userDB.IsVerifyEmail = true;
+                        await _context.SaveChangesAsync();
+                        await transaction.CommitAsync();
+                    }
+                    if (userDB.IsActive == false)
+                    {
+                        throw new UnauthorizedAccessException("Account is inactive");
                     }
                 }
                 var tokeninfo = await _tokenService.GetTokenAsync(userDB.Id);
