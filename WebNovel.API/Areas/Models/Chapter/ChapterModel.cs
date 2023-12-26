@@ -271,7 +271,8 @@ namespace WebNovel.API.Areas.Models.Chapter
                 {
                     NovelId = existChapter.NovelId,
                     AccountId = account.Id,
-                    ChapterId = existChapter.Id
+                    ChapterId = existChapter.Id,
+                    FeeId = existChapter.FeeId,
                 };
                 account.WalletAmmount -= existChapter.UpdatedFee.Fee;
                 existChapter.Novel.Account.CreatorWallet += existChapter.UpdatedFee.Fee;

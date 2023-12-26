@@ -13,12 +13,14 @@ namespace WebNovel.API.Databases.Entities
         public UpdatedFee()
         {
             this.Chapters = new HashSet<Chapter>();
+            this.ChapterOfAccounts = new HashSet<ChapterOfAccount>();
         }
         public float Fee { get; set; }
         [DataType(DataType.DateTime)]
         public DateTime DateUpdated { get; set; }
         public int Year { get; set; }
         public virtual ICollection<Chapter>? Chapters { get; set; }
+        public virtual ICollection<ChapterOfAccount>? ChapterOfAccounts { get; set; }
 
     }
 }

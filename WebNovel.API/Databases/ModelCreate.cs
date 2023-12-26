@@ -225,6 +225,13 @@ namespace WebNovel.API.Databases
 
             modelBuilder
             .Entity<ChapterOfAccount>()
+            .HasOne(e => e.UpdatedFee)
+            .WithMany(e => e.ChapterOfAccounts)
+            .HasForeignKey(e => e.FeeId)
+            .IsRequired();
+
+            modelBuilder
+            .Entity<ChapterOfAccount>()
             .HasKey(e => new
             {
                 e.AccountId,

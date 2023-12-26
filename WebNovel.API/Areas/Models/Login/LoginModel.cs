@@ -153,6 +153,10 @@ namespace WebNovel.API.Areas.Models.Login
 
                     );
                 }
+                if (userDB.IsActive == false)
+                {
+                    throw new UnauthorizedAccessException("Account is inactive");
+                }
                 var tokeninfo = await _tokenService.GetTokenAsync(userDB.Id);
                 return tokeninfo;
             }

@@ -693,7 +693,7 @@ namespace WebNovel.API.Areas.Models.Payments
             var ChapterOfAccounts = await _context.ChapterOfAccounts.Where(e => e.DelFlag == false)
             .Include(e => e.Novel)
             .Where(e => e.Novel.AccountId == AccountId)
-            .Include(e => e.Chapter).ThenInclude(e => e.UpdatedFee)
+            .Include(e => e.UpdatedFee)
             .ToListAsync();
 
             var DayOfWeek = (int)DateTimeOffset.Now.DayOfWeek;
@@ -706,22 +706,22 @@ namespace WebNovel.API.Areas.Models.Payments
                 MsgNo = AccountId + " Revenue"
             };
 
-            ResponseInfo.Data.Add("WeeklyRevenue", ChapterOfAccounts.Where(e => e.CreatedAt > currentWeek).Select(e => e.Chapter.UpdatedFee.Fee).Sum().ToString());
-            ResponseInfo.Data.Add("MonthlyRevenue", ChapterOfAccounts.Where(e => e.CreatedAt.Year == currentYear && e.CreatedAt.Month == currentMonth).Select(e => e.Chapter.UpdatedFee.Fee).Sum().ToString());
-            ResponseInfo.Data.Add("YearlyRevenue", ChapterOfAccounts.Where(e => e.CreatedAt.Year == currentYear).Select(e => e.Chapter.UpdatedFee.Fee).Sum().ToString());
+            ResponseInfo.Data.Add("WeeklyRevenue", ChapterOfAccounts.Where(e => e.CreatedAt > currentWeek).Select(e => e.UpdatedFee.Fee).Sum().ToString());
+            ResponseInfo.Data.Add("MonthlyRevenue", ChapterOfAccounts.Where(e => e.CreatedAt.Year == currentYear && e.CreatedAt.Month == currentMonth).Select(e => e.UpdatedFee.Fee).Sum().ToString());
+            ResponseInfo.Data.Add("YearlyRevenue", ChapterOfAccounts.Where(e => e.CreatedAt.Year == currentYear).Select(e => e.UpdatedFee.Fee).Sum().ToString());
 
-            ResponseInfo.Data.Add("January", ChapterOfAccounts.Where(e => e.CreatedAt.Year == currentYear && e.CreatedAt.Month == 1).Select(e => e.Chapter.UpdatedFee.Fee).Sum().ToString());
-            ResponseInfo.Data.Add("February", ChapterOfAccounts.Where(e => e.CreatedAt.Year == currentYear && e.CreatedAt.Month == 2).Select(e => e.Chapter.UpdatedFee.Fee).Sum().ToString());
-            ResponseInfo.Data.Add("March", ChapterOfAccounts.Where(e => e.CreatedAt.Year == currentYear && e.CreatedAt.Month == 3).Select(e => e.Chapter.UpdatedFee.Fee).Sum().ToString());
-            ResponseInfo.Data.Add("April", ChapterOfAccounts.Where(e => e.CreatedAt.Year == currentYear && e.CreatedAt.Month == 4).Select(e => e.Chapter.UpdatedFee.Fee).Sum().ToString());
-            ResponseInfo.Data.Add("May", ChapterOfAccounts.Where(e => e.CreatedAt.Year == currentYear && e.CreatedAt.Month == 5).Select(e => e.Chapter.UpdatedFee.Fee).Sum().ToString());
-            ResponseInfo.Data.Add("June", ChapterOfAccounts.Where(e => e.CreatedAt.Year == currentYear && e.CreatedAt.Month == 6).Select(e => e.Chapter.UpdatedFee.Fee).Sum().ToString());
-            ResponseInfo.Data.Add("July", ChapterOfAccounts.Where(e => e.CreatedAt.Year == currentYear && e.CreatedAt.Month == 7).Select(e => e.Chapter.UpdatedFee.Fee).Sum().ToString());
-            ResponseInfo.Data.Add("August", ChapterOfAccounts.Where(e => e.CreatedAt.Year == currentYear && e.CreatedAt.Month == 8).Select(e => e.Chapter.UpdatedFee.Fee).Sum().ToString());
-            ResponseInfo.Data.Add("September", ChapterOfAccounts.Where(e => e.CreatedAt.Year == currentYear && e.CreatedAt.Month == 9).Select(e => e.Chapter.UpdatedFee.Fee).Sum().ToString());
-            ResponseInfo.Data.Add("October", ChapterOfAccounts.Where(e => e.CreatedAt.Year == currentYear && e.CreatedAt.Month == 10).Select(e => e.Chapter.UpdatedFee.Fee).Sum().ToString());
-            ResponseInfo.Data.Add("November", ChapterOfAccounts.Where(e => e.CreatedAt.Year == currentYear && e.CreatedAt.Month == 11).Select(e => e.Chapter.UpdatedFee.Fee).Sum().ToString());
-            ResponseInfo.Data.Add("December", ChapterOfAccounts.Where(e => e.CreatedAt.Year == currentYear && e.CreatedAt.Month == 12).Select(e => e.Chapter.UpdatedFee.Fee).Sum().ToString());
+            ResponseInfo.Data.Add("January", ChapterOfAccounts.Where(e => e.CreatedAt.Year == currentYear && e.CreatedAt.Month == 1).Select(e => e.UpdatedFee.Fee).Sum().ToString());
+            ResponseInfo.Data.Add("February", ChapterOfAccounts.Where(e => e.CreatedAt.Year == currentYear && e.CreatedAt.Month == 2).Select(e => e.UpdatedFee.Fee).Sum().ToString());
+            ResponseInfo.Data.Add("March", ChapterOfAccounts.Where(e => e.CreatedAt.Year == currentYear && e.CreatedAt.Month == 3).Select(e => e.UpdatedFee.Fee).Sum().ToString());
+            ResponseInfo.Data.Add("April", ChapterOfAccounts.Where(e => e.CreatedAt.Year == currentYear && e.CreatedAt.Month == 4).Select(e => e.UpdatedFee.Fee).Sum().ToString());
+            ResponseInfo.Data.Add("May", ChapterOfAccounts.Where(e => e.CreatedAt.Year == currentYear && e.CreatedAt.Month == 5).Select(e => e.UpdatedFee.Fee).Sum().ToString());
+            ResponseInfo.Data.Add("June", ChapterOfAccounts.Where(e => e.CreatedAt.Year == currentYear && e.CreatedAt.Month == 6).Select(e => e.UpdatedFee.Fee).Sum().ToString());
+            ResponseInfo.Data.Add("July", ChapterOfAccounts.Where(e => e.CreatedAt.Year == currentYear && e.CreatedAt.Month == 7).Select(e => e.UpdatedFee.Fee).Sum().ToString());
+            ResponseInfo.Data.Add("August", ChapterOfAccounts.Where(e => e.CreatedAt.Year == currentYear && e.CreatedAt.Month == 8).Select(e => e.UpdatedFee.Fee).Sum().ToString());
+            ResponseInfo.Data.Add("September", ChapterOfAccounts.Where(e => e.CreatedAt.Year == currentYear && e.CreatedAt.Month == 9).Select(e => e.UpdatedFee.Fee).Sum().ToString());
+            ResponseInfo.Data.Add("October", ChapterOfAccounts.Where(e => e.CreatedAt.Year == currentYear && e.CreatedAt.Month == 10).Select(e => e.UpdatedFee.Fee).Sum().ToString());
+            ResponseInfo.Data.Add("November", ChapterOfAccounts.Where(e => e.CreatedAt.Year == currentYear && e.CreatedAt.Month == 11).Select(e => e.UpdatedFee.Fee).Sum().ToString());
+            ResponseInfo.Data.Add("December", ChapterOfAccounts.Where(e => e.CreatedAt.Year == currentYear && e.CreatedAt.Month == 12).Select(e => e.UpdatedFee.Fee).Sum().ToString());
 
             return ResponseInfo;
         }

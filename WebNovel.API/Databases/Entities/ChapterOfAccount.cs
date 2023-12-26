@@ -11,5 +11,7 @@ namespace WebNovel.API.Databases.Entities
         public virtual Chapter Chapter { get; set; } = null!;
         public string NovelId { get; set; } = null!;
         public virtual Novel Novel { get; set; } = null!;
+        public long? FeeId { get; set; } = null!;
+        public virtual UpdatedFee UpdatedFee { get; set; } = null!;
     }
 }
