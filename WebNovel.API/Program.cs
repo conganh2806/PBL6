@@ -21,6 +21,7 @@ using WebNovel.API.Areas.Models.Orders;
 using WebNovel.API.Areas.Models.Payments;
 using WebNovel.API.Areas.Models.Preferences;
 using WebNovel.API.Areas.Models.Rating;
+using WebNovel.API.Areas.Models.Reports;
 using WebNovel.API.Areas.Models.Roles;
 using WebNovel.API.Areas.Models.UpdatedFees;
 using WebNovel.API.Core.Services;
@@ -79,6 +80,7 @@ internal class Program
         services.AddScoped<ICurrentUserService, CurrentUserService>();
         services.AddScoped<IJobService, JobService>();
         services.AddScoped<IEmailService, SmtpMailService>();
+        services.AddScoped<IReportModel, ReportModel>();
 
         services.Configure<VnpayConfig>(builder.Configuration.GetSection(VnpayConfig.ConfigName));
 
