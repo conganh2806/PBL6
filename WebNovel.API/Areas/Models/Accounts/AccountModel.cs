@@ -6,6 +6,7 @@ using System.Threading.Tasks;
 using CSharpVitamins;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Storage;
+using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
 using Webnovel.API.Databases;
 using WebNovel.API.Areas.Models.Accounts.Schemas;
@@ -198,7 +199,11 @@ namespace WebNovel.API.Areas.Models.Accounts
 
         public async Task<List<AccountDto>> GetListAccount(SearchCondition searchCondition)
         {
-            var listAccount = await _context.Accounts.Where(e => e.DelFlag == false).Include(x => x.Roles).ThenInclude(x => x.Role).Select(x => new AccountDto()
+            var listAccount = await _context.Accounts.Where(e => e.DelFlag == false)
+            .Where(e => string.IsNullOrEmpty(searchCondition.Key)
+                        || e.Username.Contains(searchCondition.Key)
+                        || e.Email.Contains(searchCondition.Key))
+            .Include(x => x.Roles).ThenInclude(x => x.Role).Select(x => new AccountDto()
             {
                 Id = x.Id,
                 NickName = x.NickName,

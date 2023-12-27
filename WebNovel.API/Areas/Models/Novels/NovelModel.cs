@@ -126,7 +126,7 @@ namespace WebNovel.API.Areas.Models.Novels
             .Include(x => x.Account)
             .Where(x => string.IsNullOrEmpty(searchCondition.Key)
                         || x.Title.Contains(searchCondition.Key)
-                        || x.Account != null && x.Account.Username.Contains(searchCondition.Key))
+                        || (x.Account != null && x.Account.Username.Contains(searchCondition.Key)))
             .Include(x => x.Genres).ThenInclude(e => e.Genre)
             .Include(e => e.Ratings)
             .Include(e => e.Chapters)
