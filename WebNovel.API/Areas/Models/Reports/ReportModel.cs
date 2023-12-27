@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Runtime.CompilerServices;
 using System.Threading.Tasks;
+using CommunityToolkit.HighPerformance;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Storage;
 using WebNovel.API.Areas.Models.Reports.Schemas;
@@ -17,7 +18,7 @@ namespace WebNovel.API.Areas.Models.Reports
     public interface IReportModel
     {
         Task<List<ReportDto>> GetListReport();
-        Task<ResponseInfo> AddReport(ReportCreateUpdateEntity account);
+        Task<ResponseInfo> AddReport(ReportCreateEntity account);
     }
     public class ReportModel : BaseModel, IReportModel
     {
@@ -30,7 +31,7 @@ namespace WebNovel.API.Areas.Models.Reports
         }
 
         static string GetActualAsyncMethodName([CallerMemberName] string name = null) => name;
-        public async Task<ResponseInfo> AddReport(ReportCreateUpdateEntity report)
+        public async Task<ResponseInfo> AddReport(ReportCreateEntity report)
         {
             IDbContextTransaction transaction = null;
             string method = GetActualAsyncMethodName();
@@ -45,7 +46,7 @@ namespace WebNovel.API.Areas.Models.Reports
                     result.MsgNo = "Novel is not exist!";
                     return result;
                 }
-                var reportExist = await _context.Reports.Where(x => x.NovelId == report.NovelId && x.AccountId == report.AccountId).FirstOrDefaultAsync();
+                var reportExist = await _context.Report.Where(x => x.NovelId == report.NovelId && x.AccountId == report.AccountId).FirstOrDefaultAsync();
                 if (reportExist is not null)
                 {
                     result.Code = 202;
@@ -55,7 +56,6 @@ namespace WebNovel.API.Areas.Models.Reports
 
                 var newReport = new Report()
                 {
-                    Id = report.Id,
                     AccountId = report.AccountId,
                     NovelId = report.NovelId,
                     Reason = report.Reason
@@ -67,7 +67,7 @@ namespace WebNovel.API.Areas.Models.Reports
                     {
                         using (var trn = await _context.Database.BeginTransactionAsync())
                         {
-                            await _context.Reports.AddAsync(newReport);
+                            await _context.Report.AddAsync(newReport);
                             await _context.SaveChangesAsync();
                             await trn.CommitAsync();
                         }
@@ -91,11 +91,22 @@ namespace WebNovel.API.Areas.Models.Reports
 
         public async Task<List<ReportDto>> GetListReport()
         {
-            var list = _context.Reports.Include(x => x.Novel).Where(x => !x.DelFlag).Select(x => new ReportDto()
+            var list = _context.Report.Include(x => x.Novel).ThenInclude(e => e.Account)
+            .Include(e => e.Account)
+            .Where(x => !x.DelFlag)
+            .Where(e => !e.Novel.Account.DelFlag && e.Novel.Account.IsActive == true)
+            .Where(e => !e.Account.DelFlag && e.Account.IsActive == true)
+            .Where(e => !e.Novel.DelFlag)
+            .OrderBy(e => e.NovelId).ThenByDescending(e => e.CreatedAt)
+            .Select(x => new ReportDto()
             {
                 Id = x.Id,
-                NameNovel = x.Novel.Name,
+                AccountId = x.AccountId,
+                AccountReport = x.Account.Username,
                 NovelId = x.NovelId,
+                NovelTitle = x.Novel.Title,
+                AccountIdOfNovelId = x.Novel.Account.Id,
+                AccountOfNovel = x.Novel.Account.Username,
                 Reason = x.Reason
             }).ToList();
             return list;

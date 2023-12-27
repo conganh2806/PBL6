@@ -15,7 +15,7 @@ namespace WebNovel.API.Areas.Controllers
 {
     [Route("api/reports")]
     [ApiController]
-    public class ReportController: BaseController
+    public class ReportController : BaseController
     {
         private readonly IReportModel _reportModel;
         private readonly IServiceProvider _provider;
@@ -42,7 +42,7 @@ namespace WebNovel.API.Areas.Controllers
         [HttpPost]
         [ProducesResponseType(typeof(ResponseInfo), (int)HttpStatusCode.OK)]
         [Authorize]
-        public async Task<IActionResult> Create([FromBody] ReportCreateUpdateEntity report)
+        public async Task<IActionResult> Create([FromBody] ReportCreateEntity report)
         {
             try
             {

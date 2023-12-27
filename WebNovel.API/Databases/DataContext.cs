@@ -35,7 +35,7 @@ namespace Webnovel.API.Databases
         public virtual DbSet<Bundle> Bundles { get; set; } = null!;
         public virtual DbSet<Order> Orders { get; set; } = null!;
         public virtual DbSet<Payout> Payouts { get; set; } = null!;
-        public virtual DbSet<Report> Reports { get; set; } = null!;
+        public virtual DbSet<Report> Report { get; set; } = null!;
 
         /// <summary>
         /// Payment Database
