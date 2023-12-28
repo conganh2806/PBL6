@@ -150,7 +150,7 @@ namespace WebNovel.API.Areas.Models.Novels
                 CreateAt = x.CreatedAt,
                 GenreName = x.Genres.Select(x => x.Genre.Name).ToList(),
                 GenreIds = x.Genres.Select(x => x.Genre.Id).ToList(),
-                NumChapter = x.Chapters.Count,
+                NumChapter = x.Chapters.Where(e => e.DelFlag == false).Count(),
                 NumRating = x.Ratings.Count,
                 NumPreference = x.Preferences.Count,
             }).ToList();
@@ -195,7 +195,7 @@ namespace WebNovel.API.Areas.Models.Novels
                 CreateAt = x.CreatedAt,
                 GenreName = x.Genres.Select(x => x.Genre.Name).ToList(),
                 GenreIds = x.Genres.Select(x => x.Genre.Id).ToList(),
-                NumChapter = x.Chapters.Count,
+                NumChapter = x.Chapters.Where(e => e.DelFlag == false).Count(),
                 NumRating = x.Ratings.Count,
                 NumPreference = x.Preferences.Count,
             }).ToList();
@@ -238,7 +238,7 @@ namespace WebNovel.API.Areas.Models.Novels
                 CreateAt = x.CreatedAt,
                 GenreName = x.Genres.Select(x => x.Genre.Name).ToList(),
                 GenreIds = x.Genres.Select(x => x.Genre.Id).ToList(),
-                NumChapter = x.Chapters.Count,
+                NumChapter = x.Chapters.Where(e => e.DelFlag == false).Count(),
                 NumRating = x.Ratings.Count,
                 NumPreference = x.Preferences.Count,
             }).ToList();
@@ -285,7 +285,7 @@ namespace WebNovel.API.Areas.Models.Novels
                 CreateAt = novel.CreatedAt,
                 GenreName = novel.Genres.Select(x => x.Genre.Name).ToList(),
                 GenreIds = novel.Genres.Select(x => x.Genre.Id).ToList(),
-                NumChapter = novel.Chapters.Count,
+                NumChapter = novel.Chapters.Where(e => e.DelFlag == false).Count(),
                 NumRating = novel.Ratings.Count,
                 NumPreference = novel.Preferences.Count,
             };
@@ -471,7 +471,7 @@ namespace WebNovel.API.Areas.Models.Novels
                 CreateAt = x.CreatedAt,
                 GenreName = x.Genres.Select(e => e.Genre.Name).ToList(),
                 GenreIds = x.Genres.Select(e => e.Genre.Id).ToList(),
-                NumChapter = x.Chapters.Count,
+                NumChapter = x.Chapters.Where(e => e.DelFlag == false).Count(),
                 NumRating = x.Ratings.Count,
                 NumPreference = x.Preferences.Count,
             }).ToList();
@@ -520,7 +520,7 @@ namespace WebNovel.API.Areas.Models.Novels
                 CreateAt = x.CreatedAt,
                 GenreName = x.Genres.Select(e => e.Genre.Name).ToList(),
                 GenreIds = x.Genres.Select(e => e.Genre.Id).ToList(),
-                NumChapter = x.Chapters.Count,
+                NumChapter = x.Chapters.Where(e => e.DelFlag == false).Count(),
                 NumRating = x.Ratings.Count,
                 NumPreference = x.Preferences.Count,
             }).OrderByDescending(x => x.CreateAt).ToList();
@@ -565,7 +565,7 @@ namespace WebNovel.API.Areas.Models.Novels
                 CreateAt = x.CreatedAt,
                 GenreName = x.Genres.Select(e => e.Genre.Name).ToList(),
                 GenreIds = x.Genres.Select(e => e.Genre.Id).ToList(),
-                NumChapter = x.Chapters.Count,
+                NumChapter = x.Chapters.Where(e => e.DelFlag == false).Count(),
                 NumRating = x.Ratings.Count,
                 NumPreference = x.Preferences.Count,
             }).ToList();
