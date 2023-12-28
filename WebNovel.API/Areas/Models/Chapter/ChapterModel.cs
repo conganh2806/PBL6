@@ -3,6 +3,7 @@ using CSharpVitamins;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Storage;
 using WebNovel.API.Areas.Models.Chapter.Schemas;
+using WebNovel.API.Areas.Models.UpdatedFees;
 using WebNovel.API.Commons.Enums;
 using WebNovel.API.Commons.Schemas;
 using WebNovel.API.Core.Models;
@@ -31,15 +32,17 @@ namespace WebNovel.API.Areas.Models.Chapter
         private readonly IAwsS3Service _awsS3Service;
         private readonly IJobService _jobService;
         private readonly IEmailService _emailService;
+        private readonly IUpdatedFeeModel _updatedFeeModel;
 
         private string _className = "";
-        public ChapterModel(IServiceProvider provider, ILogger<IChapterModel> logger, IAwsS3Service awsS3Service, IEmailService emailService, IJobService jobService) : base(provider)
+        public ChapterModel(IServiceProvider provider, ILogger<IChapterModel> logger, IAwsS3Service awsS3Service, IEmailService emailService, IJobService jobService, IUpdatedFeeModel updatedFeeModel) : base(provider)
         {
             _logger = logger ?? throw new ArgumentNullException(nameof(logger));
             _className = GetType().Name;
             _jobService = jobService;
             _emailService = emailService;
             _awsS3Service = awsS3Service;
+            _updatedFeeModel = updatedFeeModel;
         }
         static string GetActualAsyncMethodName([CallerMemberName] string name = null) => name;
         public async Task<ResponseInfo> AddChapter(ChapterCreateEntity chapter)
@@ -70,6 +73,7 @@ namespace WebNovel.API.Areas.Models.Chapter
                     ApprovalStatus = false,
                     NovelId = chapter.NovelId,
                     Discount = 0,
+                    FeeId = (await _updatedFeeModel.GetActiveFee())?.Id,
                 };
 
                 var strategy = _context.Database.CreateExecutionStrategy();
@@ -119,7 +123,10 @@ namespace WebNovel.API.Areas.Models.Chapter
 
         public async Task<ChapterDto?> GetChapterAsync(string id)
         {
-            var chapter = await _context.Chapter.Where(e => e.DelFlag == false).Where(x => x.Id == id).FirstOrDefaultAsync();
+            var chapter = await _context.Chapter.Where(e => e.DelFlag == false)
+            .Where(x => x.Id == id)
+            .Include(e => e.UpdatedFee)
+            .FirstOrDefaultAsync();
             if (chapter is null)
             {
                 return null;
@@ -133,7 +140,7 @@ namespace WebNovel.API.Areas.Models.Chapter
                 IsPublished = chapter.IsPublished,
                 Views = chapter.Views,
                 FeeId = chapter.FeeId,
-                Fee = chapter.FeeId is null ? null : (await _context.UpdatedFee.Where(e => e.Id == chapter.FeeId).FirstAsync()).Fee,
+                Fee = chapter.FeeId is null ? null : chapter.UpdatedFee.Fee,
                 FileContent = _awsS3Service.GetFileImg(chapter.NovelId.ToString() + "/" + chapter.Id.ToString(), $"{chapter.FileContent}"),
                 Discount = chapter.Discount,
                 ApprovalStatus = chapter.ApprovalStatus,
@@ -150,7 +157,11 @@ namespace WebNovel.API.Areas.Models.Chapter
         {
             List<ChapterDto> listChapter = new List<ChapterDto>();
 
-            listChapter = await _context.Chapter.Where(e => e.DelFlag == false).Where(x => x.NovelId == NovelId).OrderBy(e => e.PublishDate).Select(x => new ChapterDto()
+            listChapter = await _context.Chapter.Where(e => e.DelFlag == false)
+            .Where(x => x.NovelId == NovelId)
+            .OrderBy(e => e.PublishDate)
+            .Include(e => e.UpdatedFee)
+            .Select(x => new ChapterDto()
             {
                 Id = x.Id,
                 Name = x.Name,
@@ -159,7 +170,7 @@ namespace WebNovel.API.Areas.Models.Chapter
                 IsPublished = x.IsPublished,
                 Views = x.Views,
                 FeeId = x.FeeId,
-                Fee = x.FeeId == null ? null : (_context.UpdatedFee.Where(e => e.Id == x.FeeId).First()).Fee,
+                Fee = x.FeeId == null ? null : x.UpdatedFee.Fee,
                 FileContent = _awsS3Service.GetFileImg(x.NovelId.ToString() + "/" + x.Id.ToString(), $"{x.FileContent}"),
                 Discount = x.Discount,
                 ApprovalStatus = x.ApprovalStatus,
@@ -177,8 +188,16 @@ namespace WebNovel.API.Areas.Models.Chapter
         public async Task<List<ChapterDto>> GetChapterByAccount(string NovelId, string accountId)
         {
             List<ChapterDto> listChapter = new List<ChapterDto>();
-            var chapterIds = await _context.ChapterOfAccounts.Where(e => e.DelFlag == false && e.NovelId == NovelId && e.AccountId == accountId).Select(x => x.ChapterId).ToListAsync();
-            listChapter = await _context.Chapter.Where(e => e.DelFlag == false).Where(x => x.NovelId == NovelId).Include(e => e.Novel).ThenInclude(e => e.Account).OrderBy(e => e.PublishDate).Select(x => new ChapterDto()
+            var chapterIds = await _context.ChapterOfAccounts.Where(e => e.DelFlag == false && e.NovelId == NovelId && e.AccountId == accountId)
+            .Select(x => x.ChapterId)
+            .ToListAsync();
+
+            listChapter = await _context.Chapter.Where(e => e.DelFlag == false)
+            .Where(x => x.NovelId == NovelId)
+            .Include(e => e.Novel).ThenInclude(e => e.Account)
+            .OrderBy(e => e.PublishDate)
+            .Include(e => e.UpdatedFee)
+            .Select(x => new ChapterDto()
             {
                 Id = x.Id,
                 Name = x.Name,
@@ -187,7 +206,7 @@ namespace WebNovel.API.Areas.Models.Chapter
                 IsPublished = x.IsPublished,
                 Views = x.Views,
                 FeeId = x.FeeId,
-                Fee = x.FeeId == null ? null : (_context.UpdatedFee.Where(e => e.Id == x.FeeId).First()).Fee,
+                Fee = x.FeeId == null ? null : x.UpdatedFee.Fee,
                 FileContent = _awsS3Service.GetFileImg(x.NovelId.ToString() + "/" + x.Id.ToString(), $"{x.FileContent}"),
                 Discount = x.Discount,
                 ApprovalStatus = x.ApprovalStatus,

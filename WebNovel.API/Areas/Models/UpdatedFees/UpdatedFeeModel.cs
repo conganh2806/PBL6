@@ -109,8 +109,9 @@ namespace WebNovel.API.Areas.Models.UpdatedFees
                     return result;
                 }
 
-                foreach (var chapter in await _context.Chapter.Where(e => e.DelFlag == false && e.IsLocked == true)
-                                                                .ToListAsync())
+                foreach (var chapter in await _context.Chapter.Where(e => e.DelFlag == false)
+                .Include(e => e.Novel).ThenInclude(e => e.Account)
+                .Where(e => e.Novel.DelFlag == false && e.Novel.Account.DelFlag == false && e.Novel.Account.IsActive == true).ToListAsync())
                 {
                     chapter.FeeId = Fee.Id;
                 }
