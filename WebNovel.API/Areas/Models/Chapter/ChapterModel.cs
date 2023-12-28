@@ -68,7 +68,8 @@ namespace WebNovel.API.Areas.Models.Chapter
                     Rating = 0,
                     FileContent = fileName,
                     ApprovalStatus = false,
-                    NovelId = chapter.NovelId
+                    NovelId = chapter.NovelId,
+                    Discount = 0,
                 };
 
                 var strategy = _context.Database.CreateExecutionStrategy();
