@@ -60,9 +60,13 @@ namespace WebNovel.API.Areas.Models.Novels
                 await _awsS3Service.UploadToS3(novel.File, $"thumbnail{fileType}", GuID.ToString());
                 var fileName = $"thumbnail{fileType}";
 
-                var BGfileType = System.IO.Path.GetExtension(novel.BackgroundFile.FileName);
-                await _awsS3Service.UploadToS3(novel.BackgroundFile, $"background{BGfileType}", GuID.ToString());
-                var BGfileName = $"background{BGfileType}";
+                var BGfileName = string.Empty;
+                if (novel.BackgroundFile is not null)
+                {
+                    var BGfileType = System.IO.Path.GetExtension(novel.BackgroundFile.FileName);
+                    await _awsS3Service.UploadToS3(novel.BackgroundFile, $"background{BGfileType}", GuID.ToString());
+                    BGfileName = $"background{BGfileType}";
+                }
 
                 var newNovel = new Novel()
                 {
@@ -77,7 +81,7 @@ namespace WebNovel.API.Areas.Models.Novels
                     Status = false,
                     ApprovalStatus = false,
                     ImageURL = fileName,
-                    BackgroundURL = BGfileName,
+                    BackgroundURL = string.IsNullOrEmpty(BGfileName) ? null : BGfileName,
                 };
 
                 if (novel.GenreIds.Any())
