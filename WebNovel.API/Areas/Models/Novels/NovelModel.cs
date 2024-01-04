@@ -96,6 +96,16 @@ namespace WebNovel.API.Areas.Models.Novels
                     }
                 }
 
+                var existAccount = await _context.Accounts.Where(e => e.Id == novel.AccountId).Include(e => e.Roles).FirstAsync();
+                if (existAccount.Roles.Where(p => p.RoleId == "CREATOR").FirstOrDefault() is null)
+                {
+                    existAccount.Roles.Add(new RolesOfUser()
+                    {
+                        RoleId = "CREATOR",
+                        AccountId = existAccount.Id,
+                    });
+                }
+
                 var strategy = _context.Database.CreateExecutionStrategy();
                 await strategy.ExecuteAsync(
                     async () =>
