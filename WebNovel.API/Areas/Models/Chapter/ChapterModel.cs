@@ -96,7 +96,7 @@ namespace WebNovel.API.Areas.Models.Chapter
                     {
                         var mailRequest = new EmailRequest()
                         {
-                            Subject = "New Chapter of Novel:" + newChapter.NovelId,
+                            Subject = "New Chapter of Novel: " + (await _context.Novel.Where(e => e.Id == newChapter.NovelId).FirstAsync()).Title,
                             Body = "New Chapter uploaded:" + newChapter.Name,
                             ToMail = email
                         };
