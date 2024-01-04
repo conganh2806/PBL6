@@ -216,5 +216,20 @@ namespace WebNovel.API.Areas.Controllers
                 return StatusCode(500, new { Error = e.Message });
             }
         }
+
+        [HttpGet("user-purchase-history/{AccountId}")]
+        [ProducesResponseType(typeof(ResponseInfo), (int)HttpStatusCode.OK)]
+        [Authorize]
+        public async Task<IActionResult> GetPurchaseHistory(string AccountId)
+        {
+            try
+            {
+                return Ok(await _paymentModel.GetPurchaseHistory(AccountId));
+            }
+            catch (Exception e)
+            {
+                return StatusCode(500, new { Error = e.Message });
+            }
+        }
     }
 }

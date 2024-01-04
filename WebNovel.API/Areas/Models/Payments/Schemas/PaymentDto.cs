@@ -34,4 +34,22 @@ namespace WebNovel.API.Areas.Models.Payments.Schemas
         public DateTime? PaymentDate { get; set; } = DateTime.Now;
         public string? PaymentStatus { get; set; } = string.Empty;
     }
+
+    public class PurchaseHistoryDto
+    {
+        public string AccountId { get; set; } = null!;
+        public string Username { get; set; } = null!;
+        public string Email { get; set; } = null!;
+
+        public string ChapterId { get; set; } = null!;
+        public string ChapterName { get; set; } = null!;
+
+        public string NovelId { get; set; } = null!;
+        public string NovelTitle { get; set; } = null!;
+
+        public long? FeeId { get; set; } = null!;
+        public float Fee { get; set; }
+
+        public DateTimeOffset purchaseDate { get; set; }
+    }
 }

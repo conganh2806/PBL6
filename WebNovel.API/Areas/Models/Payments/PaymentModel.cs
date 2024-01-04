@@ -31,6 +31,7 @@ namespace WebNovel.API.Areas.Models.Payments
         Task<List<PayoutDto>> GetAllPayout(string AccountId);
         Task<ResponseInfo> GetRevenue(string AccountId);
         Task<ResponseInfo> GetAdminRevenue();
+        Task<List<PurchaseHistoryDto>> GetPurchaseHistory(string AccountId);
     }
 
     public class BaseResultWithData<T>
@@ -757,6 +758,33 @@ namespace WebNovel.API.Areas.Models.Payments
             ResponseInfo.Data.Add("December", payments.Where(e => e.PaymentDate?.Year == currentYear && e.PaymentDate?.Month == 12).Select(e => e.Price).Sum().ToString());
 
             return ResponseInfo;
+        }
+
+        public async Task<List<PurchaseHistoryDto>> GetPurchaseHistory(string AccountId)
+        {
+            var PurchaseHistory = await _context.ChapterOfAccounts.Where(e => e.DelFlag == false)
+            .Where(e => e.AccountId == AccountId)
+            .Include(e => e.Account)
+            .Include(e => e.Chapter)
+            .Include(e => e.Novel)
+            .Include(e => e.UpdatedFee)
+            .OrderByDescending(e => e.CreatedAt)
+            .Select(e => new PurchaseHistoryDto()
+            {
+                AccountId = e.AccountId,
+                Username = e.Account.Username,
+                Email = e.Account.Email,
+                ChapterId = e.ChapterId,
+                ChapterName = e.Chapter.Name,
+                NovelId = e.NovelId,
+                NovelTitle = e.Novel.Title,
+                FeeId = e.FeeId,
+                Fee = e.UpdatedFee.Fee,
+                purchaseDate = e.CreatedAt,
+            })
+            .ToListAsync();
+
+            return PurchaseHistory;
         }
     }
 }
