@@ -147,7 +147,7 @@ namespace WebNovel.API.Areas.Models.Chapter
                 NovelId = chapter.NovelId
             };
 
-            var listChapter = await _context.Chapter.Where(x => x.NovelId == chapter.NovelId).OrderBy(e => e.PublishDate).ToListAsync();
+            var listChapter = await _context.Chapter.Where(e => e.DelFlag == false).Where(x => x.NovelId == chapter.NovelId).OrderBy(e => e.PublishDate).ToListAsync();
             chapterDto.ChapIndex = listChapter.FindIndex(a => a.Id == chapter.Id) + 1;
 
             return chapterDto;
